@@ -1,0 +1,22 @@
+node_modules/
+.next/
+.gitnexus/
+coverage/
+.DS_Store
+*.log
+*.tsbuildinfo
+.env*
+
+.playwright-mcp/
+
+# Tencent Cloud EdgeOne
+.env
+.edgeone/*
+.tef_dist/*
+
+# Historical drafts stay outside the public repository
+/docs/practice-draft/
+
+# Local agent tooling
+.claude/
+CLAUDE.md

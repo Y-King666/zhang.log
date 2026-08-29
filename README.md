@@ -20,8 +20,15 @@ Zhang（张）的个人作品集网站 —— 一名大学生开发者的数字�
 - **中英双语**：通过 URL 语言段 `/cn`、`/en` 支持，全站按语言静态预渲染
 - **内容驱动**：博客文章与项目全部由 `content/` 下的 MDX 编写，脚本自动生成数据
 - **深色主题**：以 Lobster 橙为主色、青色点缀的暗色设计
-- **动效**：Hero、精选项目 bento 网格等使用 framer-motion 过渡动画
+- **动效**：Hero Z 形背景、仪表盘终端动效等使用 framer-motion 过渡动画
 - **博客分类筛选**：文章列表带可用的分类筛选标签页
+- **列表筛选与排序**：博客和项目列表支持关键词搜索、标签/分类筛选和多种排序方式
+- **标签本地化**：中文页面翻译语义标签，AI、Go、TypeScript 等技术名词保留原文
+- **项目详情目录**：项目正文自动生成章节目录、标题锚点和当前章节高亮，支持移动端折叠
+- **全站惯性滚动**：Lenis 始终启用惯性滚动，章节跳转可以立即打断当前滚动
+- **本地图片资源**：博客、项目封面和头像统一使用 `public/images/` 下的本地资源
+- **边框高光卡片**：主要内容卡片使用主题橙色边缘高光增强层次感
+- **响应式仪表盘**：大屏显示终端风格状态面板，小屏自动隐藏
 
 ## 快速开始
 
@@ -54,6 +61,13 @@ npm lint
 
 **项目 frontmatter 字段：** `slug`、`title`、`date`、`readTime`、`role`、`image`、`tags`、`featured`
 
+图片资源约定：博客图片放在 `public/images/blogs/<slug>.png`，项目图片放在
+`public/images/projects/<slug>.png`，头像使用 `public/images/avatars/avatar.png`。
+内容生成脚本会根据 slug 自动写入相对地址，新增或替换图片后运行 `npm run generate`。
+
+项目详情页的目录由正文中的 `h2` / `h3` 自动生成，不需要手工维护导航链接。MDX
+标题会自动获得锚点，目录会根据滚动位置高亮当前章节。
+
 ## 项目文件结构
 
 ```text
@@ -66,7 +80,7 @@ zhang.log/
 │   │   ├── about/                # 关于页
 │   │   │   ├── page.tsx
 │   │   │   └── AboutClient.tsx
-│   │   ├── blog/                 # 博客
+│   │   ├── blogs/                # 博客页面路由
 │   │   │   ├── page.tsx          # 文章列表（分类筛选标签页）
 │   │   │   ├── BlogClient.tsx
 │   │   │   └── [slug]/page.tsx   # 文章详情（generateStaticParams）
@@ -81,13 +95,17 @@ zhang.log/
 │   └── mdx.d.ts                  # MDX 模块类型声明
 ├── components/                   # 共享组件
 │   ├── Footer.tsx
-│   └── Navbar.tsx
+│   ├── ListFilters.tsx            # 列表搜索、筛选和排序
+│   ├── Navbar.tsx
+│   ├── ProjectTableOfContents.tsx # 项目详情自动目录
+│   └── SmoothScroll.tsx            # Lenis 惯性滚动
 ├── content/                      # 内容源（MDX，唯一内容入口）
 │   ├── blog/                     # 博客文章（6 篇）
 │   └── projects/                 # 项目（3 个）
 ├── lib/                          # 数据与业务逻辑
 │   ├── content.ts                # 内容读取接口（导入 content-data.json）
 │   ├── i18n.ts                   # 中英文案（translations 对象）
+│   ├── tag-display.ts            # 标签展示语言映射
 │   ├── mdx-registry.ts           # 生成：MDX 正文静态导入注册表
 │   ├── utils.ts                  # cn() 工具（clsx + tailwind-merge）
 │   ├── data/content-data.json    # 生成：内容元数据
@@ -96,6 +114,10 @@ zhang.log/
 │       └── projects/
 ├── scripts/
 │   └── generate-content-data.js  # 生成内容数据（JSON + registry + 干净正文）
+├── public/images/                # 本地图片资源
+│   ├── avatars/                  # 作者头像
+│   ├── blogs/                    # 博客封面，按 slug 命名
+│   └── projects/                 # 项目封面，按 slug 命名
 ├── proxy.ts                      # 路由中间件（非语言路径重定向到 /cn）
 ├── mdx-components.tsx            # MDX 渲染组件映射
 ├── next.config.ts                # Next.js 配置（mdxRs、远程图片白名单）

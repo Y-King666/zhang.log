@@ -39,7 +39,7 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                 className="relative bg-center bg-no-repeat aspect-square bg-cover rounded-full size-48 md:size-56 ring-4 ring-white/10 shadow-2xl z-10"
                 style={{
                   backgroundImage:
-                    'url("https://lh3.googleusercontent.com/aida-public/AB6AXuAXP2WgE-eBqiSDnE0pYx5tdhkwJJ5_NYvFynSNG66ERN5ivr547iFYga_Gr6xlNRNEUeTCxLGkzjVl-9Ir1VWlJBoI_Rh-Wu5jM4DWP6hbi0n9U27ZApt7o1Is9EONF9SuZRWrMMrpvMaNHUI0klc30Ua0N8shNn9mvYPklJrMbioWe2A4dMNskGBugREN3LmbjSoUMsOF6393BKYOwjVQ6m6Cy91MbgbaMuZ6NZVM0s9GvdfsYtLNZyGjxsQuOSoYT8i8k_nj82L7")',
+                    'url("/images/avatars/avatar.png")',
                 }}
               ></div>
             </motion.div>
@@ -48,12 +48,13 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
+                className="text-center md:text-left"
               >
                 <h1 className="text-white text-5xl md:text-7xl font-black tracking-tighter leading-none mb-2">
                   {t('about.name')}
                 </h1>
                 <p className="text-lobster text-2xl font-bold tracking-tight mb-4">{t('about.title')}</p>
-                <div className="flex items-center gap-2 text-slate-400 font-medium">
+                <div className="flex items-center justify-center md:justify-start gap-2 text-slate-400 font-medium">
                   <MapPin className="size-5 text-lobster" />
                   <span>{t('about.location')}</span>
                 </div>
@@ -83,9 +84,9 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
 
         <section className="mb-20">
           <div className="flex items-center gap-4 mb-8">
-            <div className="h-px flex-1 bg-white/10"></div>
-            <h2 className="text-white text-3xl font-black tracking-tighter uppercase">{t('about.me.title')}</h2>
             <div className="h-px w-12 bg-lobster"></div>
+            <h2 className="text-white text-3xl font-black tracking-tighter uppercase">{t('about.me.title')}</h2>
+            <div className="h-px flex-1 bg-white/10"></div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
             <div className="md:col-span-8 space-y-6">
@@ -99,7 +100,7 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                 {t('about.me.desc3')}
               </p>
             </div>
-            <div className="md:col-span-4 bg-white/[0.02] border border-white/5 p-8 rounded-[32px] flex flex-col justify-center items-center text-center">
+            <div className="edge-lit-card md:col-span-4 p-8 rounded-[32px] flex flex-col justify-center items-center text-center">
               <div className="text-lobster text-5xl font-black mb-2">3+</div>
               <div className="text-slate-500 text-xs font-black uppercase tracking-widest">{t('about.stats.years')}</div>
               <div className="h-px w-12 bg-white/10 my-6"></div>
@@ -126,7 +127,7 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
               <motion.div
                 key={idx}
                 whileHover={{ y: -5 }}
-                className="p-8 bg-white/[0.02] border border-white/5 rounded-[32px] hover:border-lobster/30 transition-all group"
+                className="edge-lit-card p-8 rounded-[32px] transition-all group"
               >
                 <div className="size-14 rounded-2xl bg-lobster/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                   <skill.icon className="size-7 text-lobster" />
@@ -146,6 +147,7 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
 
         <section className="mb-20">
           <div className="flex items-center gap-4 mb-10">
+            <div className="h-px w-12 bg-lobster"></div>
             <h2 className="text-white text-3xl font-black tracking-tighter uppercase">{t('about.exploration.title')}</h2>
             <div className="h-px flex-1 bg-white/10"></div>
           </div>
@@ -159,7 +161,7 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
               <motion.div
                 key={i}
                 whileHover={{ y: -5 }}
-                className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl hover:border-lobster/30 transition-all group"
+                className="edge-lit-card p-6 rounded-3xl transition-all group"
               >
                 <div className="flex justify-between items-start mb-4">
                   <div className="p-3 rounded-xl bg-lobster/10 text-lobster">

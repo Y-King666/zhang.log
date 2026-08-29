@@ -7,6 +7,7 @@ import { getDictionary } from '@/lib/i18n';
 import type { Language, Dictionary } from '@/lib/i18n';
 
 import { blogComponents } from '@/lib/mdx-registry';
+import { getDisplayTag } from '@/lib/tag-display';
 
 export function generateStaticParams() {
   return getBlogSlugs().map(slug => ({ slug }));
@@ -35,7 +36,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ lan
           {t('blog.detail.home')}
         </Link>
         <span className="size-1 rounded-full bg-white/20"></span>
-        <Link href={`/${lang}/blog`} className="hover:text-lobster transition-colors">
+        <Link href={`/${lang}/blogs`} className="hover:text-lobster transition-colors">
           {t('blog.detail.blog')}
         </Link>
         <span className="size-1 rounded-full bg-lobster"></span>
@@ -46,36 +47,6 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ lan
         <h1 className="text-4xl md:text-5xl font-extrabold mb-6 leading-tight tracking-tight text-white">
           {meta.title}
         </h1>
-        <div className="flex items-center gap-6 p-6 rounded-2xl glass-card bg-white/[0.03] backdrop-blur-md border border-white/10">
-          <div className="size-16 rounded-full border-2 border-lobster/30 p-0.5 overflow-hidden relative">
-            <Image
-              alt={t('blog.detail.authorAlt')}
-              fill
-              sizes="64px"
-              className="object-cover rounded-full"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXP2WgE-eBqiSDnE0pYx5tdhkwJJ5_NYvFynSNG66ERN5ivr547iFYga_Gr6xlNRNEUeTCxLGkzjVl-9Ir1VWlJBoI_Rh-Wu5jM4DWP6hbi0n9U27ZApt7o1Is9EONF9SuZRWrMMrpvMaNHUI0klc30Ua0N8shNn9mvYPklJrMbioWe2A4dMNskGBugREN3LmbjSoUMsOF6393BKYOwjVQ6m6Cy91MbgbaMuZ6NZVM0s9GvdfsYtLNZyGjxsQuOSoYT8i8k_nj82L7"
-            />
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="font-bold text-lg text-white">{t('blog.detail.author')}</span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-lobster/20 text-lobster uppercase">
-                {t('blog.detail.role')}
-              </span>
-            </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
-              <span className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-base">calendar_today</span> {meta.date}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-base">schedule</span> {t('blog.detail.readTime')}
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="material-symbols-outlined text-base">category</span> {meta.category}
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div className="relative w-full aspect-video rounded-3xl overflow-hidden mb-12 border border-white/10">
@@ -97,7 +68,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ lan
         <div className="flex gap-2">
           {meta.tags.map((tag: string) => (
             <span key={tag} className="px-4 py-1.5 rounded-full bg-white/5 text-sm text-slate-400 border border-white/5">
-              {tag}
+              {getDisplayTag(tag, lang)}
             </span>
           ))}
         </div>

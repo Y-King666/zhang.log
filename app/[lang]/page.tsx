@@ -16,8 +16,7 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const blogs = getBlogSlugs()
     .map((slug) => getBlogMeta(slug))
     .filter((m): m is NonNullable<typeof m> => m !== null)
-    .sort((a, b) => b.date.localeCompare(a.date))
-    .slice(0, 2);
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   return (
     <HomeClient dict={dict} lang={lang} featured={featured} projects={projects} blogs={blogs} />

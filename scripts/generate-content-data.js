@@ -11,7 +11,7 @@ const generatedProjectDir = path.join('lib', 'generated', 'projects');
 fs.mkdirSync(outputDir, { recursive: true });
 
 function parseFrontmatter(raw) {
-  const match = raw.match(/^---\n([\s\S]*?)\n---\n/);
+  const match = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n/);
   if (!match) return null;
   const result = {};
   const lines = match[1].split('\n');
@@ -65,7 +65,12 @@ function parseFrontmatter(raw) {
 }
 
 function stripFrontmatter(raw) {
-  return raw.replace(/^---\n[\s\S]*?\n---\n/, '').replace(/^\n+/, '');
+  return raw.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, '').replace(/^\r?\n+/, '');
+}
+
+function localImagePath(collection, slug) {
+  const directory = collection === 'blog' ? 'blogs' : 'projects';
+  return `/images/${directory}/${slug}.png`;
 }
 
 function processCollection(dir, generatedDir) {
@@ -81,7 +86,12 @@ function processCollection(dir, generatedDir) {
       const slug = (fm && fm.slug) || file;
       // 写入剥离 frontmatter 的干净正文，供 MDX 编译器渲染（编译器默认不剥离 frontmatter）
       fs.writeFileSync(path.join(generatedDir, `${slug}.mdx`), stripFrontmatter(raw));
-      return { file, ...fm, slug };
+      return {
+        file,
+        ...fm,
+        slug,
+        image: fm && fm.image ? localImagePath(path.basename(generatedDir), slug) : fm?.image,
+      };
     });
 }
 
@@ -100,11 +110,11 @@ function generateMdxRegistry(blogs, projects) {
   });
 
   lines.push('');
-  lines.push('export const blogComponents: Record<string, ComponentType> = {');
+  lines.push('export const blogComponents: Record<string, ComponentType<any>> = {');
   blogs.forEach((b, i) => lines.push(`  '${b.slug}': Blog${i},`));
   lines.push('};');
   lines.push('');
-  lines.push('export const projectComponents: Record<string, ComponentType> = {');
+  lines.push('export const projectComponents: Record<string, ComponentType<any>> = {');
   projects.forEach((p, i) => lines.push(`  '${p.slug}': Project${i},`));
   lines.push('};');
   lines.push('');

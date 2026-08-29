@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -32,6 +33,18 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
+  // 点击菜单外部时收起
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (menuOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [menuOpen]);
+
   // 路由切换时收起移动端菜单
   useEffect(() => {
     setMenuOpen(false);
@@ -40,7 +53,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   const navLinks = [
     { name: t('nav.home'), href: `/${lang}` },
     { name: t('nav.projects'), href: `/${lang}/projects` },
-    { name: t('nav.blog'), href: `/${lang}/blog` },
+    { name: t('nav.blog'), href: `/${lang}/blogs` },
     { name: t('nav.about'), href: `/${lang}/about` },
   ];
 
@@ -91,7 +104,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
     >
       {/* 3D Glowing Edge Effect (Rim Light & Bottom Glow) */}
       <div className="absolute -inset-[1px] bg-gradient-to-t from-white/30 via-transparent to-transparent rounded-full blur-[0.5px] -z-10"></div>
-      <div className="absolute -bottom-3 -inset-x-8 h-16 bg-lobster/20 blur-3xl rounded-full -z-20 opacity-0 dark:opacity-70 animate-pulse" style={{ animationDuration: '3s' }}></div>
+      <div className="absolute -bottom-3 -inset-x-8 h-16 bg-lobster/20 blur-3xl rounded-full -z-20 opacity-0 dark:opacity-70"></div>
 
       <div className="glass-glow rounded-full px-4 sm:px-6 py-3 flex items-center justify-between relative overflow-hidden group">
         {/* Top Edge Reflection Sheen */}
@@ -105,26 +118,15 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"></div>
 
         <Link href="/" className="flex items-center gap-2 relative z-10 shrink-0">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute inset-0 bg-lobster/30 blur-xl rounded-full scale-150 animate-pulse"></div>
-            <div className="relative size-10 bg-gradient-to-br from-lobster to-orange-400 rounded-xl flex items-center justify-center border border-white/20 shadow-lg shadow-lobster/20">
-              <svg
-                className="size-7 text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]"
-                fill="none"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M18.5 6L5.5 6L16.5 18L5.5 18"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="3.5"
-                ></path>
-              </svg>
-            </div>
+            <div className="relative flex items-center justify-center">
+            <div className="absolute -inset-1 bg-lobster/40 blur-md rounded-xl"></div>
+            <img
+              src="/images/icons/site-logo.png"
+              alt="ZHANG.LOG"
+              className="relative size-10 rounded-xl object-cover border border-white/20 shadow-lg shadow-lobster/20"
+            />
           </div>
-          <span className="font-black tracking-tighter hidden sm:block text-white drop-shadow-sm">ZHANG.LOG</span>
+          <span className="font-black tracking-tighter text-white drop-shadow-sm">ZHANG.LOG</span>
         </Link>
 
         {/* 桌面导航（lg 及以上保持完整横排） */}
@@ -156,10 +158,10 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
             </Link>
           ))}
           <Link
-            href={`/${lang}/openclaw`}
+            href={`/${lang}/agents`}
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 shadow-[0_0_15px_rgba(255,69,0,0.3)] hover:shadow-[0_0_20px_rgba(255,69,0,0.5)]"
           >
-            {t('nav.openclaw')}
+            {t('nav.agents')}
           </Link>
           {langSwitch}
         </div>
@@ -184,7 +186,8 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.97 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="lg:hidden absolute top-full mt-3 left-0 right-0 glass-glow rounded-2xl overflow-hidden"
+            ref={mobileMenuRef}
+            className="lg:hidden absolute top-full mt-3 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
           >
             <div className="p-2">
               {navLinks.map((link) => (
@@ -206,10 +209,10 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
               ))}
               <div className="flex items-center justify-between gap-3 px-3 pt-3 mt-2 border-t border-white/5">
                 <Link
-                  href={`/${lang}/openclaw`}
+                  href={`/${lang}/agents`}
                   className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1 shadow-[0_0_15px_rgba(255,69,0,0.3)]"
                 >
-                  {t('nav.openclaw')}
+                  {t('nav.agents')}
                 </Link>
                 {langSwitch}
               </div>

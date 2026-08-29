@@ -4,6 +4,7 @@ export interface BlogMeta {
   slug: string;
   title: string;
   date: string;
+  readTime?: string;
   category: string;
   image: string;
   tags: string[];
@@ -18,6 +19,7 @@ export interface ProjectMeta {
   image: string;
   tags: string[];
   featured?: boolean;
+  icon?: string;
 }
 
 export function getBlogSlugs(): string[] {

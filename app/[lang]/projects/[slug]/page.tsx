@@ -8,24 +8,9 @@ import { getDictionary } from '@/lib/i18n';
 import type { Language, Dictionary } from '@/lib/i18n';
 
 import { projectComponents } from '@/lib/mdx-registry';
-
-const PROJECT_STATS: Record<string, Array<{ labelKey: string; value: string }>> = {
-  'optimizing-llm': [
-    { labelKey: 'project.stat.latency', value: '30%' },
-    { labelKey: 'project.stat.agents', value: '5+' },
-    { labelKey: 'project.stat.cost', value: '< $0.01' },
-  ],
-  'raft': [
-    { labelKey: 'project.stat.uptime', value: '99.9%' },
-    { labelKey: 'project.stat.consensus', value: '120ms' },
-    { labelKey: 'project.stat.throughput', value: '500 TPS' },
-  ],
-  'viz': [
-    { labelKey: 'project.stat.fps', value: '60 FPS' },
-    { labelKey: 'project.stat.datapoints', value: '5k+' },
-    { labelKey: 'project.stat.refresh', value: '16ms' },
-  ],
-};
+import { getDisplayTag } from '@/lib/tag-display';
+import ProjectTableOfContents from '@/components/ProjectTableOfContents';
+import CodeBlock from '@/components/CodeBlock';
 
 export function generateStaticParams() {
   return getProjectSlugs().map(slug => ({ slug }));
@@ -46,26 +31,24 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   if (!meta) notFound();
 
   const MDXContent = projectComponents[slug];
-  const stats = PROJECT_STATS[slug] || [];
-
   return (
     <main className="max-w-7xl mx-auto px-6 pt-32 pb-12 lg:pt-44 lg:pb-24">
       <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-12">
         <Link href={`/${lang}`} className="hover:text-lobster transition-colors">
-          Home
+          {t('blog.detail.home')}
         </Link>
         <span className="size-1 rounded-full bg-white/20"></span>
         <Link href={`/${lang}/projects`} className="hover:text-lobster transition-colors">
-          Projects
+          {t('nav.projects')}
         </Link>
         <span className="size-1 rounded-full bg-lobster"></span>
-        <span className="text-slate-300">Detail</span>
+        <span className="text-slate-300">{t('blog.detail.techArticle')}</span>
       </nav>
       <header className="max-w-4xl mb-16">
         <div className="flex flex-wrap gap-2 mb-8">
           {meta.tags.map((tag: string, i: number) => (
             <span key={i} className={`px-3 py-1 rounded-full ${i === 0 ? 'bg-lobster/10 border border-lobster/20 text-lobster' : 'bg-white/5 border border-white/10 text-slate-400'} text-[10px] font-bold tracking-widest uppercase`}>
-              {tag}
+              {getDisplayTag(tag, lang)}
             </span>
           ))}
         </div>
@@ -101,52 +84,20 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
           </div>
 
           {MDXContent ? (
-            <article className="prose prose-invert prose-lg max-w-none text-slate-400">
-              <MDXContent />
+            <article data-project-content className="prose prose-invert prose-lg max-w-none text-slate-400">
+              <MDXContent components={{ pre: CodeBlock }} />
             </article>
           ) : (
-            <article className="prose prose-invert prose-lg max-w-none text-slate-400">
+            <article data-project-content className="prose prose-invert prose-lg max-w-none text-slate-400">
               <p className="text-xl text-slate-300 leading-relaxed font-light mb-12">{meta.slug}</p>
             </article>
           )}
 
-          {stats.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
-              {stats.map((stat, i) => (
-                <div key={i} className="p-8 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center text-center">
-                  <h4 className="text-lobster text-4xl font-black mb-2">{stat.value}</h4>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{t(stat.labelKey as keyof Dictionary)}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <aside className="lg:col-span-4 space-y-8">
-          <div className="p-8 rounded-3xl glass-panel sticky top-36 bg-white/[0.03] backdrop-blur-md border border-white/10">
-            <h3 className="text-white font-bold mb-8 flex items-center gap-2">
-              <BarChart3 className="size-5 text-lobster" /> {t('project.detail.navigation')}
-            </h3>
-            <nav className="space-y-6">
-              <a className="group block" href="#challenge">
-                <p className="text-[10px] text-lobster font-black uppercase tracking-[0.2em] mb-1">{t('project.detail.problem')}</p>
-                <h4 className="text-sm font-semibold text-slate-200 group-hover:text-lobster transition-colors">
-                  {t('project.detail.challengePhase')}
-                </h4>
-              </a>
-              <a className="group block opacity-50 hover:opacity-100 transition-opacity" href="#code">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{t('project.detail.implementation')}</p>
-                <h4 className="text-sm font-semibold text-slate-200 group-hover:text-lobster transition-colors">
-                  {t('project.detail.coreLogic')}
-                </h4>
-              </a>
-              <a className="group block opacity-50 hover:opacity-100 transition-opacity" href="#arch">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mb-1">{t('project.detail.structure')}</p>
-                <h4 className="text-sm font-semibold text-slate-200 group-hover:text-lobster transition-colors">
-                  {t('project.detail.arch')}
-                </h4>
-              </a>
-            </nav>
+          <div className="space-y-8 lg:sticky lg:top-36">
+            <ProjectTableOfContents title={t('project.detail.navigation')} />
             <div className="mt-12 pt-10 border-t border-white/10">
               <h3 className="text-white font-bold mb-6">{t('project.detail.related')}</h3>
               <div className="space-y-4">
@@ -159,17 +110,16 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
                       <Link
                         key={relatedSlug}
                         href={`/${lang}/projects/${relatedSlug}`}
-                        className="group block p-4 rounded-2xl hover:bg-white/5 border border-white/10 bg-white/[0.02] transition-all"
+                        className="edge-lit-card group block rounded-2xl p-4 transition-all"
                       >
-                        <p className="text-[9px] text-lobster font-black uppercase tracking-widest mb-1">
-                          {relatedMeta.tags?.[0] || relatedSlug}
-                        </p>
+                        {relatedMeta.tags?.[0] && (
+                          <p className="text-[9px] text-lobster font-black uppercase tracking-widest mb-1">
+                            {getDisplayTag(relatedMeta.tags[0], lang)}
+                          </p>
+                        )}
                         <h4 className="text-sm font-bold text-slate-200 group-hover:text-lobster transition-colors">
                           {relatedMeta.title}
                         </h4>
-                        <span className="text-[10px] text-slate-500 mt-2 block line-clamp-2">
-                          {relatedMeta.slug}
-                        </span>
                       </Link>
                     );
                   })}

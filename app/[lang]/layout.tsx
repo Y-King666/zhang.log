@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono, Playfair_Display } from 'next/font/google';
 import '../globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import SmoothScroll from '@/components/SmoothScroll';
 import { getDictionary } from '@/lib/i18n';
 import type { Language } from '@/lib/i18n';
 
@@ -54,6 +55,7 @@ export default async function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased selection:bg-lobster/30`}
         suppressHydrationWarning
       >
+        <SmoothScroll />
         <Navbar lang={lang} dict={dict} />
         {children}
         <Footer dict={dict} />

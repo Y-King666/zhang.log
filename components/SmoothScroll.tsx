@@ -17,7 +17,10 @@ export default function SmoothScroll() {
       lenis = new Lenis({
         lerp: 0.05,
         stopInertiaOnNavigate: true,
+        anchors: true,
         respectReducedMotion: false,
+        /* 允许嵌套滚动元素原生滚动，并在滚动到其边界时溢出给 Lenis 平滑滚页面（短代码块/容器顶底溢出都交给页面） */
+        allowNestedScroll: true,
       });
     }
 

@@ -52,7 +52,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
 
   const navLinks = [
     { name: t('nav.home'), href: `/${lang}` },
-    { name: t('nav.projects'), href: `/${lang}/projects` },
+    { name: t('nav.projects'), href: `/${lang}/practice` },
     { name: t('nav.blog'), href: `/${lang}/blogs` },
     { name: t('nav.about'), href: `/${lang}/about` },
   ];

@@ -1,4 +1,4 @@
-import { getBlogSlugs, getBlogMeta, getProjectSlugs, getProjectMeta } from '@/lib/content';
+import { getBlogSlugs, getBlogMeta, getPracticeSlugs, getPracticeMeta } from '@/lib/content';
 import { getDictionary } from '@/lib/i18n';
 import type { Language } from '@/lib/i18n';
 import HomeClient from './HomeClient';
@@ -7,8 +7,8 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const dict = getDictionary(lang as Language);
 
-  const projects = getProjectSlugs()
-    .map((slug) => getProjectMeta(slug))
+  const projects = getPracticeSlugs()
+    .map((slug) => getPracticeMeta(slug))
     .filter((m): m is NonNullable<typeof m> => m !== null);
 
   const featured = projects.find((p) => p.featured) || projects[0];

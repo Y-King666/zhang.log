@@ -2,11 +2,11 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getBlogSlugs, getBlogMeta } from '@/lib/content';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getDictionary } from '@/lib/i18n';
 import type { Language, Dictionary } from '@/lib/i18n';
 
 import { blogComponents } from '@/lib/mdx-registry';
+import ParallaxImage from '@/components/ParallaxImage';
 import { getDisplayTag } from '@/lib/tag-display';
 
 export function generateStaticParams() {
@@ -50,13 +50,7 @@ export default async function BlogDetailPage({ params }: { params: Promise<{ lan
       </div>
 
       <div className="relative w-full aspect-video rounded-3xl overflow-hidden mb-12 border border-white/10">
-        <Image
-          alt={t('blog.detail.featuredAlt')}
-          fill
-          sizes="(min-width: 1024px) 896px, 100vw"
-          className="object-cover"
-          src={meta.image}
-        />
+        <ParallaxImage src={meta.image} alt={t('blog.detail.featuredAlt')} sizes="(min-width: 1024px) 896px, 100vw" className="absolute inset-0" priority />
         <div className="absolute inset-0 bg-gradient-to-t from-background-dark/80 to-transparent"></div>
       </div>
 

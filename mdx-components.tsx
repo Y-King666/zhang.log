@@ -1,5 +1,8 @@
-import type { ReactNode, TableHTMLAttributes, HTMLAttributes } from 'react';
+import type { ReactNode, AnchorHTMLAttributes, TableHTMLAttributes, HTMLAttributes } from 'react';
 import type { MDXComponents } from 'mdx/types';
+import { ArrowUpRight } from 'lucide-react';
+import CodeBlock from '@/components/CodeBlock';
+import Figure from '@/components/Figure';
 
 function textContent(value: ReactNode): string {
   if (typeof value === 'string' || typeof value === 'number') return String(value);
@@ -51,6 +54,21 @@ function Heading3(props: HTMLAttributes<HTMLHeadingElement>) {
   return <Heading level={3} {...props} />;
 }
 
+/* MDX 自定义外链：<ExtLink href="...">文字</ExtLink> 渲染为带 ↗ 箭头的行内链接，外部链接新开窗口 */
+function ExtLink({ children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return (
+    <a
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-baseline gap-0.5 font-medium text-lobster underline decoration-lobster/40 underline-offset-4 transition-colors hover:text-orange-300 hover:decoration-orange-300"
+      {...props}
+    >
+      <span>{children}</span>
+      <ArrowUpRight className="size-4 shrink-0 self-center" />
+    </a>
+  );
+}
+
 export function useMDXComponents(): MDXComponents {
   return {
     table: Table,
@@ -59,5 +77,8 @@ export function useMDXComponents(): MDXComponents {
     tr: TableRow,
     h2: Heading2,
     h3: Heading3,
+    pre: CodeBlock,
+    ExtLink,
+    Figure,
   };
 }

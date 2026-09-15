@@ -52,6 +52,7 @@ body {
   position: relative;
 }
 
+/* 背景磨砂颗粒：置于所有内容之下，只磨砂页面背景，不覆盖前景（图文/视频） */
 body::before {
   content: "";
   position: fixed;
@@ -61,7 +62,7 @@ body::before {
   height: 100%;
   opacity: 0.03;
   pointer-events: none;
-  z-index: 9999;
+  z-index: -1;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
@@ -122,10 +123,14 @@ body::before {
   display: inline-block;
 }
 
-/* 针对截图工具的优化：确保链接在未加载样式时不显示默认蓝色 */
-a {
-  color: inherit;
-  text-decoration: none;
+/* 针对截图工具的优化：确保链接在未加载样式时不显示默认蓝色。
+   置于 base 层而非未分层：未分层规则会压过 utilities 层的 text-* 颜色工具类，
+   导致所有 <a> 上的着色类失效（hover 颜色不变）。 */
+@layer base {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
 }
 
 /* Lenis smooth scroll */
@@ -156,4 +161,25 @@ html.lenis, html.lenis body {
     linear-gradient(rgba(7, 10, 10, 0.98), rgba(7, 10, 10, 0.98)) padding-box,
     linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.18) 34%, rgba(255, 255, 255, 0.1) 62%, rgba(255, 69, 0, 0.9)) border-box;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.7), 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.display-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.018));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+  transition: border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+}
+
+.display-panel:hover,
+.display-panel[open] {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.025));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), inset 0 -1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* 去掉 prose 给行内 <code> 加的反引号伪元素（Tailwind typography 默认用 ::before/::after 显示 ` `）。
+   行内 code 只保留等宽字体底色，不再显现定界反引号；不作用于 pre 内的代码块（CodeBlock 那种无需反引号）。 */
+.prose :not(pre) code::before,
+.prose :not(pre) code::after {
+  content: none;
 }

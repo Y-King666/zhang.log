@@ -53,16 +53,16 @@ npm lint
 
 所有内容以 MDX 形式保存在 `content/` 目录，是内容的唯一入口。新增文章或项目：
 
-1. 在 `content/blog/`（文章）或 `content/projects/`（项目）中创建带 YAML frontmatter 的 MDX 文件
+1. 在 `content/blog/`（文章）或 `content/practice/`（实践）中创建带 YAML frontmatter 的 MDX 文件
 2. 运行 `npm run generate` 重新生成内容数据
 3. 下次构建时页面会自动拾取，无需其他接线
 
 **博客 frontmatter 字段：** `slug`、`title`、`date`、`category`、`image`、`tags`
 
-**项目 frontmatter 字段：** `slug`、`title`、`date`、`readTime`、`role`、`image`、`tags`、`featured`
+**实践 frontmatter 字段：** `slug`、`title`、`date`、`readTime`、`image`、`icon`、`tags`、`scenario`、`featured`
 
-图片资源约定：博客图片放在 `public/images/blogs/<slug>.png`，项目图片放在
-`public/images/projects/<slug>.png`，头像使用 `public/images/avatars/avatar.png`。
+图片资源约定：博客图片放在 `public/images/blogs/<slug>.png`，实践图片放在
+`public/images/practice/<slug>.png`，头像使用 `public/images/avatars/avatar.png`。
 内容生成脚本会根据 slug 自动写入相对地址，新增或替换图片后运行 `npm run generate`。
 
 项目详情页的目录由正文中的 `h2` / `h3` 自动生成，不需要手工维护导航链接。MDX
@@ -75,49 +75,67 @@ zhang.log/
 ├── app/                          # App Router 路由与页面
 │   ├── [lang]/                   # 语言段（cn / en），所有页面按语言静态预渲染
 │   │   ├── layout.tsx            # 根布局（generateStaticParams 返回两种语言）
-│   │   ├── page.tsx              # 首页：Hero + 精选项目 bento 网格 + 最新文章
+│   │   ├── page.tsx              # 首页：Hero + 精选实践 bento 网格 + 最新文章
 │   │   ├── HomeClient.tsx        # 首页动画客户端组件（'use client'）
 │   │   ├── about/                # 关于页
 │   │   │   ├── page.tsx
 │   │   │   └── AboutClient.tsx
+│   │   ├── agents/               # 我的 Agents 页（Agent 方法、技能与边界）
+│   │   │   ├── page.tsx
+│   │   │   └── AgentsClient.tsx
 │   │   ├── blogs/                # 博客页面路由
 │   │   │   ├── page.tsx          # 文章列表（分类筛选标签页）
 │   │   │   ├── BlogClient.tsx
 │   │   │   └── [slug]/page.tsx   # 文章详情（generateStaticParams）
-│   │   ├── projects/             # 项目
-│   │   │   ├── page.tsx          # 项目列表
-│   │   │   ├── ProjectsClient.tsx
-│   │   │   └── [slug]/page.tsx   # 项目详情（generateStaticParams）
+│   │   ├── practice/             # 实践列表页路由
+│   │   │   ├── page.tsx          # 实践列表（搜索 / 筛选 / 排序 / 分页）
+│   │   │   ├── PracticeClient.tsx
+│   │   │   └── [slug]/page.tsx   # 实践详情（generateStaticParams）
 │   │   └── openclaw/             # OpenClaw 网关文档页
 │   │       ├── page.tsx
 │   │       └── OpenClawClient.tsx
 │   ├── globals.css               # 全局样式与 Tailwind v4 主题色
-│   └── mdx.d.ts                  # MDX 模块类型声明
+│   ├── mdx.d.ts                  # MDX 模块类型声明
+│   ├── icon.png                  # 站点图标
+│   └── apple-icon.png            # Apple Touch 图标
 ├── components/                   # 共享组件
+│   ├── CodeBlock.tsx             # 代码块（语言标签、复制按钮）
 │   ├── Footer.tsx
-│   ├── ListFilters.tsx            # 列表搜索、筛选和排序
+│   ├── ListFilters.tsx           # 列表搜索、筛选和排序
 │   ├── Navbar.tsx
-│   ├── ProjectTableOfContents.tsx # 项目详情自动目录
-│   └── SmoothScroll.tsx            # Lenis 惯性滚动
-├── content/                      # 内容源（MDX，唯一内容入口）
-│   ├── blog/                     # 博客文章（6 篇）
-│   └── projects/                 # 项目（3 个）
+│   ├── Pagination.tsx            # 列表分页（页码窗口、当前页/收拢省略号）
+│   ├── ParallaxImage.tsx         # 视差图片（滚动上浮/下沉、防露底板）
+│   ├── ParallaxSection.tsx       # 贯穿视差容器（滚动整段浮动）
+│   ├── PracticeIcon.tsx          # frontmatter icon 值 → lucide 图标
+│   ├── PracticeTableOfContents.tsx # 实践详情自动目录
+│   ├── SmoothScroll.tsx          # Lenis 惯性滚动
+│   └── useSectionScrollSpy.ts    # 目录章节滚动监听 hook
+├── content/                      # 内容源（MDX / Markdown，唯一内容入口）
+│   ├── agents/                   # Agent 方法与边界（global-agents.md）
+│   ├── blog/                     # 博客文章
+│   └── practice/                 # 实践（YAML frontmatter 驱动）
+├── docs/                         # 设计与规范文档
+│   └── mdx-spec.md               # MDX 编写规范
 ├── lib/                          # 数据与业务逻辑
 │   ├── content.ts                # 内容读取接口（导入 content-data.json）
 │   ├── i18n.ts                   # 中英文案（translations 对象）
 │   ├── tag-display.ts            # 标签展示语言映射
 │   ├── mdx-registry.ts           # 生成：MDX 正文静态导入注册表
+│   ├── use-parallax.ts           # 视差数值 hook（供 ParallaxImage / Section 用）
 │   ├── utils.ts                  # cn() 工具（clsx + tailwind-merge）
 │   ├── data/content-data.json    # 生成：内容元数据
 │   └── generated/                # 生成：去除 frontmatter 的 MDX 正文副本
 │       ├── blog/
-│       └── projects/
+│       └── practice/
 ├── scripts/
 │   └── generate-content-data.js  # 生成内容数据（JSON + registry + 干净正文）
-├── public/images/                # 本地图片资源
-│   ├── avatars/                  # 作者头像
-│   ├── blogs/                    # 博客封面，按 slug 命名
-│   └── projects/                 # 项目封面，按 slug 命名
+├── public/
+│   ├── images/                   # 本地图片资源
+│   │   ├── avatars/              # 作者头像
+│   │   ├── blogs/                # 博客封面，按 slug 命名
+│   │   ├── method/               # 方法卡配图
+│   │   └── practice/             # 实践封面，按 slug 命名
+│   └── videos/                   # 视频资源（home_video.mp4）
 ├── proxy.ts                      # 路由中间件（非语言路径重定向到 /cn）
 ├── mdx-components.tsx            # MDX 渲染组件映射
 ├── next.config.ts                # Next.js 配置（mdxRs、远程图片白名单）

@@ -3,7 +3,7 @@
     {
       "slug": "exploring-openclaw-project",
       "title": "OpenClaw 入门：从零构建你的 AI 智能体网关",
-      "date": "2026年3月13日",
+      "date": "2026-03-13",
       "readTime": "8",
       "category": "新手教程",
       "image": "/images/blogs/exploring-openclaw-project.png",
@@ -18,17 +18,18 @@
   "projects": [
     {
       "slug": "zhang.log",
-      "title": "我的个人网站",
+      "title": "张的个人网站",
       "date": "2026-08-29",
       "readTime": "15 分钟",
-      "role": "系统设计",
-      "image": "/images/projects/zhang.log.png",
+      "image": "/images/practice/zhang.log.png",
       "icon": "globe",
       "tags": [
         "Next.js",
         "TypeScript",
-        "MDX"
+        "MDX",
+        "coding"
       ],
+      "scenario": "编程 / 信息整理",
       "featured": "true"
     }
   ]

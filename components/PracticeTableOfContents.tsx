@@ -16,7 +16,7 @@ interface TocGroup {
   children: TocItem[];
 }
 
-export default function ProjectTableOfContents({
+export default function PracticeTableOfContents({
   title,
   items: providedItems,
   mobileOnly = false,
@@ -50,6 +50,12 @@ export default function ProjectTableOfContents({
     const index = groups.findIndex((g) => g.id === activeId || g.children.some((c) => c.id === activeId));
     return index === -1 ? 0 : index;
   }, [groups, activeId]);
+
+  // 仅 h2 参与编号；h3 子标题不编号（字号更小，见渲染处）
+  const numberedItems = useMemo(() => {
+    let h2Count = 0;
+    return items.map((item) => ({ ...item, number: item.level === 2 ? ++h2Count : null }));
+  }, [items]);
 
   useEffect(() => {
     if (providedItems) return;
@@ -139,7 +145,7 @@ export default function ProjectTableOfContents({
         <section className="hidden lg:block edge-lit-card rounded-3xl p-6 backdrop-blur-md">
         <span className="text-white font-bold">{title}</span>
         <nav className="mt-5 space-y-1" aria-label={title}>
-          {items.map((item, index) => (
+          {numberedItems.map((item) => (
             <a
               key={item.id}
               href={`#${item.id}`}
@@ -151,8 +157,14 @@ export default function ProjectTableOfContents({
                 activeId === item.id ? 'bg-lobster/10 text-lobster' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'
               } ${item.level === 3 ? 'ml-4' : ''}`}
             >
-              <span className="mt-0.5 min-w-5 font-mono text-[10px] opacity-60">{String(index + 1).padStart(2, '0')}</span>
-              <span className="text-sm font-medium leading-snug">{item.label}</span>
+              {item.level === 2 ? (
+                <span className="mt-0.5 min-w-5 font-mono text-[10px] opacity-60">{String(item.number).padStart(2, '0')}</span>
+              ) : (
+                <span className="mt-[5px] size-1.5 shrink-0 rounded-full bg-lobster/75" aria-hidden="true"></span>
+              )}
+              <span className={`${item.level === 3 ? 'text-xs text-slate-400' : 'text-sm'} font-medium leading-snug`}>
+                {item.label}
+              </span>
             </a>
           ))}
         </nav>

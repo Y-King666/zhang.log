@@ -29,6 +29,7 @@ const TAG_LABELS: Record<Language, Record<string, string>> = {
     生态: 'Ecosystem',
     可持续性: 'Sustainability',
     运维: 'DevOps',
+    效率: 'Efficiency',
   },
 };
 

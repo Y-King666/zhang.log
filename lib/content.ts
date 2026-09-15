@@ -10,23 +10,23 @@ export interface BlogMeta {
   tags: string[];
 }
 
-export interface ProjectMeta {
+export interface PracticeMeta {
   slug: string;
   title: string;
   date: string;
   readTime: string;
-  role: string;
   image: string;
   tags: string[];
   featured?: boolean;
   icon?: string;
+  scenario?: string;
 }
 
 export function getBlogSlugs(): string[] {
   return contentData.blogs.map(b => b.slug);
 }
 
-export function getProjectSlugs(): string[] {
+export function getPracticeSlugs(): string[] {
   return contentData.projects.map(p => p.slug);
 }
 
@@ -34,7 +34,7 @@ export function getBlogMeta(slug: string): BlogMeta | null {
   return contentData.blogs.find(b => b.slug === slug) || null;
 }
 
-export function getProjectMeta(slug: string): ProjectMeta | null {
+export function getPracticeMeta(slug: string): PracticeMeta | null {
   const raw = contentData.projects.find(p => p.slug === slug);
   if (!raw) return null;
   return {

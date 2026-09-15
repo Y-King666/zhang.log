@@ -14,7 +14,7 @@ const PROJECT_ICONS: Record<string, LucideIcon> = {
   server: Server,
 };
 
-export default function ProjectIcon({ name, className }: { name?: string; className?: string }) {
+export default function PracticeIcon({ name, className }: { name?: string; className?: string }) {
   const Icon = (name && PROJECT_ICONS[name]) || BarChart3;
   return <Icon className={className} />;
 }

@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import type { Dictionary } from '@/lib/i18n';
 import { getLenis } from '@/components/SmoothScroll';
-import ProjectTableOfContents from '@/components/ProjectTableOfContents';
+import PracticeTableOfContents from '@/components/PracticeTableOfContents';
+import ParallaxSection from '@/components/ParallaxSection';
 
 // 章节顺序即页面纵向顺序，侧栏导航与滚动高亮都由此派生。
 const SECTIONS: { id: string; icon: string; labelKey: keyof Dictionary }[] = [
@@ -39,7 +41,62 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
   const t = (key: keyof Dictionary) => dict[key];
   const [showScrollHint, setShowScrollHint] = useState(true);
   const [isMindmapOpen, setIsMindmapOpen] = useState(false);
+  const [mindmapScale, setMindmapScale] = useState(1);
+  const [mindmapOffset, setMindmapOffset] = useState({ x: 0, y: 0 });
+  const mindmapDrag = useRef<{ sx: number; sy: number; ox: number; oy: number } | null>(null);
+  const lightboxRef = useRef<HTMLDivElement>(null);
   const lastScrollY = useRef(0);
+
+  const closeMindmap = () => {
+    setMindmapScale(1);
+    setMindmapOffset({ x: 0, y: 0 });
+    setIsMindmapOpen(false);
+  };
+
+  const handleMindmapPointerDown = (event: React.PointerEvent) => {
+    if (mindmapScale <= 1) return;
+    mindmapDrag.current = { sx: event.clientX, sy: event.clientY, ox: mindmapOffset.x, oy: mindmapOffset.y };
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+  };
+  const handleMindmapPointerMove = (event: React.PointerEvent) => {
+    if (!mindmapDrag.current) return;
+    const dx = event.clientX - mindmapDrag.current.sx;
+    const dy = event.clientY - mindmapDrag.current.sy;
+    setMindmapOffset({ x: mindmapDrag.current.ox + dx, y: mindmapDrag.current.oy + dy });
+  };
+  const handleMindmapPointerUp = () => {
+    mindmapDrag.current = null;
+  };
+
+  // dialog 交互：ESC 关闭 + 锁定背景滚动 + 非被动 wheel 缩放（同时拦住滚动与 ctrl+滚轮页面缩放）
+  useEffect(() => {
+    if (!isMindmapOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeMindmap();
+    };
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const factor = event.deltaY < 0 ? 1.1 : 1 / 1.1;
+      setMindmapScale((s) => Math.min(5, Math.max(1, +(s * factor).toFixed(3))));
+    };
+    const el = lightboxRef.current;
+    el?.addEventListener('wheel', onWheel, { passive: false });
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      el?.removeEventListener('wheel', onWheel);
+      window.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isMindmapOpen]);
+
+  // 缩回 1 倍时清除平移，避免图停留在偏移位置
+  useEffect(() => {
+    if (mindmapScale <= 1 && (mindmapOffset.x !== 0 || mindmapOffset.y !== 0)) {
+      setMindmapOffset({ x: 0, y: 0 });
+    }
+  }, [mindmapScale, mindmapOffset]);
   const navigationItems = SECTIONS.map((section) => ({
     id: section.id,
     label: t(section.labelKey),
@@ -96,6 +153,7 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
 
   return (
     <main className="flex-1 max-w-7xl mx-auto w-full px-6 pt-32 pb-12 lg:pt-40">
+    <ParallaxSection>
       <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-12">
         <Link href={`/${lang}`} className="hover:text-lobster transition-colors">
           {t('blog.detail.home')}
@@ -132,7 +190,7 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
           </button>
           <button
             onClick={() => scrollToSection('getting-started')}
-            className="glass px-8 py-4 rounded-xl font-bold flex items-center gap-2 hover:bg-white/10 transition-colors"
+            className="glass px-8 py-4 rounded-xl font-bold flex items-center gap-2 border-2 border-white/20 bg-white/5 text-white transition-all duration-300 hover:!border-lobster hover:!bg-lobster/10 active:!border-lobster active:!bg-lobster/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lobster focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0a]"
           >
             <span className="material-symbols-outlined">terminal</span>{t('openclaw.hero.docs')}
           </button>
@@ -153,7 +211,7 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
         </button>
       </section>
 
-      <ProjectTableOfContents title={t('openclaw.sidebar.guides')} items={navigationItems} mobileOnly />
+      <PracticeTableOfContents title={t('openclaw.sidebar.guides')} items={navigationItems} mobileOnly />
 
       <div className="flex flex-col md:flex-row gap-12 pt-40">
         <div className="flex-1 min-w-0">
@@ -441,7 +499,9 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
                     iconClassName="!text-xs"
                   />
                 </div>
-                <pre className="bg-[#121212] border border-lobster/20 p-6 rounded-b-xl overflow-x-auto font-mono text-sm leading-relaxed">
+                <pre
+                  className="bg-[#121212] border border-lobster/20 p-6 rounded-b-xl max-h-[32rem] overflow-x-auto overflow-y-auto font-mono text-sm leading-relaxed"
+                >
                   <span className="text-lobster">{`{`}</span><br />
                   &nbsp;&nbsp;<span className="text-lobster">agents</span>: <span className="text-lobster">{`{`}</span><br />
                   &nbsp;&nbsp;&nbsp;&nbsp;<span className="text-lobster">list</span>: [<br />
@@ -474,22 +534,24 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
 
         <aside className="hidden lg:block lg:w-64 flex-shrink-0">
           <div className="sticky top-28 space-y-8">
-            <ProjectTableOfContents title={t('openclaw.sidebar.guides')} items={navigationItems} />
+            <PracticeTableOfContents title={t('openclaw.sidebar.guides')} items={navigationItems} />
           </div>
         </aside>
       </div>
 
-      {isMindmapOpen && (
+      {/* 用 portal 抛到 body：脱离 ParallaxSection 的 transform，避免 fixed 定位失效导致大图只占小程序区（内容糊） */}
+      {isMindmapOpen && createPortal(
         <div
+          ref={lightboxRef}
           role="dialog"
           aria-modal="true"
           aria-label={t('openclaw.mindmap.zoom')}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md md:p-8"
-          onClick={() => setIsMindmapOpen(false)}
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/85 p-4 backdrop-blur-md md:p-8"
+          onClick={closeMindmap}
         >
           <button
             type="button"
-            onClick={() => setIsMindmapOpen(false)}
+            onClick={closeMindmap}
             className="absolute right-4 top-4 z-10 flex size-10 items-center justify-center rounded-full border border-white/15 bg-white/10 text-2xl leading-none text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lobster md:right-8 md:top-8"
             aria-label={t('nav.menu.close')}
           >
@@ -498,11 +560,18 @@ export default function OpenClawClient({ dict, lang }: { dict: Dictionary; lang:
           <img
             src="/images/openclaw_map.png"
             alt="OpenClaw 全景架构图"
-            className="max-h-full max-w-full rounded-xl object-contain shadow-[0_24px_100px_rgba(0,0,0,0.7)]"
+            onPointerDown={handleMindmapPointerDown}
+            onPointerMove={handleMindmapPointerMove}
+            onPointerUp={handleMindmapPointerUp}
+            onPointerCancel={handleMindmapPointerUp}
+            className="max-h-full max-w-full cursor-grab select-none touch-none rounded-xl object-contain shadow-[0_24px_100px_rgba(0,0,0,0.7)] active:cursor-grabbing"
+            style={{ transform: `translate(${mindmapOffset.x}px, ${mindmapOffset.y}px) scale(${mindmapScale})` }}
             onClick={(event) => event.stopPropagation()}
           />
-        </div>
+        </div>,
+        document.body
       )}
+    </ParallaxSection>
     </main>
   );
 }

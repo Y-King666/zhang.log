@@ -3,10 +3,10 @@ const path = require('path');
 
 const contentDir = 'content';
 const blogDir = path.join(contentDir, 'blog');
-const projectDir = path.join(contentDir, 'projects');
+const projectDir = path.join(contentDir, 'practice');
 const outputDir = 'lib/data';
 const generatedBlogDir = path.join('lib', 'generated', 'blog');
-const generatedProjectDir = path.join('lib', 'generated', 'projects');
+const generatedProjectDir = path.join('lib', 'generated', 'practice');
 
 fs.mkdirSync(outputDir, { recursive: true });
 
@@ -69,7 +69,7 @@ function stripFrontmatter(raw) {
 }
 
 function localImagePath(collection, slug) {
-  const directory = collection === 'blog' ? 'blogs' : 'projects';
+  const directory = collection === 'blog' ? 'blogs' : 'practice';
   return `/images/${directory}/${slug}.png`;
 }
 
@@ -106,7 +106,7 @@ function generateMdxRegistry(blogs, projects) {
     lines.push(`import Blog${i} from '@/lib/generated/blog/${b.slug}.mdx'`);
   });
   projects.forEach((p, i) => {
-    lines.push(`import Project${i} from '@/lib/generated/projects/${p.slug}.mdx'`);
+    lines.push(`import Project${i} from '@/lib/generated/practice/${p.slug}.mdx'`);
   });
 
   lines.push('');
@@ -114,7 +114,7 @@ function generateMdxRegistry(blogs, projects) {
   blogs.forEach((b, i) => lines.push(`  '${b.slug}': Blog${i},`));
   lines.push('};');
   lines.push('');
-  lines.push('export const projectComponents: Record<string, ComponentType<any>> = {');
+  lines.push('export const practiceComponents: Record<string, ComponentType<any>> = {');
   projects.forEach((p, i) => lines.push(`  '${p.slug}': Project${i},`));
   lines.push('};');
   lines.push('');

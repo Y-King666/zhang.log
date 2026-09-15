@@ -1,6 +1,8 @@
 'use client';
 
-import { ChevronDown, Search, X } from 'lucide-react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+
+import { Check, ChevronDown, Search, X } from 'lucide-react';
 
 export interface ListFilterOption {
   value: string;
@@ -24,6 +26,7 @@ export default function ListFilters({
   onFilterChange,
   filterOptions,
   clearLabel,
+  children,
 }: {
   search: string;
   onSearchChange: (value: string) => void;
@@ -36,8 +39,28 @@ export default function ListFilters({
   onFilterChange?: (value: string) => void;
   filterOptions?: ListFilterOption[];
   clearLabel: string;
+  children?: ReactNode;
 }) {
+  const [sortOpen, setSortOpen] = useState(false);
+  const sortRef = useRef<HTMLDivElement>(null);
+  const selectedSort = sortOptions.find((option) => option.value === sort) ?? sortOptions[0];
   const hasActiveFilters = search.length > 0 || Boolean(filter && filter !== 'all');
+
+  useEffect(() => {
+    const handlePointerDown = (event: MouseEvent) => {
+      if (!sortRef.current?.contains(event.target as Node)) setSortOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSortOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
 
   return (
     <div className="mb-10 border-y border-white/10 py-4">
@@ -64,34 +87,74 @@ export default function ListFilters({
           )}
         </div>
 
-        <label className="relative flex items-center gap-3 text-sm text-slate-400">
+        <div className="relative flex items-center gap-3 text-sm text-slate-400">
           <span className="whitespace-nowrap">{sortLabel}</span>
-          <select
-            value={sort}
-            onChange={(event) => onSortChange(event.target.value)}
-            className="h-11 min-w-40 flex-1 appearance-none rounded-xl border border-white/10 bg-[#111827] pl-3 pr-11 text-sm text-white outline-none focus:border-lobster/60"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="pointer-events-none absolute right-4 top-1/2 size-4 -translate-y-1/2 text-slate-300" />
-        </label>
+          <div ref={sortRef} className="relative min-w-40">
+            <button
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={sortOpen}
+              onClick={() => setSortOpen((open) => !open)}
+              className={`flex h-11 w-full items-center justify-between gap-4 rounded-xl border bg-[#111827] pl-3.5 pr-3 text-left text-sm text-white outline-none transition-all ${
+                sortOpen
+                  ? 'border-lobster/60 shadow-[0_0_0_3px_rgba(255,69,0,0.08)]'
+                  : 'border-white/10 hover:border-white/20 hover:bg-[#151b2a]'
+              }`}
+            >
+              <span className="truncate">{selectedSort?.label}</span>
+              <ChevronDown className={`size-4 shrink-0 transition-transform ${sortOpen ? 'rotate-180 text-lobster' : 'text-slate-300'}`} />
+            </button>
+
+            {sortOpen && (
+              <div
+                role="listbox"
+                aria-label={sortLabel}
+                className="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-1.5 shadow-[0_20px_55px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+              >
+                {sortOptions.map((option) => {
+                  const selected = option.value === sort;
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={selected}
+                      onClick={() => {
+                        onSortChange(option.value);
+                        setSortOpen(false);
+                      }}
+                      className={`group flex w-full items-center justify-between gap-5 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${
+                        selected
+                          ? 'bg-lobster/10 text-white shadow-[inset_0_0_0_1px_rgba(255,69,0,0.14)]'
+                          : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                      }`}
+                    >
+                      <span>{option.label}</span>
+                      {selected ? (
+                        <Check className="size-4 shrink-0 text-lobster" />
+                      ) : (
+                        <span className="size-1.5 shrink-0 rounded-full bg-white/10 transition-colors group-hover:bg-lobster/40" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {filterOptions && onFilterChange && (
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
           {filterOptions.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => onFilterChange(option.value)}
-              className={`whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-bold transition-colors ${
+              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
                 filter === option.value
-                  ? 'border-lobster bg-lobster/15 text-lobster'
-                  : 'border-white/10 text-slate-500 hover:border-lobster/40 hover:text-lobster'
+                  ? 'bg-lobster text-white'
+                  : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'
               }`}
             >
               {option.label}
@@ -99,6 +162,8 @@ export default function ListFilters({
           ))}
         </div>
       )}
+
+      {children && <div className="mt-4">{children}</div>}
 
       {hasActiveFilters && (
         <button

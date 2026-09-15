@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import type { Dictionary } from '@/lib/i18n';
-import type { BlogMeta, ProjectMeta } from '@/lib/content';
+import type { BlogMeta, PracticeMeta } from '@/lib/content';
 import { motion, useAnimation, useInView, useScroll, useTransform } from 'motion/react';
+import { useParallax } from '@/lib/use-parallax';
 import { ArrowRight } from 'lucide-react';
-import ProjectIcon from '@/components/ProjectIcon';
+import PracticeIcon from '@/components/PracticeIcon';
 import { useEffect, useRef } from 'react';
 import { getDisplayTag } from '@/lib/tag-display';
 
@@ -29,7 +30,7 @@ function useScrollDir() {
   return dir;
 }
 
-function ProjectsSideCard({ project, idx, lang, t }: { project: ProjectMeta; idx: number; lang: string; t: Translate }) {
+function PracticeSideCard({ project, idx, lang, t }: { project: PracticeMeta; idx: number; lang: string; t: Translate }) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { amount: 0.2, once: false });
   const controls = useAnimation();
@@ -56,9 +57,9 @@ function ProjectsSideCard({ project, idx, lang, t }: { project: ProjectMeta; idx
       whileHover={{ x: 5, transition: { type: 'tween', duration: 0.18, ease: 'easeOut' } }}
       className={`edge-lit-card rounded-2xl p-4 sm:p-5 flex items-center gap-4 group transition-colors relative md:p-4 md:flex-col md:items-stretch md:justify-between md:gap-0 md:basis-0 ${idx === 0 ? 'md:grow-[1.618]' : 'md:grow'}`}
     >
-      <Link href={`/${lang}/projects/${project.slug}`} className="absolute inset-0 z-20" />
+      <Link href={`/${lang}/practice/${project.slug}`} className="absolute inset-0 z-20" />
       <div className="size-11 sm:size-12 shrink-0 rounded-xl bg-lobster/10 flex items-center justify-center group-hover:scale-110 transition-transform md:size-10 md:mb-2">
-        <ProjectIcon name={project.icon} className="size-5 text-lobster" />
+        <PracticeIcon name={project.icon} className="size-5 text-lobster" />
       </div>
       <div className="min-w-0 flex-1 md:flex-none md:w-full">
         <h3 className="text-base sm:text-lg font-black text-white leading-snug line-clamp-2 group-hover:text-lobster transition-colors md:mb-2">{project.title}</h3>
@@ -80,19 +81,13 @@ export default function HomeClient({
 }: {
   dict: Dictionary;
   lang: string;
-  featured: ProjectMeta | undefined;
-  projects: ProjectMeta[];
+  featured: PracticeMeta | undefined;
+  projects: PracticeMeta[];
   blogs: BlogMeta[];
 }) {
   const t = (key: keyof Dictionary) => dict[key];
 
-  // 仪表板统计：阅读时长 = 全部文章 + 项目的 readTime 之和
-  const totalReadMin = [...blogs, ...projects].reduce((sum, item) => {
-    const m = item.readTime?.match(/\d+/);
-    return sum + (m ? parseInt(m[0], 10) : 0);
-  }, 0);
   const latestBlogs = blogs.slice(0, 2); // 首页博客区只展示最新两篇
-  const techStack = [...new Set(projects.flatMap((p) => p.tags))].slice(0, 4);
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -112,17 +107,21 @@ export default function HomeClient({
 
   const projectsRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: projectsScroll } = useScroll({ target: projectsRef, offset: ['start end', 'end start'] });
-  const projectsY = useTransform(projectsScroll, [0, 1], [12, -12]);
+  const projectsY = useTransform(projectsScroll, [0, 1], [48, -48]);
+
+  const blogPar = useParallax(48);
+  const methodPar = useParallax(48);
+  const ctaPar = useParallax(48);
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-16 sm:pb-32 pt-28 sm:pt-32 lg:pt-48 overflow-x-clip">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 pb-12 sm:pb-24 pt-24 sm:pt-28 lg:pt-40 overflow-x-clip">
       {/* Hero Section */}
       <motion.div ref={heroRef} style={{ y: heroY }}>
       <motion.section
         initial="hidden"
         animate="visible"
         variants={containerVariants}
-        className="relative isolate grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center mb-16 lg:mb-40"
+        className="relative isolate grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center mb-12 lg:mb-28"
       >
         <div className="lg:col-span-7 relative">
           {/* 背景 Z 形轮廓：形似闪电，缓慢不规则闪耀 */}
@@ -175,7 +174,7 @@ export default function HomeClient({
 
             <motion.div variants={itemVariants} className="flex flex-wrap gap-4 sm:gap-6">
               <Link
-                href={`/${lang}/projects`}
+                href={`/${lang}/practice`}
                 className="group relative flex items-center gap-3 bg-lobster text-white px-8 sm:px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-wider hover:brightness-110 hover:shadow-[0_0_30px_rgba(255,69,0,0.45)] active:brightness-90 transition-all duration-300 shadow-xl shadow-lobster/20"
               >
                 <span className="relative z-10">{t('hero.viewProjects')}</span>
@@ -194,62 +193,21 @@ export default function HomeClient({
         <motion.div variants={itemVariants} className="hidden lg:block lg:col-span-5 relative">
           <div className="absolute -inset-20 bg-[radial-gradient(circle_at_center,rgba(255,69,0,0.12),transparent_70%)] blur-3xl pointer-events-none"></div>
           <div className="relative h-full min-h-[380px] rounded-3xl border border-white/10 bg-[#0a0a0a] overflow-hidden shadow-2xl">
-            <div className="flex items-center gap-2 px-5 py-3 border-b border-white/8 bg-white/[0.02]">
-              <div className="flex gap-1.5">
-                <div className="size-2.5 rounded-full bg-red-500/70"></div>
-                <div className="size-2.5 rounded-full bg-yellow-500/70"></div>
-                <div className="size-2.5 rounded-full bg-green-500/70"></div>
-              </div>
-              <span className="text-[10px] font-mono text-slate-500 ml-2 tracking-wide">zhang.log · agent status</span>
-            </div>
-            <div className="p-5 sm:p-6 space-y-5">
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <div className="text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">{projects.length}</div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest">{t('stats.projects')}</div>
-                </div>
-                <div>
-                  <div className="text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">{blogs.length}</div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest">{t('stats.articles')}</div>
-                </div>
-                <div>
-                  <div className="text-2xl lg:text-3xl font-mono font-bold text-white tracking-tight">{totalReadMin}<span className="text-sm text-slate-600 ml-0.5">min</span></div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5 uppercase tracking-widest">{t('stats.readMin')}</div>
-                </div>
-              </div>
-              <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent"></div>
-              <div className="space-y-2">
-                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest mb-3">recent outputs</div>
-                <div className="font-mono text-[11px] leading-relaxed"><span className="text-slate-600">$ </span><span className="text-slate-400">scan</span><span className="text-lobster"> project</span><span className="text-slate-600"> · </span><span className="text-slate-500">{projects.length} modules</span></div>
-                <div className="font-mono text-[11px] leading-relaxed"><span className="text-slate-600">$ </span><span className="text-slate-400">build</span><span className="text-lobster"> blog</span><span className="text-slate-600"> · </span><span className="text-slate-500">{blogs.length} posts indexed</span></div>
-                <div className="font-mono text-[11px] leading-relaxed"><span className="text-slate-600">$ </span><span className="text-slate-400">runtime</span><span className="text-lobster"> active</span><span className="text-slate-600"> · </span><span className="text-slate-500">{totalReadMin} min read</span><span className="inline-block w-1.5 h-3.5 bg-lobster/80 ml-0.5 align-middle animate-pulse"></span></div>
-              </div>
-              <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent"></div>
-              <div>
-                <div className="text-[9px] font-mono text-slate-600 uppercase tracking-widest mb-3">stack</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {techStack.map((tech, i) => (<span key={tech} className={`text-[9px] lg:text-[10px] font-mono px-2 py-0.5 rounded ${i < 3 ? 'text-lobster border border-lobster/30 bg-lobster/10' : 'text-slate-500 border border-white/8 bg-white/[0.02]'}`}>{getDisplayTag(tech, lang)}</span>))}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center justify-between px-5 py-3 border-t border-white/8 bg-white/[0.02]">
-              <span className="text-[9px] font-mono text-slate-600">PID a7c3:AGENT</span>
-              <div className="flex items-center gap-2"><div className="h-3 w-px bg-white/10"></div><span className="text-lg">🤖</span></div>
-            </div>
+            <video className="absolute inset-0 h-full w-full object-cover" src="/videos/home_video.mp4" autoPlay muted loop playsInline />
           </div>
         </motion.div>
       </motion.section>
       </motion.div>
 
-      {/* Projects Section */}
-      <section className="mb-24 lg:mb-48" id="projects">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+      {/* Practice Section */}
+      <section className="mb-16 lg:mb-24" id="projects">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
           <div>
             <div className="text-xs font-black text-lobster uppercase tracking-[0.3em] mb-4">{t('projects.selectedWorks')}</div>
             <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter">{t('projects.title')}</h2>
           </div>
           <Link
-            href={`/${lang}/projects`}
+            href={`/${lang}/practice`}
             className="group flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-500 hover:text-lobster transition-all duration-300"
           >
             <span className="relative">
@@ -268,9 +226,9 @@ export default function HomeClient({
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } }}
               viewport={{ once: true, amount: 0.2 }}
-              className="md:col-span-8 group relative aspect-[16/10] md:aspect-auto md:h-[600px] rounded-3xl overflow-hidden border border-white/10 bg-[#0f0f0f]"
+              className="md:col-span-8 group relative aspect-[16/10] md:aspect-auto md:h-[500px] rounded-3xl overflow-hidden border border-white/10 bg-[#0f0f0f]"
             >
-              <Link href={`/${lang}/projects/${featured.slug}`} className="absolute inset-0 z-20" />
+              <Link href={`/${lang}/practice/${featured.slug}`} className="absolute inset-0 z-20" />
               <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10"></div>
               {featured.image && (
                 <div className="absolute inset-0 flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform duration-1000">
@@ -279,6 +237,7 @@ export default function HomeClient({
                     alt={featured.title}
                     fill
                     sizes="(min-width: 768px) 66vw, 100vw"
+                    priority
                     className="object-cover"
                   />
                 </div>
@@ -297,7 +256,7 @@ export default function HomeClient({
                   {(featured.tags || []).map((tag) => getDisplayTag(tag, lang)).join(' · ')}
                 </p>
                 <Link
-                  href={`/${lang}/projects/${featured.slug}`}
+                  href={`/${lang}/practice/${featured.slug}`}
                   className="relative px-8 py-4 rounded-xl font-black text-xs uppercase tracking-widest overflow-hidden group transition-all duration-300 shadow-xl shadow-lobster/20 inline-flex items-center gap-3"
                 >
                   <span className="absolute inset-0 bg-[#ff4500] transition-transform duration-500 ease-out group-hover:translate-y-full"></span>
@@ -310,9 +269,9 @@ export default function HomeClient({
             </motion.div>
           )}
 
-          <div className="md:col-span-4 md:h-[600px] flex flex-col gap-8">
+          <div className="md:col-span-4 md:h-[500px] flex flex-col gap-6">
             {projects.filter(p => !p.featured).slice(0, 2).map((project, idx) => (
-              <ProjectsSideCard key={project.slug} project={project} idx={idx} lang={lang} t={t} />
+              <PracticeSideCard key={project.slug} project={project} idx={idx} lang={lang} t={t} />
             ))}
           </div>
         </div>
@@ -320,7 +279,7 @@ export default function HomeClient({
       </section>
 
       {/* Blog Section */}
-      <section className="mb-16 lg:mb-32" id="blog">
+      <motion.section ref={blogPar.ref} style={{ y: blogPar.y }} className="mb-12 lg:mb-20" id="blog">
         <div className="flex items-center gap-4 sm:gap-6 mb-12 lg:mb-20">
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white tracking-tighter md:whitespace-nowrap">{t('blog.latestInsights')}</h2>
           <div className="h-px flex-1 bg-white/10"></div>
@@ -362,10 +321,51 @@ export default function HomeClient({
             </motion.div>
           ))}
         </div>
-      </section>
+      </motion.section>
+
+      <motion.section ref={methodPar.ref} style={{ y: methodPar.y }} className="mb-16 lg:mb-24 border-y border-white/10 py-8 lg:py-10" aria-labelledby="method-title">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8 lg:mb-10">
+          <div>
+            <div className="text-xs font-black text-lobster uppercase tracking-[0.3em] mb-3">{t('home.method.eyebrow')}</div>
+            <h2 id="method-title" className="text-3xl sm:text-4xl font-black text-white tracking-tight">{t('home.method.title')}</h2>
+          </div>
+          <div className="flex flex-col items-end gap-2 lg:gap-3">
+            <Link href={`/${lang}/agents`} className="group relative text-xs font-black text-lobster uppercase tracking-widest hover:text-white transition-colors">
+              {t('blog.viewJournal')}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-lobster transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <span className="text-[10px] font-mono text-slate-600 uppercase tracking-widest">01 — 04</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6">
+          {([
+            ['home.method.context', 'home.method.context.desc'],
+            ['home.method.decompose', 'home.method.decompose.desc'],
+            ['home.method.boundaries', 'home.method.boundaries.desc'],
+            ['home.method.verify', 'home.method.verify.desc'],
+          ] as const).map(([title, desc], index) => (
+            <div key={title} className="flex flex-col">
+              <span className="text-[10px] font-mono text-lobster uppercase tracking-[0.3em]"># {String(index + 1).padStart(2, '0')}</span>
+              <h3 className="text-2xl sm:text-3xl font-black text-white leading-[1.05] mt-4 mb-3">
+                {t(title)}
+              </h3>
+              <p className="text-sm leading-relaxed text-slate-500 mb-6">{t(desc)}</p>
+              <div className="relative flex-1 min-h-[220px] rounded-xl overflow-hidden">
+                <Image
+                  src={`/images/method/method-${String(index + 1).padStart(2, '0')}.png`}
+                  alt={t(title)}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.section>
 
       {/* CTA Section */}
-      <section className="relative py-[24px] sm:py-[80px] md:py-[140px] lg:py-[200px] rounded-[32px] sm:rounded-[40px] overflow-hidden bg-[#0f0f0f] border border-white/10 flex flex-col items-center text-center px-6">
+      <motion.section ref={ctaPar.ref} style={{ y: ctaPar.y }} className="relative py-[24px] sm:py-[64px] md:py-[112px] lg:py-[136px] rounded-[32px] sm:rounded-[40px] overflow-hidden bg-[#0f0f0f] border border-white/10 flex flex-col items-center text-center px-6">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,69,0,0.1),transparent_50%)]"></div>
         <h2 className="text-4xl sm:text-5xl md:text-7xl font-black text-white mb-4 sm:mb-6 tracking-tighter leading-none whitespace-pre-line relative z-10">
           {t('cta.title')}
@@ -383,7 +383,7 @@ export default function HomeClient({
             {t('cta.button')}
           </span>
         </Link>
-      </section>
+      </motion.section>
     </main>
   );
 }

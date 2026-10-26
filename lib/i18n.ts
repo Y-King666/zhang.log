@@ -1,906 +1,1977 @@
 export type Language = 'cn' | 'en';
 
-export const translations = {
-  cn: {
-    'nav.home': '首页',
-    'nav.projects': '实践',
-    'nav.about': '关于',
-    'nav.blog': '博客',
-    'nav.agents': '我的 Agents',
-    'nav.menu.open': '打开菜单',
-    'nav.menu.close': '关闭菜单',
-    'agents.page.title': '我的 Agents',
-    'agents.page.subtitle': '我个人的一些 Agent 使用经验。',
-    'agents.page.codex.eyebrow': '全局配置',
-    'agents.page.codex.title': '我的全局编码规范',
-    'agents.page.codex.files': 'AGENTS.md（CLAUDE.md）',
-    'agents.page.codex.desc': '编码规则参考于 Andrej Karpathy 关于 LLM 编码陷阱的总结，主要解决错误假设、隐藏困惑、缺少权衡、过度复杂等 LLM 编码问题。',
-    'agents.page.codex.reference': '参考：Andrej Karpathy 的 LLM 编码陷阱总结',
-    'agents.page.codex.principle.clarity.title': '先问清楚',
-    'agents.page.codex.principle.clarity.desc': '面对任务需求，先确认目标、范围和取舍，避免让 Agent 靠猜测推进。',
-    'agents.page.codex.principle.verification.title': '每步可验证',
-    'agents.page.codex.principle.verification.desc': '把修改转成测试、类型检查、构建或可观察结果，确认它真的完成了目标。',
-    'agents.page.codex.principle.scope.title': '只改必要的',
-    'agents.page.codex.principle.scope.desc': '尊重现有代码和用户改动，不把一次需求变成无关重构。',
-    'agents.page.prompt.open': '展开查看完整提示词',
-    'agents.page.method.eyebrow': '我的使用方式',
-    'agents.page.method.title': '让 Agent 参与，而不是代替判断',
-    'agents.page.method.desc': '我更常把 Agent 当成一个可以协作的工具：它帮助我整理、拆解和执行，但关键取舍仍然由我确认。',
-    'agents.page.method.context.title': '先给上下文',
-    'agents.page.method.context.desc': '说明目标、已有内容和限制，让 Agent 先理解问题再开始动作。',
-    'agents.page.method.decompose.title': '把任务拆小',
-    'agents.page.method.decompose.desc': '把模糊的大任务拆成几个可以检查的小步骤，减少一次生成带来的偏差。',
-    'agents.page.method.boundaries.title': '提供工具与边界',
-    'agents.page.method.boundaries.desc': '告诉它能读取什么、能修改什么，以及哪些决定需要停下来确认。',
-    'agents.page.method.verify.title': '看结果再继续',
-    'agents.page.method.verify.desc': '通过运行、截图或对照需求检查结果，不把“看起来完成”当成真正完成。',
-    'agents.page.gitnexus.eyebrow': '代码智能工具',
-    'agents.page.gitnexus.title': 'GitNexus：让 Agent 看懂代码库',
-    'agents.page.gitnexus.desc': 'GitNexus 把代码库索引成知识图谱，再通过 CLI 和 MCP 把调用关系、依赖链、执行流程与变更影响交给 Agent。',
-    'agents.page.gitnexus.badge': 'CLI + MCP + 知识图谱',
-    'agents.page.gitnexus.about': '它解决的不是“帮我写一段代码”，而是“这段代码和整个项目有什么关系”。在陌生代码库、调试问题和准备修改之前，我会先用它补齐上下文。',
-    'agents.page.gitnexus.repository': '查看 GitNexus 仓库',
-    'agents.page.gitnexus.cliMcp': '本地索引 · Agent 上下文',
-    'agents.page.gitnexus.stat.cli': '从命令行分析、刷新和检查索引',
-    'agents.page.gitnexus.stat.mcp': '把代码关系提供给 Agent 查询',
-    'agents.page.gitnexus.stat.graph': '依赖、调用链和执行流程视图',
-    'agents.page.gitnexus.stat.map': '可视化关系图谱',
-    'agents.page.gitnexus.workflow.title': 'GitNexus在代码库中的使用',
-    'agents.page.gitnexus.workflow.desc': '我通常要求 Agent 把 GitNexus 放在“理解和修改之间”：先建立索引，再查询上下文；真正准备改动时做影响分析，完成后检查变更范围。',
-    'agents.page.gitnexus.workflow.index.title': '建立索引',
-    'agents.page.gitnexus.workflow.index.desc': '先运行 analyze，让项目结构、符号关系和执行流程进入可查询状态。',
-    'agents.page.gitnexus.workflow.understand.title': '理解代码',
-    'agents.page.gitnexus.workflow.understand.desc': '用 exploring、query 和 context 找到相关流程、调用者与被调用者。',
-    'agents.page.gitnexus.workflow.impact.title': '评估影响',
-    'agents.page.gitnexus.workflow.impact.desc': '修改函数或模块前先看 upstream 依赖，判断直接调用者和风险范围。',
-    'agents.page.gitnexus.workflow.verify.title': '检查变更',
-    'agents.page.gitnexus.workflow.verify.desc': '完成修改后运行 detect_changes，确认影响范围没有偏离预期。',
-    'agents.page.mcp.eyebrow': '能力扩展',
-    'agents.page.mcp.title': '精选 MCP',
-    'agents.page.mcp.desc': 'MCP 更像 Agent 可以调用的能力接口。这里记录我实际使用或关注的工具，以及它们在开发流程中补上的一块能力。',
-    'agents.page.mcp.entry': '能力入口',
-    'agents.page.mcp.more': '更多 MCP',
-    'agents.page.mcp.official': '官方仓库',
-    'agents.page.mcp.when': '我会在什么时候用',
-    'agents.page.mcp.item.playwright.desc': 'Playwright MCP 为 Agent 提供浏览器自动化能力，可以导航页面、读取可访问性结构、执行交互并检查真实页面结果。',
-    'agents.page.mcp.item.playwright.use': '做网页功能验收、移动端布局检查、交互回归和截图验证时使用。它让“页面应该能用”变成可以实际操作和观察的结果。',
-    'agents.page.mcp.item.gitnexus.desc': 'GitNexus MCP 把本地代码知识图谱中的查询、上下文、影响分析和变更检测能力提供给 Agent。',
-    'agents.page.mcp.item.gitnexus.use': '需要理解项目结构、追踪调用链、判断修改影响或检查变更范围时使用。它负责补上下文，不替代我对最终改动的判断。',
-    'agents.page.skills.eyebrow': '技能目录',
-    'agents.page.skills.title': '我的 Agents 技能',
-    'agents.page.skills.desc': '把重复的代码理解、调试和变更检查整理成可复用的技能文件。每张卡片都保留完整 SKILL.md，摘要只是入口。',
-    'agents.page.skills.category.workflow': '我的工作流技能',
-    'agents.page.skills.category.tooling': '技能工具与参考',
-    'agents.page.skills.category.featured': '精选技能',
-    'agents.page.skills.structure': '核心结构',
-    'agents.page.skills.market': '技能市场',
-    'agents.page.skills.community': '社区精选技能',
-    'agents.page.skills.featured.frontendDesign.desc': '把视觉方向、排版、颜色和交互作为一个整体来设计，帮助页面形成明确的风格。',
-    'agents.page.skills.featured.frontendDesign.structure': '定主题 → 建立设计 token → 设计信息结构 → 实现交互 → 截图检查',
-    'agents.page.skills.featured.skillCreator.desc': '把一次性的提示词整理成可复用技能，并通过测试提示词和评估持续改进。',
-    'agents.page.skills.featured.skillCreator.structure': '定义目标 → 写初稿 → 设计测试 → 评估结果 → 迭代技能',
-    'agents.page.skills.featured.imagegen.desc': '当任务需要图片素材时，用于生成、编辑或组合位图，而不是用代码勉强模拟真实视觉。',
-    'agents.page.skills.featured.imagegen.structure': '明确用途 → 生成或编辑 → 检查素材 → 放入产品场景',
-    'agents.page.skills.featured.artifacts.desc': '处理文档、PDF 和表格等交付物时，按对应格式的工具链生成、渲染和验证。',
-    'agents.page.skills.featured.artifacts.structure': '读取需求 → 选择格式工具 → 生成文件 → 渲染检查 → 交付',
-    'agents.page.openclaw.eyebrow': '个人助理型 Agent',
-    'agents.page.openclaw.title': '我的 OpenClaw',
-    'agents.page.openclaw.desc': '从项目搭建到多 Agent 工作流，记录一个个人 AI 系统持续演进的过程。',
-    'agents.page.openclaw.cta': '进入 OpenClaw 专题',
-    'agents.page.openclaw.map.overview': 'OpenClaw 蓝图',
-    'agents.page.openclaw.map.start': '快速开始',
-    'agents.page.openclaw.map.experience': '使用经验',
-    'agents.page.openclaw.map.workflow': '工作流',
-    'agents.page.openclaw.map.config': '配置记录',
-    'agents.page.openclaw.mapLabel': 'OpenClaw / 内容导航',
-    'agents.page.scenarios.eyebrow': '场景速览',
-    'agents.page.scenarios.title': '使用场景',
-    'agents.page.scenarios.coding': '编程',
-    'agents.page.scenarios.coding.desc': '代码理解、调试与工程协作',
-    'agents.page.scenarios.creating': '创作',
-    'agents.page.scenarios.creating.desc': '从想法整理到内容完成',
-    'agents.page.scenarios.organizing': '信息整理',
-    'agents.page.scenarios.organizing.desc': '搜索、总结与知识沉淀',
-    'agents.page.scenarios.automation': '自动化',
-    'agents.page.scenarios.automation.desc': '让重复工作变成可复用流程',
-    'agents.page.articles.title': '实践项目',
-    'agents.page.articles.viewAll': '查看全部项目',
-    'agents.page.articles.empty': '实践项目正在整理中。',
-    'breadcrumb.detail': '详情',
-    'hero.title': '用 Agent，',
-    'hero.subtitle': '把想法变成现实。',
-    'hero.description': '记录我完成的项目、使用过的工作流，以及每一次实践留下的判断。',
-    'hero.viewProjects': '查看实践',
-    'hero.readBlog': '阅读博客',
-    'hero.available': '激情编码',
-    'hero.systemStatus': '系统状态',
-    'hero.activeCore': '在线',
-    'stats.projects': '实践记录',
-    'stats.articles': '文章',
-    'stats.readMin': '分钟阅读',
-    'stats.live': '内容在线',
-    'projects.title': '我的实践',
-    'projects.subtitle': '由 AI 构建的项目集。',
-    'projects.page.title': '实践结果',
-    'projects.page.subtitle': '探索我使用 Agent 的实践。',
-    'list.search': '搜索标题、标签',
-    'list.sort': '排序',
-    'list.sort.latest': '最新发布',
-    'list.sort.oldest': '最早发布',
-    'list.sort.title': '标题排序',
-    'list.sort.featured': '精选优先',
-    'list.filter.all': '全部',
-    'list.clear': '清除筛选',
-    'projects.viewAll': '查看全部',
-    'projects.selectedWorks': '精选作品',
-    'projects.featured.tag': '精选',
-    'home.records.title': '已完成成果',
-    'home.records.view': '查看实践档案',
-    'home.method.eyebrow': '我的 Agent 使用方式',
-    'home.method.title': '让 Agent 参与，而不是代替判断',
-    'home.method.context': '给上下文',
-    'home.method.decompose': '拆解任务',
-    'home.method.boundaries': '保留判断',
-    'home.method.verify': '验证结果',
-    'home.method.context.desc': '先说明目标、已有内容和限制。',
-    'home.method.decompose.desc': '把大问题变成可以检查的小步骤。',
-    'home.method.boundaries.desc': '让 Agent 执行，关键取舍由我确认。',
-    'home.method.verify.desc': '通过运行、截图和复盘确认完成。',
-    'blog.viewJournal': '查看详情',
-    'blog.latestInsights': '最新博客',
-    'blog.category.aiEng': 'AI 工程',
-    'blog.category.backendArch': '后端架构',
-    'cta.title': '准备好构建\n大胆的作品了吗？',
-    'cta.subtitle': '让我们在下一代 Agent 打造的应用上展开合作。',
-    'cta.button': '联系我',
-    'projects.featured.title': '校园 AI 助手：多智能体协作系统',
-    'projects.featured.desc': '构建一个帮助学生管理课程表、总结讲座内容并检索研究论文的多智能体系统。',
-    'projects.raft.title': '分布式聊天实验室：Raft 协议实践',
-    'projects.raft.desc': '在校园聊天应用中实现 Raft 共识算法，深入理解分布式系统的一致性。',
-    'projects.viz.title': '代码之美：3D 仓库可视化',
-    'projects.viz.desc': '使用 Three.js 将我的 GitHub 贡献和项目结构可视化，打造独特的个人展示。',
-    'blog.title': '技术随笔',
-    'blog.item1.title': 'OpenClaw 入门：从零构建你的 AI 智能体网关',
-    'blog.item1.desc': '参考官方文档，探索如何利用 OpenClaw 的自托管和多渠道特性提升开发效率。',
-    'blog.item2.title': 'Go 语言分布式状态管理',
-    'blog.item2.desc': '构建金融账本系统定制 Raft 实现的经验教训。',
-    'footer.description': '一次一个提交，构建网络的未来。这就是AI智能体的力量。',
-    'footer.system': '系统',
-    'footer.status': '状态',
-    'footer.copyright': '© 2026 张的第一个个人网站',
-    'footer.link1': '梦想与现实',
-    'footer.link2': '只管做',
-    'about.name': '张',
-    'about.title': '数据科学与大数据技术专业',
-    'about.location': '江西, 中国',
-    'about.tagline': '用 Agent 把想法快速产出原型。',
-    'about.current': '关注 AI / Agent 前沿应用',
-    'about.me.title': '关于我',
-    'about.me.paragraph': '一个喜欢动手操作的大学生，完美主义追求者，任务结果追求最好。熟练使用 Agent 类工具，如：Claude Code、Codex、Trae等。善于设计提示词、向 Agent 正向描述需求，以及预期结果等，善于统筹规划 Agent “施工图纸”。明确 Agent 工具的作用与重要性，如：MCP，CLI，RAG知识库等。拥有一套自己的完整的 Agent 协作代码开发系统。对于 Agent 感到新鲜，尤其是对于像 OpenClaw 这种私人定制化的、类个人电子助理的 Agent 发展和未来个人助手的实现充满期待！AI 从只有大脑到长出四肢干实事正越来越近。',
-    'about.workflow.title': '我的工作方式',
-    'about.workflow.subtitle': '不用无法验证的数字定义自己，用一套稳定流程说明如何把想法推进到结果。',
-    'about.workflow.step1.title': '明确问题',
-    'about.workflow.step1.desc': '先确认目标、边界和验收标准，避免在错误方向上加速。',
-    'about.workflow.step2.title': '设计施工图',
-    'about.workflow.step2.desc': '把需求拆成任务、依赖和预期结果，为 Agent 提供清晰上下文。',
-    'about.workflow.step3.title': 'Agent 协同执行',
-    'about.workflow.step3.desc': '按任务调用合适的模型、工具与子 Agent，过程中持续校准方向。',
-    'about.workflow.step4.title': '验证并交付',
-    'about.workflow.step4.desc': '检查代码、页面与结果，保留证据，再继续迭代。',
-    'about.timeline.title': '成长轨迹',
-    'about.timeline.e1.year': '阶段 01',
-    'about.timeline.e1.title': '建立 Agent 协作认知',
-    'about.timeline.e1.desc': '不再把 Agent 当作单次问答或代码补全，而是开始关注上下文、工具调用与任务拆解。',
-    'about.timeline.e1.takeaway': '从零散使用走向有意识协作',
-    'about.timeline.e2.year': '阶段 02',
-    'about.timeline.e2.title': '设计自己的 Agent 协作系统',
-    'about.timeline.e2.desc': '围绕 MCP、CLI、RAG 知识库和提示词组织任务，把需求转化为可执行的“施工图纸”。',
-    'about.timeline.e2.takeaway': '让 Agent 围绕目标持续协作，而不是只完成零散步骤',
-    'about.timeline.e3.year': '阶段 03',
-    'about.timeline.e3.title': '统筹一次完整项目交付',
-    'about.timeline.e3.desc': '从定位、内容架构到页面实现和验收，统筹 Agent 完成个人网站这一真实项目。',
-    'about.timeline.e3.takeaway': '打通从想法、设计、开发到验证的交付链路',
-    'about.timeline.e4.year': '阶段 04',
-    'about.timeline.e4.title': '从完成项目转向持续探索',
-    'about.timeline.e4.desc': '记录可复用方法，并继续探索 OpenClaw、个人助理和多 Agent 协作。',
-    'about.timeline.e4.takeaway': '构建可长期演进的个人 Agent 系统',
-    'about.exploration.badge': '探索中',
-    'about.cta.title': '有想法？来聊聊',
-    'about.cta.subtitle': '交流技术、合作小项目，或者单纯聊聊 AI，都欢迎。',
-    'about.cta.button': '联系我',
-    'about.cta.fit': '适合合作：Agent 工作流 / AI 应用原型 / 前端体验 / 内容型站点',
-    'about.cta.work': '工作方式：先明确问题 → 小步验证 → 保留证据 → 交付可运行结果',
-    'about.cta.secondary': '先看看我的实践',
-    'blog.publishedAt': '发布于',
-    'blog.noArticles': '该分类下暂无文章。',
-    'blog.item1.category': 'AI 工程',
-    'blog.item2.category': '后端架构',
-    'blog.tag.distributed': '#分布式',
-    'blog.tag.go': '#Go语言',
-    'blog.tag.visualization': '#可视化',
-    'blog.tag.threejs': '#ThreeJS',
-    'blog.tag.next': '#Next',
-    'blog.tag.typescript': '#TypeScript',
-    'blog.tag.aiagents': '#AI 智能体',
-    'blog.tag.k8s': '#K8s',
-    'blog.tag.nextjs': '#Nextjs',
-    'blog.tag.tailwind': '#Tailwind',
-    'blog.date.oct24': '2026年3月13日',
-    'blog.date.oct20': '2026年3月11日',
-    'blog.date.oct15': '2026年3月9日',
-    'blog.date.oct10': '2026年3月7日',
-    'blog.date.oct05': '2026年3月5日',
-    'blog.date.oct01': '2026年3月3日',
-    'blog.date.sep12': '2026年3月1日',
-    'openclaw.os.unix': 'macOS / Linux / WSL2',
-    'openclaw.os.windows': 'Windows (PowerShell)',
-    'openclaw.checkConfig': '检查配置',
-    'openclaw.status': '状态',
-    'openclaw.dashboard': '控制面板',
-    'openclaw.camera': '摄像头',
-    'footer.social.email': '电子邮箱',
-    'footer.social.github': 'Github',
-    'footer.social.website': '稀土掘金',
-    'footer.status.new': '新',
-    'about.capabilities.title': '能力地图',
-    'about.capabilities.subtitle': '以目标、任务、Agent 和验收为管理核心；工具只是执行资源，不定义我的角色。',
-    'about.capabilities.direction.title': '关注方向',
-    'about.capabilities.direction.item1': 'AI 智能体',
-    'about.capabilities.direction.item2': '前端体验',
-    'about.capabilities.direction.item3': '氛围编程',
-    'about.capabilities.deliver.title': '我能交付',
-    'about.capabilities.deliver.item1': '想法原型',
-    'about.capabilities.deliver.item2': '相应 Agent 工作流',
-    'about.capabilities.management.title': '管理与方法',
-    'about.capabilities.management.item1': '目标定义 / 需求澄清 / 验收标准',
-    'about.capabilities.management.item2': '任务拆解 / Agent 分工 / 上下文编排',
-    'about.capabilities.management.item3': '过程审查 / 质量验证 / 持续迭代',
-    'about.exploration.title': '兴趣与探索',
-    'about.exploration.item1.title': 'AI 智能体',
-    'about.exploration.item1.desc': '关注多 Agent 协作、工具调用、任务分解与结果验证，研究 Agent 如何真正承接完整工作流。',
-    'about.exploration.item2.title': 'Agent 工程化',
-    'about.exploration.item2.desc': '持续理解 MCP、CLI、RAG 知识库和上下文管理，把提示词、工具与流程组合成稳定系统。',
-    'about.exploration.item3.title': '氛围编程',
-    'about.exploration.item3.desc': '关注视觉层级、响应式布局和微交互，让 Agent 产出的页面不只是可用，也有完整体验。',
-    'about.exploration.item4.title': '个人助理 Agent',
-    'about.exploration.item4.desc': '探索私人定制化的长期运行 Agent，以及从“会回答”走向“能做事”的个人助手形态。',
-    'blog.page.title': '博客',
-    'blog.categories.all': '全部',
-    'blog.categories.tech': '技术驱动',
-    'blog.categories.community': '社区动态',
-    'blog.categories.latest': '最新动态',
-    'blog.readMore': '阅读全文',
-    'blog.readTime.format': '{n} 分钟 阅读',
-    'blog.article1.title': 'OpenClaw 入门：从零构建你的 AI 智能体网关',
-    'blog.article1.category': '新手教程',
-    'blog.article2.title': '深入浅出开源协议',
-    'blog.article2.category': '技术科普',
-    'blog.article3.title': '2026年开发者社区趋势展望',
-    'blog.article3.category': '行业趋势',
-    'blog.article4.title': '构建可持续的开源生态',
-    'blog.article4.category': '生态治理',
-    'blog.article5.title': '容器化技术最佳实践',
-    'blog.article5.category': '架构实践',
-    'blog.article6.title': '前端工程化的未来',
-    'blog.article6.category': '前端视野',
-    'blog.article1.content': '作为一名大学生开发者，如何高效地管理和部署自己的 AI 智能体？OpenClaw 🦞 提供了一个完美的自托管解决方案。它不仅支持多渠道接入（WhatsApp, Telegram, Discord），还具备强大的多智能体路由能力。',
-    'blog.article1.h1': '1. 什么是 OpenClaw？',
-    'blog.article1.p1': 'OpenClaw 是 an 自托管的 AI 智能体网关。它的核心优势在于：本地运行（数据安全）、多渠道支持（一个后台服务多个社交平台）以及智能体原生设计（内置工具调用和会话管理）。',
-    'blog.article1.h2': '2. 快速上手指南',
-    'blog.article1.p2': '只需三步即可启动：首先通过 `npm install -g openclaw@latest` 安装；接着运行 `openclaw onboard` 进行引导配置；最后执行 `openclaw gateway` 启动服务。你可以在 `http://127.0.0.1:18789/` 访问控制面板。',
-    'blog.article2.content': '开源协议是开源世界的基石。从 MIT 到 GPL，不同的协议规定了代码的使用、修改和分发方式。理解 these 协议对于每一位开发者和企业都至关重要。',
-    'blog.article2.h1': '1. 宽松型协议 (Permissive)',
-    'blog.article2.p1': 'MIT 和 Apache 2.0 是最典型的宽松型协议。它们允许你几乎不受限制地使用代码，只要保留原作者的版权声明即可。这对于商业项目非常友好。',
-    'blog.article2.h2': '2. 传染型协议 (Copyleft)',
-    'blog.article2.p2': 'GPL 协议要求任何基于该代码衍生的作品也必须以 GPL 协议开源。这种“传染性”旨在保护开源软件的自由，但也让一些闭源商业软件望而却步。',
-    'blog.article3.content': '站在 2026 年的门槛上，开发者社区正在经历前所未有的变革。AI 辅助编程、边缘计算的普及以及远程协作工具的进化，都在重塑我们的工作方式。',
-    'blog.article3.h1': '1. AI 辅助编程的常态化',
-    'blog.article3.p1': '从 Copilot 到各种本地 LLM 插件，AI 不再是新鲜事，而是成为了开发者的“第二大脑”。未来的开发者将更多地扮演“架构师”和“审查者”的角色。',
-    'blog.article3.h2': '2. 边缘计算与无服务器架构',
-    'blog.article3.p2': '随着 Vercel, Cloudflare 等平台的发力，边缘计算让应用响应速度达到了极致。Serverless 进一步降低了运维门槛，让开发者专注于业务逻辑。',
-    'blog.article4.content': '开源生态的繁荣离不开每一位贡献者，但如何让这种繁荣可持续？资金支持、社区治理和贡献者激励是三大核心挑战。',
-    'blog.article4.h1': '1. 经济上的可持续性',
-    'blog.article4.p1': '通过 GitHub Sponsors, Open Collective 等平台，越来越多的开发者能够通过开源获得收入。企业也开始意识到，赞助关键依赖项是降低自身风险的最佳方式。',
-    'blog.article4.h2': '2. 社区治理与多样性',
-    'blog.article4.p2': '健康的社区需要清晰的决策机制和包容的环境。多样化的背景能带来更健壮的代码和更广阔的视野。',
-    'blog.article5.content': '容器化已成为现代应用部署的标准。然而，仅仅写一个 Dockerfile 是不够的。镜像大小、安全扫描和多阶段构建是提升部署质量的关键。',
-    'blog.article5.h1': '1. 精简基础镜像',
-    'blog.article5.p1': '使用 Alpine 或 Distroless 镜像可以显著减少攻击面并加快下载速度。记住，镜像中不应包含运行时不需要的任何工具。',
-    'blog.article5.h2': '2. 多阶段构建',
-    'blog.article5.p2': '在第一阶段编译代码，在第二阶段仅复制编译产物。这是保持镜像精简最有效的方法。',
-    'practice.optimizing-llm.title': '校园 AI 助手：我的个人学习管家',
-    'practice.optimizing-llm.desc': '在大学生活中，处理繁杂的课程信息和学术资料是一项挑战。本项目通过编排多个专业智能体（如日程管理、文献摘要、代码助手），构建了一个全方位的学习支持系统。',
-    'practice.optimizing-llm.challenge': '最大的挑战在于如何让不同职能的智能体高效协作。例如，让“日程智能体”根据“课程表智能体”提取的信息自动设置提醒，同时确保在本地环境下运行以保护隐私。',
-    'practice.optimizing-llm.arch': '系统采用 OpenClaw 作为核心网关，通过 Redis 维护会话状态。利用多智能体路由技术，将不同类型的请求分发至相应的专业 Agent，并通过本地 Dashboard 进行实时监控。',
-    'practice.raft.title': 'Raft 实践：构建校园分布式聊天室',
-    'practice.raft.desc': '为了深入学习分布式系统，我实现了一个基于 Raft 协议的聊天应用。它能够在多个校园服务器节点间同步消息状态，确保即使部分节点故障，聊天记录依然安全一致。',
-    'practice.raft.challenge': '在校园网络环境下处理网络分区和领导者选举是核心难点。我需要优化选举超时机制，以应对不稳定的网络波动，并确保消息的线性一致性。',
-    'practice.raft.arch': '应用使用 Go 语言编写，通过 gRPC 进行节点间通信。实现了日志压缩和快照功能，以节省存储空间。所有状态变更都经过 Raft 协议确认，保证了极高的可靠性。',
-    'practice.viz.title': '代码之美：GitHub 贡献 3D 可视化',
-    'practice.viz.desc': 'Neural Nexus 的学生版，专注于将个人的编程轨迹可视化。通过 3D 空间展示代码提交记录和项目关联，让枯燥的数据变得生动有趣。',
-    'practice.viz.challenge': '如何在浏览器中流畅渲染大量的提交节点是一个挑战。我使用了 Three.js 的实例化渲染技术，并编写了自定义着色器来表现数据流动的动态效果。',
-    'practice.viz.arch': '前端基于 React Three Fiber，通过 GitHub API 获取实时数据。实现了一个空间索引系统，支持用户在 3D 空间中自由探索不同的项目分支和提交历史。',
-    'blog.article6.content': '前端开发的边界正在不断扩张。从 React Server Components 到全栈框架的崛起，前端工程师的角色正在向“产品工程师”转变。',
-    'blog.article6.h1': '1. 服务端组件 (RSC) 的崛起',
-    'blog.article6.p1': 'Next.js 13+ 引入的 RSC 模式让我们可以直接在组件中获取数据，减少了客户端 JavaScript 的体积，提升了首屏加载性能。',
-    'blog.article6.h2': '2. 性能优化的极致追求',
-    'blog.article6.p2': '未来的前端将不再仅仅是界面的堆砌，而是对性能、无障碍访问以及用户体验的极致打磨。',
-    'practice.detail.published': '发布于',
-    'practice.meta.scenario': '场景',
-    'practice.detail.readTime': '阅读时间',
-    'practice.detail.challenge': '挑战',
-    'practice.detail.architecture': '架构概览',
-    'practice.detail.navigation': '页面导航',
-    'practice.detail.related': '你可能感兴趣',
-    'practice.detail.problem': '问题',
-    'practice.detail.implementation': '实现',
-    'practice.detail.structure': '结构',
-    'practice.detail.challengePhase': '挑战阶段',
-    'practice.detail.coreLogic': '核心逻辑',
-    'practice.detail.arch': '架构设计',
-    'practice.detail.noRelated': '暂无相关作品',
-    'practice.detail.latency': '延迟降低',
-    'practice.detail.agents': '并发代理',
-    'practice.detail.cost': '平均任务成本',
-    'practice.tag.ai': '人工智能',
-    'practice.tag.ml': '机器学习',
-    'practice.tag.sysArch': '系统架构',
-    'practice.tag.distSys': '分布式系统',
-    'practice.tag.go': 'Go',
-    'practice.tag.fintech': '金融科技',
-    'practice.tag.threejs': 'Three.js',
-    'practice.tag.viz': '数据可视化',
-    'practice.tag.realtime': '实时',
-    'practice.tag.nextjs': 'Next.js',
-    'practice.tag.typescript': 'TypeScript',
-    'practice.tag.aiagents': 'AI 智能体',
-    'practice.tag.docker': 'Docker',
-    'practice.tag.k8s': 'Kubernetes',
-    'practice.tag.tailwind': 'Tailwind',
-    'practice.tag.featured': '精选',
-    'practice.date.oct24': '2026年3月12日',
-    'practice.date.jan15': '2026年3月8日',
-    'practice.date.mar02': '2026年3月4日',
-    'practice.readTime.12min': '12 分钟',
-    'practice.readTime.15min': '15 分钟',
-    'practice.readTime.8min': '8 分钟',
-    'practice.stat.latency': '延迟降低',
-    'blog.detail.home': '首页',
-    'blog.detail.blog': '博客',
-    'blog.detail.techArticle': '实践详情',
-    'blog.detail.category': '人工智能 / 架构设计',
-    'blog.detail.share': '分享',
-    'blog.detail.featuredAlt': '文章封面图',
-    'blog.tag.llm': '#大语言模型',
-    'blog.tag.openclaw': '#OpenClaw',
-    'blog.tag.efficiency': '#效率',
-    'blog.tag.opensource': '#开源',
-    'blog.tag.license': '#协议',
-    'blog.tag.legal': '#法律',
-    'blog.tag.trends': '#趋势',
-    'blog.tag.community': '#社区',
-    'blog.tag.ecosystem': '#生态',
-    'blog.tag.sustainability': '#可持续性',
-    'blog.tag.kubernetes': '#Kubernetes',
-    'blog.tag.devops': '#运维',
-    'blog.tag.frontend': '#前端',
-    'openclaw.hero.title': 'OpenClaw',
-    'openclaw.hero.subtitle': '适用于任何操作系统的 AI 智能体 Gateway 网关。',
-    'openclaw.hero.explore': '探索实验室',
-    'openclaw.hero.docs': '查看文档',
-    'openclaw.hero.scroll': '探索 OpenClaw',
-    'openclaw.mindmap.zoom': '点击查看大图',
-    'openclaw.sidebar.guides': '核心指南',
-    'openclaw.sidebar.mindmap': '全景架构图',
-    'openclaw.sidebar.start': '快速开始',
-    'openclaw.sidebar.arch': '核心架构',
-    'openclaw.sidebar.config': '配置片段',
-    'openclaw.section.mindmap.title': '全景架构',
-    'openclaw.mindmap.brain.title': '大脑 / 模型',
-    'openclaw.mindmap.brain.subtitle': '逻辑推理与决策核心',
-    'openclaw.mindmap.tools.title': '工具集',
-    'openclaw.mindmap.tools.subtitle': '外部API与功能扩展',
-    'openclaw.mindmap.lobster.title': '龙虾 (OpenClaw)',
-    'openclaw.mindmap.lobster.subtitle': '核心调度与中继系统',
-    'openclaw.mindmap.awareness.title': '感知层',
-    'openclaw.mindmap.awareness.subtitle': '环境数据与实时反馈',
-    'openclaw.mindmap.memory.title': '记忆 / 知识',
-    'openclaw.mindmap.memory.subtitle': '长期存储与向量数据库',
-    'openclaw.mindmap.modules.improvement': '自我进化',
-    'openclaw.mindmap.modules.gui': '图形界面',
-    'openclaw.mindmap.modules.tasks': '定时任务',
-    'openclaw.mindmap.modules.heartbeat': '系统心跳',
-    'openclaw.section.start.title': '快速开始',
-    'openclaw.section.start.requirements.title': '系统要求',
-    'openclaw.section.start.requirements.node': 'Node 22+ (脚本会自动安装)',
-    'openclaw.section.start.requirements.os': 'macOS, Linux, 或 Windows (WSL2)',
-    'openclaw.section.start.methods.title': '安装方式',
-    'openclaw.section.start.methods.script.title': '一键安装脚本',
-    'openclaw.section.start.methods.script.desc': '最推荐的安装方式，支持自动配置环境变量。',
-    'openclaw.section.start.methods.npm.title': '包管理器安装',
-    'openclaw.section.start.methods.npm.desc': '适合习惯使用 npm 或 pnpm 的开发者。',
-    'openclaw.section.start.methods.source.title': '源码编译',
-    'openclaw.section.start.methods.source.desc': '从 GitHub 仓库克隆并手动构建。',
-    'openclaw.section.start.after.title': '安装完成后',
-    'openclaw.section.start.after.desc': '使用以下命令检查状态或启动仪表盘。',
-    'openclaw.section.start.docTitle': '技术文档',
-    'openclaw.section.start.docDesc': '通过单条命令全局安装 OpenClaw CLI，支持所有主流操作系统。',
-    'openclaw.section.start.configTitle': '技术文档',
-    'openclaw.section.start.configDesc': '生成集群配置文件并自动设置本地存储，实现多终端连接。',
-    'openclaw.section.config.title': '配置预览',
-    'openclaw.section.config.subtitle': '支持主流 IDE 和容器环境',
-    'openclaw.section.config.copy': '复制代码',
-    'openclaw.section.arch.relay.title': '中继节点',
-    'openclaw.section.arch.relay.desc': '负责全局状态分发与冲突解决，支持多地域高可用部署。',
-    'openclaw.section.arch.edge.title': '边缘代理',
-    'openclaw.section.arch.edge.desc': '运行在边缘侧的轻量化代理，实现毫秒级的本地状态反馈。',
-    'openclaw.section.arch.sync.title': '同步协议',
-    'openclaw.section.arch.sync.desc': '基于改进的 Raft 协议，确保最终一致性与强一致性的灵活切换。',
-    'openclaw.section.arch.gateway.title': '多渠道网关 (Gateway)',
-    'openclaw.section.arch.gateway.desc': '核心中枢系统，同时连接 WhatsApp, Telegram, Discord 等渠道，处理消息路由、身份验证与令牌管理。',
-    'openclaw.section.arch.nodes.title': '硬件节点 (Nodes)',
-    'openclaw.section.arch.nodes.desc': 'iOS 和 Android 移动端节点，将智能体能力延伸至物理硬件，提供相机访问、画布交互及设备级操作。',
-    'openclaw.section.arch.routing.title': '多智能体路由',
-    'openclaw.section.arch.routing.desc': '具备工作区隔离的高级会话管理，根据任务类型将请求路由至专业智能体，同时维护共享记忆。',
-    'openclaw.section.arch.security.title': '安全与隔离',
-    'openclaw.section.arch.security.desc': '内置白名单、基于令牌的访问控制及沙箱执行环境，确保自托管数据在私有硬件上的绝对安全。',
-  },
-  en: {
-    'nav.home': 'Home',
-    'nav.projects': 'Practice',
-    'nav.about': 'About',
-    'nav.blog': 'Blog',
-    'nav.agents': 'My Agents',
-    'nav.menu.open': 'Open menu',
-    'nav.menu.close': 'Close menu',
-    'agents.page.title': 'My Agents',
-    'agents.page.subtitle': 'Notes on how I use, configure, and understand agent in real workflows.',
-    'agents.page.codex.eyebrow': 'CODEX SETUP',
-    'agents.page.codex.title': 'My Global Coding Rules',
-    'agents.page.codex.files': 'AGENTS.md (CLAUDE.md)',
-    'agents.page.codex.desc': 'The coding rules are based on Andrej Karpathy\'s summary of LLM coding pitfalls, addressing wrong assumptions, hidden confusion, missing trade-offs, and over-engineering.',
-    'agents.page.codex.reference': 'Based on Andrej Karpathy\'s LLM coding pitfalls',
-    'agents.page.codex.principle.clarity.title': 'Clarify first',
-    'agents.page.codex.principle.clarity.desc': 'When a request is ambiguous, confirm the goal, scope, and trade-offs before letting the Agent guess.',
-    'agents.page.codex.principle.verification.title': 'Verify each step',
-    'agents.page.codex.principle.verification.desc': 'Turn changes into tests, type checks, builds, or observable results that prove the goal was met.',
-    'agents.page.codex.principle.scope.title': 'Keep the scope tight',
-    'agents.page.codex.principle.scope.desc': 'Respect existing code and user changes instead of turning one request into an unrelated refactor.',
-    'agents.page.prompt.open': 'Expand to read the full prompt',
-    'agents.page.method.eyebrow': 'HOW I WORK WITH AGENT',
-    'agents.page.method.title': 'Let the Agent participate, not replace judgment',
-    'agents.page.method.desc': 'I usually treat an Agent as a collaborative tool: it helps me organize, decompose, and execute, while I keep the important trade-offs in view.',
-    'agents.page.method.context.title': 'Give context first',
-    'agents.page.method.context.desc': 'Explain the goal, existing material, and constraints so the Agent understands the problem before acting.',
-    'agents.page.method.decompose.title': 'Break work down',
-    'agents.page.method.decompose.desc': 'Turn a vague task into small steps that can be checked, reducing the drift of one large generation.',
-    'agents.page.method.boundaries.title': 'Set tools and boundaries',
-    'agents.page.method.boundaries.desc': 'Make clear what it can read or change, and which decisions require a pause for confirmation.',
-    'agents.page.method.verify.title': 'Check before continuing',
-    'agents.page.method.verify.desc': 'Use runs, screenshots, or the original request to verify the result instead of trusting that it merely looks finished.',
-    'agents.page.gitnexus.eyebrow': 'CODE INTELLIGENCE TOOL',
-    'agents.page.gitnexus.title': 'GitNexus: give the Agent a codebase view',
-    'agents.page.gitnexus.desc': 'GitNexus indexes a codebase into a knowledge graph, then exposes call relationships, dependencies, execution flows, and change impact through CLI and MCP.',
-    'agents.page.gitnexus.badge': 'CLI + MCP + KNOWLEDGE GRAPH',
-    'agents.page.gitnexus.about': 'It is not only for “write this snippet”. It helps answer “how is this code related to the rest of the project?”. I use it to fill context before exploring unfamiliar code, debugging, or editing.',
-    'agents.page.gitnexus.repository': 'View GitNexus repository',
-    'agents.page.gitnexus.cliMcp': 'Local index · Agent context',
-    'agents.page.gitnexus.stat.cli': 'Analyze, refresh, and inspect indexes from the CLI',
-    'agents.page.gitnexus.stat.mcp': 'Expose code relationships for Agent queries',
-    'agents.page.gitnexus.stat.graph': 'Dependencies, call chains, and execution flows',
-    'agents.page.gitnexus.stat.map': 'Visual relationship map',
-    'agents.page.gitnexus.workflow.title': 'Using GitNexus in a codebase',
-    'agents.page.gitnexus.workflow.desc': 'I usually ask the Agent to place GitNexus between understanding and editing: build the index, query context, assess impact before changes, then inspect the changed scope afterwards.',
-    'agents.page.gitnexus.workflow.index.title': 'Index the repo',
-    'agents.page.gitnexus.workflow.index.desc': 'Run analyze so project structure, symbol relationships, and execution flows become queryable.',
-    'agents.page.gitnexus.workflow.understand.title': 'Understand the code',
-    'agents.page.gitnexus.workflow.understand.desc': 'Use exploring, query, and context to find relevant flows, callers, and callees.',
-    'agents.page.gitnexus.workflow.impact.title': 'Assess impact',
-    'agents.page.gitnexus.workflow.impact.desc': 'Before changing a function or module, inspect upstream dependents and the likely risk boundary.',
-    'agents.page.gitnexus.workflow.verify.title': 'Check the diff',
-    'agents.page.gitnexus.workflow.verify.desc': 'After editing, run detect_changes to confirm the affected scope matches the intention.',
-    'agents.page.mcp.eyebrow': 'SELECTED MCP',
-    'agents.page.mcp.title': 'Selected MCPs',
-    'agents.page.mcp.desc': 'MCP is an interface for capabilities an Agent can call. This is a short record of tools I use or follow and the missing piece each one adds to development.',
-    'agents.page.mcp.entry': 'Capability entry',
-    'agents.page.mcp.more': 'More MCPs',
-    'agents.page.mcp.official': 'official repository',
-    'agents.page.mcp.when': 'When I use it',
-    'agents.page.mcp.item.playwright.desc': 'Playwright MCP gives an Agent browser automation capabilities: navigate pages, read accessibility structure, interact with UI, and inspect real results.',
-    'agents.page.mcp.item.playwright.use': 'For web acceptance checks, mobile layout inspection, interaction regressions, and screenshots. It turns “the page should work” into an observable check.',
-    'agents.page.mcp.item.gitnexus.desc': 'GitNexus MCP exposes local knowledge-graph queries, context, impact analysis, and change detection to an Agent.',
-    'agents.page.mcp.item.gitnexus.use': 'When I need project structure, call-chain tracing, change-impact reasoning, or diff-scope checks. It supplies context without replacing my final judgment.',
-    'agents.page.skills.eyebrow': 'SKILL DIRECTORY',
-    'agents.page.skills.title': 'My Agent Skills',
-    'agents.page.skills.desc': 'Repeated code understanding, debugging, and change-review work is organized into reusable skill files. Every card keeps the full SKILL.md; the summary is only the entry point.',
-    'agents.page.skills.category.workflow': 'My workflow skills',
-    'agents.page.skills.category.tooling': 'Skill tools and references',
-    'agents.page.skills.category.featured': 'Featured skills',
-    'agents.page.skills.structure': 'Core structure',
-    'agents.page.skills.market': 'Skill marketplace',
-    'agents.page.skills.community': 'Community skills',
-    'agents.page.skills.featured.frontendDesign.desc': 'Treat visual direction, typography, color, and interaction as one system so a page develops a clear point of view.',
-    'agents.page.skills.featured.frontendDesign.structure': 'Set direction → define tokens → shape information → build interaction → inspect screenshots',
-    'agents.page.skills.featured.skillCreator.desc': 'Turn one-off prompts into reusable skills and improve them through test prompts and evaluation.',
-    'agents.page.skills.featured.skillCreator.structure': 'Define goal → draft → design tests → evaluate → iterate',
-    'agents.page.skills.featured.imagegen.desc': 'Generate, edit, or compose bitmap assets when a task needs real visual material instead of a code-only approximation.',
-    'agents.page.skills.featured.imagegen.structure': 'Clarify use → generate or edit → inspect asset → place in product context',
-    'agents.page.skills.featured.artifacts.desc': 'For documents, PDFs, and spreadsheets, use the format-specific toolchain to generate, render, and verify deliverables.',
-    'agents.page.skills.featured.artifacts.structure': 'Read request → choose format tool → generate → render-check → deliver',
-    'agents.page.openclaw.eyebrow': 'Personal assistant type agent',
-    'agents.page.openclaw.title': 'My OpenClaw',
-    'agents.page.openclaw.desc': 'A continuing record of building a personal AI system, from setup to multi-agent workflows.',
-    'agents.page.openclaw.cta': 'Open OpenClaw',
-    'agents.page.openclaw.map.overview': 'OpenClaw Blueprint',
-    'agents.page.openclaw.map.start': 'Getting started',
-    'agents.page.openclaw.map.experience': 'Usage notes',
-    'agents.page.openclaw.map.workflow': 'Workflows',
-    'agents.page.openclaw.map.config': 'Configuration',
-    'agents.page.openclaw.mapLabel': 'OpenClaw / contents',
-    'agents.page.scenarios.eyebrow': 'AT A GLANCE',
-    'agents.page.scenarios.title': 'Use Cases',
-    'agents.page.scenarios.coding': 'Coding',
-    'agents.page.scenarios.coding.desc': 'Understanding, debugging, and building software',
-    'agents.page.scenarios.creating': 'Creating',
-    'agents.page.scenarios.creating.desc': 'From rough ideas to finished pieces',
-    'agents.page.scenarios.organizing': 'Information',
-    'agents.page.scenarios.organizing.desc': 'Research, synthesis, and knowledge capture',
-    'agents.page.scenarios.automation': 'Automation',
-    'agents.page.scenarios.automation.desc': 'Turning repeated work into reusable flows',
-    'agents.page.articles.title': 'Practice Projects',
-    'agents.page.articles.viewAll': 'View all projects',
-    'agents.page.articles.empty': 'Practice projects are being organized.',
-    'breadcrumb.detail': 'Detail',
-    'hero.title': 'Use Agents to',
-    'hero.subtitle': 'turn ideas into reality.',
-    'hero.description': 'A record of completed projects, working patterns, and the judgments each practice left behind.',
-    'hero.viewProjects': 'View practice',
-    'hero.readBlog': 'Read Blog',
-    'hero.available': 'Passionate Coding',
-    'hero.systemStatus': 'System.Status',
-    'hero.activeCore': 'ONLINE',
-    'stats.projects': 'Practice records',
-    'stats.articles': 'Articles',
-    'stats.readMin': 'MIN READ',
-    'stats.live': 'ITEMS LIVE',
-    'projects.title': 'My practice',
-    'projects.subtitle': 'A collection of projects built by AI.',
-    'projects.page.title': 'Practice Results',
-    'projects.page.subtitle': 'Explore my practice of using Agent.',
-    'list.search': 'Search titles or tags',
-    'list.sort': 'Sort',
-    'list.sort.latest': 'Newest first',
-    'list.sort.oldest': 'Oldest first',
-    'list.sort.title': 'Title',
-    'list.sort.featured': 'Featured first',
-    'list.filter.all': 'All',
-    'list.clear': 'Clear filters',
-    'projects.viewAll': 'View All',
-    'projects.selectedWorks': 'Selected Works',
-    'projects.featured.tag': 'Featured',
-    'home.records.title': 'Completed records',
-    'home.records.view': 'View practice archive',
-    'home.method.eyebrow': 'HOW I USE AGENT',
-    'home.method.title': 'Let the Agent participate, not replace judgment',
-    'home.method.context': 'Give context',
-    'home.method.decompose': 'Break work down',
-    'home.method.boundaries': 'Keep judgment',
-    'home.method.verify': 'Verify results',
-    'home.method.context.desc': 'Start with the goal, material, and constraints.',
-    'home.method.decompose.desc': 'Turn large questions into checkable steps.',
-    'home.method.boundaries.desc': 'Let the Agent execute; I confirm trade-offs.',
-    'home.method.verify.desc': 'Use runs, screenshots, and review to confirm.',
-    'blog.viewJournal': 'View Details',
-    'blog.latestInsights': 'Latest Blogs',
-    'blog.category.aiEng': 'AI Engineering',
-    'blog.category.backendArch': 'Backend Architecture',
-    'cta.title': 'READY TO BUILD\nSOMETHING BOLD?',
-    'cta.subtitle': "Let's collaborate on the next generation of Agent-driven applications.",
-    'cta.button': 'Get In Touch',
-    'projects.featured.title': 'Campus AI Assistant: Multi-Agent Collaboration',
-    'projects.featured.desc': 'Building a multi-agent system to help students manage schedules, summarize lectures, and retrieve research papers.',
-    'projects.raft.title': 'Distributed Chat Lab: Raft Protocol Practice',
-    'projects.raft.desc': 'Implementing Raft consensus for a campus chat app to understand distributed consistency.',
-    'projects.viz.title': 'Code Beauty: 3D Repository Visualization',
-    'projects.viz.desc': 'Visualizing my GitHub contributions and project structures with Three.js for a unique portfolio.',
-    'blog.title': 'Tech Journal',
-    'blog.item1.title': 'OpenClaw 101: Building Your AI Agent Gateway',
-    'blog.item1.desc': 'Explore how to leverage OpenClaw\'s self-hosted and multi-channel features based on official docs.',
-    'blog.item2.title': 'Distributed State Management in Go',
-    'blog.item2.desc': 'Lessons learned from building a custom Raft implementation for financial ledger systems.',
-    'footer.description': 'Building the future of the web, one commit at a time. This is the power of AI Agents.',
-    'footer.system': 'System',
-    'footer.status': 'Status',
-    'footer.copyright': '© 2026 Zhang\'s First Personal Site',
-    'footer.link1': 'Dream & Reality',
-    'footer.link2': 'Just Do It',
-    'about.name': 'Zhang',
-    'about.title': 'Data Science and Big Data Technology',
-    'about.location': 'Jiangxi, China',
-    'about.tagline': 'Turning ideas into prototypes quickly with agents.',
-    'about.current': 'Focused on frontier AI and agent applications',
-    'about.me.title': 'About Me',
-    'about.me.paragraph': 'A college student who enjoys hands-on work and pursues the best possible result. I work fluently with agent tools such as Claude Code, Codex, and Trae. I am good at designing prompts, describing requirements and expected outcomes to agents, and planning the "construction blueprint" for agent execution. I understand the role and importance of tools such as MCP, CLI, and RAG knowledge bases, and have built a complete agent-assisted software development workflow. Everything agentic still feels new to me, especially personally customized agents like OpenClaw and the future of personal assistants. AI is getting closer and closer to evolving from having only a "brain" to growing "limbs" and doing practical work.',
-    'about.workflow.title': 'How I Work',
-    'about.workflow.subtitle': 'Instead of unverified numbers, here is the process I use to move ideas into results.',
-    'about.workflow.step1.title': 'Define the Problem',
-    'about.workflow.step1.desc': 'Confirm the goal, boundaries, and acceptance criteria before moving in the wrong direction.',
-    'about.workflow.step2.title': 'Draw the Blueprint',
-    'about.workflow.step2.desc': 'Break requirements into tasks, dependencies, and expected outcomes with clear context for the agent.',
-    'about.workflow.step3.title': 'Execute with Agents',
-    'about.workflow.step3.desc': 'Use the right models, tools, and sub-agents for each task while continuously realigning the direction.',
-    'about.workflow.step4.title': 'Verify and Deliver',
-    'about.workflow.step4.desc': 'Check the code, interface, and outcome, keep the evidence, and iterate from there.',
-    'about.timeline.title': 'Growth Path',
-    'about.timeline.e1.year': 'Phase 01',
-    'about.timeline.e1.title': 'Building Agent Collaboration Awareness',
-    'about.timeline.e1.desc': 'I stopped treating agents as one-off Q&A tools or code completion and began focusing on context, tool use, and task decomposition.',
-    'about.timeline.e1.takeaway': 'Moving from scattered usage to deliberate collaboration',
-    'about.timeline.e2.year': 'Phase 02',
-    'about.timeline.e2.title': 'Designing My Agent Collaboration System',
-    'about.timeline.e2.desc': 'I organize tasks around MCP, CLI, RAG knowledge bases, and prompts, turning requirements into an executable blueprint for agents.',
-    'about.timeline.e2.takeaway': 'Keeping agents aligned with a goal instead of completing isolated steps',
-    'about.timeline.e3.year': 'Phase 03',
-    'about.timeline.e3.title': 'Leading a Complete Project Delivery',
-    'about.timeline.e3.desc': 'From positioning and content architecture to implementation and verification, I coordinated agents to deliver this real personal website.',
-    'about.timeline.e3.takeaway': 'Connecting the full path from idea and design to development and verification',
-    'about.timeline.e4.year': 'Phase 04',
-    'about.timeline.e4.title': 'Moving from Delivery to Continuous Exploration',
-    'about.timeline.e4.desc': 'I document reusable methods and continue exploring OpenClaw, personal assistants, and multi-agent collaboration.',
-    'about.timeline.e4.takeaway': 'Building a personal agent system that can evolve over time',
-    'about.exploration.badge': 'Exploring',
-    'about.cta.title': 'Got an idea?\nLet\'s talk.',
-    'about.cta.subtitle': 'Tech talk, small collabs, or just chatting about AI, all welcome.',
-    'about.cta.button': 'Contact Me',
-    'about.cta.fit': 'Good fit: Agent workflows / AI app prototypes / frontend experience / content sites',
-    'about.cta.work': 'How I work: define the problem → validate in small steps → keep evidence → ship a working result',
-    'about.cta.secondary': 'Browse my practice first',
-    'blog.publishedAt': 'Published at',
-    'blog.noArticles': 'No articles found in this category.',
-    'blog.item1.category': 'AI Engineering',
-    'blog.item2.category': 'Backend Architecture',
-    'blog.tag.distributed': '#Distributed',
-    'blog.tag.go': '#Go',
-    'blog.tag.visualization': '#Visualization',
-    'blog.tag.threejs': '#ThreeJS',
-    'blog.tag.next': '#Next',
-    'blog.tag.typescript': '#TypeScript',
-    'blog.tag.aiagents': '#AI AGENTS',
-    'blog.tag.k8s': '#K8s',
-    'blog.tag.nextjs': '#Nextjs',
-    'blog.tag.tailwind': '#Tailwind',
-    'blog.date.oct24': 'Mar 13, 2026',
-    'blog.date.oct20': 'Mar 11, 2026',
-    'blog.date.oct15': 'Mar 09, 2026',
-    'blog.date.oct10': 'Mar 07, 2026',
-    'blog.date.oct05': 'Mar 05, 2026',
-    'blog.date.oct01': 'Mar 03, 2026',
-    'blog.date.sep12': 'Mar 01, 2026',
-    'openclaw.os.unix': 'macOS / Linux / WSL2',
-    'openclaw.os.windows': 'Windows (PowerShell)',
-    'openclaw.checkConfig': 'Check Config',
-    'openclaw.status': 'Status',
-    'openclaw.dashboard': 'Dashboard',
-    'openclaw.camera': 'Camera',
-    'footer.social.email': 'Email',
-    'footer.social.github': 'Github',
-    'footer.social.website': 'Juejin',
-    'footer.status.new': 'NEW',
-    'about.capabilities.title': 'Capability Map',
-    'about.capabilities.subtitle': 'The core work is managing goals, tasks, agents, and acceptance criteria; tools are execution resources, not my identity.',
-    'about.capabilities.direction.title': 'Focus',
-    'about.capabilities.direction.item1': 'AI Agents',
-    'about.capabilities.direction.item2': 'Frontend Experience',
-    'about.capabilities.direction.item3': 'Vibe Coding',
-    'about.capabilities.deliver.title': 'Deliverables',
-    'about.capabilities.deliver.item1': 'Idea Prototypes',
-    'about.capabilities.deliver.item2': 'Matching Agent Workflows',
-    'about.capabilities.management.title': 'Management & Orchestration',
-    'about.capabilities.management.item1': 'Goal definition / requirement clarification / acceptance criteria',
-    'about.capabilities.management.item2': 'Task decomposition / agent assignment / context orchestration',
-    'about.capabilities.management.item3': 'Process review / quality verification / continuous iteration',
-    'about.exploration.title': 'Interests & Exploration',
-    'about.exploration.item1.title': 'AI Agents',
-    'about.exploration.item1.desc': 'Exploring multi-agent collaboration, tool calling, task decomposition, and result verification to understand how agents can own complete workflows.',
-    'about.exploration.item2.title': 'Agent Engineering',
-    'about.exploration.item2.desc': 'Learning how MCP, CLI, RAG knowledge bases, and context management combine prompts, tools, and workflows into stable systems.',
-    'about.exploration.item3.title': 'Vibe Coding',
-    'about.exploration.item3.desc': 'Focusing on visual hierarchy, responsive layout, and micro-interactions so agent-built pages feel complete instead of merely functional.',
-    'about.exploration.item4.title': 'Personal Assistant Agents',
-    'about.exploration.item4.desc': 'Exploring long-running, personally customized agents and the shift from assistants that answer to assistants that act.',
-    'blog.page.title': 'Blog',
-    'blog.categories.all': 'All',
-    'blog.categories.tech': 'Tech Driven',
-    'blog.categories.community': 'Community',
-    'blog.categories.latest': 'Latest',
-    'blog.readMore': 'Read More',
-    'blog.readTime.format': '{n} min read',
-    'blog.article1.title': 'OpenClaw 101: Building Your AI Agent Gateway',
-    'blog.article1.category': 'Beginner Guide',
-    'blog.article2.title': 'Understanding Open Source Licenses',
-    'blog.article2.category': 'Tech Intro',
-    'blog.article3.title': '2026 Dev Community Trends',
-    'blog.article3.category': 'Industry Trends',
-    'blog.article4.title': 'Building Sustainable OS Ecosystems',
-    'blog.article4.category': 'Ecosystem',
-    'blog.article5.title': 'Containerization Best Practices',
-    'blog.article5.category': 'Architecture',
-    'blog.article6.title': 'The Future of Frontend Engineering',
-    'blog.article6.category': 'Frontend',
-    'blog.article1.content': 'As a student developer, how do you efficiently manage and deploy your AI agents? OpenClaw 🦞 provides a perfect self-hosted solution. It supports multi-channel access (WhatsApp, Telegram, Discord) and powerful multi-agent routing.',
-    'blog.article1.h1': '1. What is OpenClaw?',
-    'blog.article1.p1': 'OpenClaw is a self-hosted AI agent gateway. Its core advantages include: local-first (data security), multi-channel support (one service for multiple platforms), and agent-native design (built-in tool use and session management).',
-    'blog.article1.h2': '2. Quick Start Guide',
-    'blog.article1.p2': 'Get started in three steps: Install via `npm install -g openclaw@latest`; run `openclaw onboard` for guided setup; and finally execute `openclaw gateway` to start the service. Access your dashboard at `http://127.0.0.1:18789/`.',
-    'blog.article2.content': 'Open source licenses are the cornerstone of the open source world. From MIT to GPL, different licenses dictate how code can be used, modified, and distributed. Understanding these licenses is crucial for every developer and enterprise.',
-    'blog.article2.h1': '1. Permissive Licenses',
-    'blog.article2.p1': 'MIT and Apache 2.0 are the most typical permissive licenses. They allow you to use the code with almost no restrictions, as long as you keep the original author\'s copyright notice. This is very friendly for commercial projects.',
-    'blog.article2.h2': '2. Copyleft Licenses',
-    'blog.article2.p2': 'The GPL license requires any derivative works based on the code to also be open sourced under the GPL license. This "infectiousness" aims to protect the freedom of open source software, but it also makes some closed-source commercial software hesitant.',
-    'blog.article3.content': 'Standing on the threshold of 2026, the developer community is undergoing unprecedented changes. AI-assisted programming, the popularization of edge computing, and the evolution of remote collaboration tools are all reshaping the way we work.',
-    'blog.article3.h1': '1. Normalization of AI-Assisted Programming',
-    'blog.article3.p1': 'From Copilot to various local LLM plugins, AI is no longer a novelty but has become a developer\'s "second brain." Future developers will increasingly play the roles of "architects" and "reviewers."',
-    'blog.article3.h2': '2. Edge Computing and Serverless Architecture',
-    'blog.article3.p2': 'With platforms like Vercel and Cloudflare making significant strides, edge computing has pushed application response speeds to the extreme. Serverless further lowers the operational threshold, allowing developers to focus on business logic.',
-    'blog.article4.content': 'The prosperity of the open source ecosystem is inseparable from every contributor, but how can this prosperity be made sustainable? Financial support, community governance, and contributor incentives are the three core challenges.',
-    'blog.article4.h1': '1. Economic Sustainability',
-    'blog.article4.p1': 'Through platforms like GitHub Sponsors and Open Collective, more and more developers are able to earn income through open source. Companies are also beginning to realize that sponsoring key dependencies is the best way to reduce their own risk.',
-    'blog.article4.h2': '2. Community Governance and Diversity',
-    'blog.article4.p2': 'A healthy community needs clear decision-making mechanisms and an inclusive environment. Diverse backgrounds bring more robust code and a broader perspective.',
-    'blog.article5.content': 'Containerization has become the standard for modern application deployment. However, just writing a Dockerfile is not enough. Image size, security scanning, and multi-stage builds are key to improving deployment quality.',
-    'blog.article5.h1': '1. Minimize Base Images',
-    'blog.article5.p1': 'Using Alpine or Distroless images can significantly reduce the attack surface and speed up downloads. Remember, images should not contain any tools not needed at runtime.',
-    'blog.article5.h2': '2. Multi-stage Builds',
-    'blog.article5.p2': 'Compile code in the first stage and only copy the compilation artifacts in the second stage. This is the most effective way to keep images lean.',
-    'blog.article6.content': 'The boundaries of frontend development are constantly expanding. From React Server Components to the rise of full-stack frameworks, the role of frontend engineers is shifting toward "product engineers."',
-    'blog.article6.h1': '1. The Rise of Server Components (RSC)',
-    'blog.article6.p1': 'The RSC pattern introduced in Next.js 13+ allows us to fetch data directly in components, reducing the volume of client-side JavaScript and improving first-screen loading performance.',
-    'blog.article6.h2': '2. Extreme Pursuit of Performance Optimization',
-    'blog.article6.p2': 'Future frontend development will no longer be just about stacking interfaces, but about the extreme refinement of performance, accessibility, and user experience.',
-    'practice.detail.published': 'Published',
-    'practice.meta.scenario': 'Scenario',
-    'practice.detail.readTime': 'Read Time',
-    'practice.detail.challenge': 'The Challenge',
-    'practice.detail.architecture': 'Architecture Overview',
-    'practice.detail.navigation': 'Page Navigation',
-    'practice.detail.related': 'You may be interested in',
-    'practice.detail.problem': 'Problem',
-    'practice.detail.implementation': 'Implementation',
-    'practice.detail.structure': 'Structure',
-    'practice.detail.challengePhase': 'The Challenge Phase',
-    'practice.detail.coreLogic': 'Core Logic',
-    'practice.detail.arch': 'Architecture',
-    'practice.detail.noRelated': 'No related projects found.',
-    'practice.detail.latency': 'Latency Reduction',
-    'practice.detail.agents': 'Concurrent Agents',
-    'practice.detail.cost': 'Avg Task Cost',
-    'practice.tag.ai': 'AI & Machine Learning',
-    'practice.tag.ml': 'Machine Learning',
-    'practice.tag.sysArch': 'System Architecture',
-    'practice.tag.distSys': 'Distributed Systems',
-    'practice.tag.go': 'Go',
-    'practice.tag.fintech': 'Fintech',
-    'practice.tag.threejs': 'Three.js',
-    'practice.tag.viz': 'Data Visualization',
-    'practice.tag.realtime': 'Real-time',
-    'practice.tag.nextjs': 'Next.js',
-    'practice.tag.typescript': 'TypeScript',
-    'practice.tag.aiagents': 'AI Agents',
-    'practice.tag.docker': 'Docker',
-    'practice.tag.k8s': 'Kubernetes',
-    'practice.tag.tailwind': 'Tailwind',
-    'practice.tag.featured': 'Featured',
-    'practice.date.oct24': 'Mar 12, 2026',
-    'practice.date.jan15': 'Mar 08, 2026',
-    'practice.date.mar02': 'Mar 04, 2026',
-    'practice.readTime.12min': '12 min',
-    'practice.readTime.15min': '15 min',
-    'practice.readTime.8min': '8 min',
-    'practice.optimizing-llm.title': 'Campus AI Assistant: My Personal Study Manager',
-    'practice.optimizing-llm.desc': 'Handling complex course information and academic materials is a challenge in college life. This project builds a comprehensive study support system by orchestrating multiple specialized agents (e.g., schedule management, literature summary, code assistant).',
-    'practice.optimizing-llm.challenge': 'The biggest challenge was making agents with different functions collaborate efficiently. For example, having the "Schedule Agent" automatically set reminders based on information extracted by the "Course Agent," while ensuring local execution for privacy.',
-    'practice.optimizing-llm.arch': 'The system uses OpenClaw as the core gateway, maintaining session state via Redis. Using multi-agent routing technology, different types of requests are distributed to corresponding specialized Agents, with real-time monitoring via a local Dashboard.',
-    'practice.raft.title': 'Raft Practice: Building a Campus Distributed Chatroom',
-    'practice.raft.desc': 'To deeply learn distributed systems, I implemented a Raft-based chat application. It synchronizes message states across multiple campus server nodes, ensuring chat records remain safe and consistent even if some nodes fail.',
-    'practice.raft.challenge': 'Handling network partitions and leader elections in a campus network environment was the core difficulty. I needed to optimize the election timeout mechanism to handle unstable network fluctuations and ensure linearizable consistency of messages.',
-    'practice.raft.arch': 'The application is written in Go and uses gRPC for inter-node communication. It implements log compaction and snapshotting to save storage space. All state changes are confirmed via the Raft protocol, ensuring high reliability.',
-    'practice.viz.title': 'Code Beauty: GitHub Contribution 3D Visualization',
-    'practice.viz.desc': 'A student version of Neural Nexus, focusing on visualizing personal programming trajectories. It displays commit records and project relationships in 3D space, making dry data vivid and interesting.',
-    'practice.viz.challenge': 'Rendering a large number of commit nodes smoothly in the browser was a challenge. I used Three.js instanced rendering and wrote custom shaders to represent the dynamic effects of data flow.',
-    'practice.viz.arch': 'The frontend is based on React Three Fiber, fetching real-time data via the GitHub API. It implements a spatial indexing system that allows users to freely explore different project branches and commit histories in 3D space.',
-    'practice.stat.latency': 'Latency Reduction',
-    'practice.stat.agents': 'Concurrent Agents',
-    'practice.stat.cost': 'Avg Task Cost',
-    'practice.stat.uptime': 'Uptime',
-    'practice.stat.consensus': 'Consensus Latency',
-    'practice.stat.throughput': 'Throughput',
-    'practice.stat.fps': 'Frame Rate',
-    'practice.stat.datapoints': 'Data Points',
-    'practice.stat.refresh': 'Refresh Rate',
-    'blog.detail.home': 'Home',
-    'blog.detail.blog': 'Blog',
-    'blog.detail.techArticle': 'Practice details',
-    'blog.detail.category': 'AI / Architecture',
-    'blog.detail.share': 'Share',
-    'blog.detail.featuredAlt': 'Featured Image',
-    'blog.tag.llm': '#LLM',
-    'blog.tag.openclaw': '#OpenClaw',
-    'blog.tag.efficiency': '#Efficiency',
-    'blog.tag.opensource': '#OpenSource',
-    'blog.tag.license': '#License',
-    'blog.tag.legal': '#Legal',
-    'blog.tag.trends': '#Trends',
-    'blog.tag.community': '#Community',
-    'blog.tag.ecosystem': '#Ecosystem',
-    'blog.tag.sustainability': '#Sustainability',
-    'blog.tag.kubernetes': '#Kubernetes',
-    'blog.tag.devops': '#DevOps',
-    'blog.tag.frontend': '#Frontend',
-    'openclaw.hero.title': 'OpenClaw',
-    'openclaw.hero.subtitle': 'AI Agent Gateway suitable for any operating system.',
-    'openclaw.hero.explore': 'Exploration Laboratory',
-    'openclaw.hero.docs': 'Check the document',
-    'openclaw.hero.scroll': 'Explore OpenClaw',
-    'openclaw.mindmap.zoom': 'Click to view larger',
-    'openclaw.sidebar.guides': 'CORE GUIDES',
-    'openclaw.sidebar.mindmap': 'Architecture Mindmap',
-    'openclaw.sidebar.start': 'Quick Start',
-    'openclaw.sidebar.arch': 'Core Architecture',
-    'openclaw.sidebar.config': 'Config Snippets',
-    'openclaw.section.mindmap.title': 'Full Architecture',
-    'openclaw.mindmap.brain.title': 'Brain / Model',
-    'openclaw.mindmap.brain.subtitle': 'Reasoning & Decision Core',
-    'openclaw.mindmap.tools.title': 'Tools',
-    'openclaw.mindmap.tools.subtitle': 'External APIs & Extensions',
-    'openclaw.mindmap.lobster.title': 'Lobster (OpenClaw)',
-    'openclaw.mindmap.lobster.subtitle': 'Core Dispatch & Relay',
-    'openclaw.mindmap.awareness.title': 'Awareness',
-    'openclaw.mindmap.awareness.subtitle': 'Environment & Feedback',
-    'openclaw.mindmap.memory.title': 'Memory / Knowledge',
-    'openclaw.mindmap.memory.subtitle': 'Long-term & Vector DB',
-    'openclaw.mindmap.modules.improvement': 'Self Improvement',
-    'openclaw.mindmap.modules.gui': 'GUI Interface',
-    'openclaw.mindmap.modules.tasks': 'Scheduled Tasks',
-    'openclaw.mindmap.modules.heartbeat': 'System Heartbeat',
-    'openclaw.section.start.title': 'Quick Start',
-    'openclaw.section.start.requirements.title': 'System Requirements',
-    'openclaw.section.start.requirements.node': 'Node 22+ (Installer will handle it)',
-    'openclaw.section.start.requirements.os': 'macOS, Linux, or Windows (WSL2)',
-    'openclaw.section.start.methods.title': 'Installation Methods',
-    'openclaw.section.start.methods.script.title': 'Installer Script',
-    'openclaw.section.start.methods.script.desc': 'Recommended for most users. Handles environment setup.',
-    'openclaw.section.start.methods.npm.title': 'Package Managers',
-    'openclaw.section.start.methods.npm.desc': 'For developers who prefer npm or pnpm.',
-    'openclaw.section.start.methods.source.title': 'From Source',
-    'openclaw.section.start.methods.source.desc': 'Clone and build from the official repository.',
-    'openclaw.section.start.after.title': 'After Installation',
-    'openclaw.section.start.after.desc': 'Verify your setup and launch the dashboard.',
-    'openclaw.section.start.docTitle': 'Technical Documentation',
-    'openclaw.section.start.docDesc': 'Install the OpenClaw CLI globally with a single command, supporting all major operating systems.',
-    'openclaw.section.start.configTitle': 'Technical Documentation',
-    'openclaw.section.start.configDesc': 'Generate cluster configuration files and automatically set up local storage for multi-terminal connectivity.',
-    'openclaw.section.config.title': 'Config Preview',
-    'openclaw.section.config.subtitle': 'Supports major IDEs and container environments',
-    'openclaw.section.config.copy': 'Copy Code',
-    'openclaw.section.arch.relay.title': 'Relay Node',
-    'openclaw.section.arch.relay.desc': 'Responsible for global state distribution and conflict resolution, supporting multi-region high availability.',
-    'openclaw.section.arch.edge.title': 'Edge Agent',
-    'openclaw.section.arch.edge.desc': 'Lightweight agent running at the edge for millisecond-level local state feedback.',
-    'openclaw.section.arch.sync.title': 'Sync Protocol',
-    'openclaw.section.arch.sync.desc': 'Based on an improved Raft protocol, ensuring flexible switching between eventual and strong consistency.',
-    'openclaw.section.arch.gateway.title': 'Multi-channel Gateway',
-    'openclaw.section.arch.gateway.desc': 'The central hub connecting WhatsApp, Telegram, Discord, and more. Handles message routing, authentication, and provider tokens.',
-    'openclaw.section.arch.nodes.title': 'Hardware Nodes',
-    'openclaw.section.arch.nodes.desc': 'iOS and Android nodes extending the agent\'s reach to physical hardware, providing camera access, canvas interaction, and device-level actions.',
-    'openclaw.section.arch.routing.title': 'Multi-agent Routing',
-    'openclaw.section.arch.routing.desc': 'Advanced session management with workspace isolation. Routes tasks to specialized agents while maintaining shared memory.',
-    'openclaw.section.arch.security.title': 'Security & Isolation',
-    'openclaw.section.arch.security.desc': 'Built-in allowlists, token-based access, and sandboxed execution environments to ensure your self-hosted data remains private.',
-  }
+const cnContent = {
+    "nav": {
+      "home": "首页",
+      "projects": "实践",
+      "about": "关于",
+      "blog": "博客",
+      "agents": "我的 Agents",
+      "backToTop": "回到顶部",
+      "menu": {
+        "open": "打开菜单",
+        "close": "关闭菜单"
+      }
+    },
+    "home": {
+      "hero": {
+        "line1": "用 Agent，",
+        "line2": "将想法变成",
+        "line3": "现实。",
+        "word": {
+          "agent": "Agent",
+          "idea": "想法",
+          "reality": "现实"
+        },
+        "viewProjects": "查看实践",
+      },
+      "projects": {
+        "title": "我的实践",
+        "page": {
+          "title": "实践结果",
+          "subtitle": "探索我使用 Agent 的实践。"
+        },
+        "viewAll": "查看全部",
+        "selectedWorks": "精选作品",
+        "featured": {
+          "tag": "精选"
+        },
+      },
+      "method": {
+        "eyebrow": "我的 Agent 使用方式",
+        "title": "让 Agent 参与，而不是代替判断",
+        "context": {
+          "label": "给上下文",
+          "desc": "先说明目标、已有内容和限制。"
+        },
+        "decompose": {
+          "label": "拆解任务",
+          "desc": "把大问题变成可以检查的小步骤。"
+        },
+        "boundaries": {
+          "label": "保留判断",
+          "desc": "让 Agent 执行，关键取舍由我确认。"
+        },
+        "verify": {
+          "label": "验证结果",
+          "desc": "通过运行、截图和复盘确认完成。"
+        }
+      },
+      "cta": {
+        "title": "准备好构建\n大胆的作品了吗？",
+        "subtitle": "让我们在下一代 Agent 打造的应用上展开合作。",
+        "button": "联系我"
+      }
+    },
+    "practice": {
+      "list": {
+        "search": "输入关键字",
+        "sort": {
+          "label": "排序",
+          "latest": "最新发布",
+          "oldest": "最早发布",
+          "title": "标题排序",
+          "featured": "精选优先"
+        },
+        "filter": {
+          "all": "全部"
+        },
+        "clear": "清除筛选",
+        "empty": "暂无项目。"
+      },
+      "practice": {
+        "detail": {
+          "published": "发布于",
+          "readTime": "阅读时间",
+          "navigation": "页面导航",
+          "related": "你可能感兴趣",
+          "noRelated": "暂无相关作品",
+        },
+        "meta": {
+          "scenario": "场景"
+        }
+      },
+    },
+    "blogs": {
+      "blog": {
+        "viewJournal": "查看详情",
+        "latestInsights": "最新博客",
+        "category": {
+          "tutorial": "新手教程",
+          "explainer": "技术科普",
+          "architecture": "架构实践",
+          "frontend": "前端视野",
+          "ecosystem": "生态治理",
+          "trends": "行业趋势"
+        },
+        "publishedAt": "发布于",
+        "noArticles": "该分类下暂无文章。",
+        "page": {
+          "title": "博客"
+        },
+        "categories": {
+          "tech": "技术驱动",
+          "community": "社区动态",
+          "latest": "最新动态"
+        },
+        "readMore": "阅读全文",
+        "readTime": {
+          "format": "{n} 分钟 阅读",
+          "suffix": "阅读"
+        },
+        "detail": {
+          "home": "首页",
+          "blog": "博客",
+          "archive": "往期博客",
+          "techArticle": "实践详情",
+          "featuredAlt": "文章封面图"
+        }
+      }
+    },
+    "about": {
+      "name": "张佳琪",
+      "title": "数据科学与大数据技术专业",
+      "location": "江西, 中国",
+      "tagline": "用 Agent 将想法落实应用。",
+      "current": "关注 AI / Agent 前沿应用",
+      "me": {
+        "title": "关于我",
+        "paragraph": "一个喜欢上手实操的大学生，偏爱实践型任务，有如快速原型设计、前端设计、UI设计等这类交互型设计，在交互中体验发现设计不足与细节优化的快乐无与伦比。另外，个人认为自己是完美主义追求者，也不明是好是坏[尬笑]，但恰匹配新的 Agent 编码模式下需要将快速原型验收，测试，细节优化，将原型升级到产品级的需求，匹配程序员在编码领域的新身份转变（编码者 → 审核优化者）。本人熟练使用 Agent 类工具，如：Claude Code、Codex、DeepSeek Harness等，也曾养过“虾”（OpenClaw）、“马”（Hermes），了解 Agent 框架的一些基本的工作原理，细致的专业知识正在学习中。我善于设计提示词，能将实际状况转述成一段LLM一目了然的提示词供 Agent 正向理解需求，以减少试错成本；善于统筹规划 Agent “施工图纸”，结合软件工程的开发思维和 Agent 自动化工作流，我只需在任务两端参与 —— 设计与审查，便可得到一个基本可用的原型（提升代码品质则需更为细致的优化）。本人明确 Agent 工具的作用与重要性，如：MCP，文件工具，RAG知识库等；也同样知道向 Agent 披露工具的各种属性的重要性（如：使用时机、方法、schema等）；拥有一套自己的完整的 Agent 协作代码开发系统（全局编码规则、自动化审查工作流等）。我对于 AI/Agent 前沿技术感到新鲜，尤其是对于像 OpenClaw 这种私人定制化的、类 AGI 的 Agent （类）的发展和未来全能个人助手的实现充满期待！AI 从只有大脑到长出四肢干实事正越来越近！"
+      },
+      "workflow": {
+        "title": "我的Agent使用方式",
+        "subtitle": "不让 Agent 盲目施工，而是共同协商编写开发文档，包括需求分析、设计功能模块、任务拆解、工具配置和验收标准等，走一套 “适合 Agent 的软件工程开发流程”，最终形成一版系统架构清晰、正文内容完整、细节完善的可供 Agent 开发参考又可供人工审查的双向文档。",
+        "step1": {
+          "title": "明确任务需求",
+          "desc": "先确认目标、边界和验收标准，避免在错误方向上加速。"
+        },
+        "step2": {
+          "title": "设计施工图",
+          "desc": "把需求拆成任务、依赖和预期结果，为 Agent 提供清晰上下文。"
+        },
+        "step3": {
+          "title": "Agent 协同执行",
+          "desc": "按任务调用合适的模型、工具与子 Agent，过程中通过工作流约束校准方向。"
+        },
+        "step4": {
+          "title": "验证并优化",
+          "desc": "自动化测试与人工测试双管齐下，检查代码、功能，保留证据，再继续迭代。"
+        }
+      },
+      "agent": {
+        "desc": "查看我在实践项目中如何使用 Agent，以及可复用的工作流、工具配置与实践记录。",
+        "cta": "查看使用经验"
+      },
+      "timeline": {
+        "title": "我的AI编码轨迹",
+        "e1": {
+          "year": "阶段 01",
+          "title": "AI 代码补全与局部辅助",
+          "desc": "轨迹始于代码补全与局部生成。此时 AI 是辅助编码：补全代码，行间建议等，主体仍是编码者逐行书写与逐行审校，每一处实现是否成立，仍由人判断。",
+          "takeaway": "AI 成为编码加速器"
+        },
+        "e2": {
+          "year": "阶段 02",
+          "title": "输出停留在对话框，需人工集成与调试",
+          "desc": "AI 已能一次产出完整文件，但文件仍需人工落位、拼入既有结构，再启动运行、依报错逐项修正。编码效率提升，但上下文不连贯，调试与验证成本较高。",
+          "takeaway": "重心由书写代码转向描述需求、集成与调试"
+        },
+        "e3": {
+          "year": "阶段 03",
+          "title": "Agent 编码：从任务到自动化测试",
+          "desc": "任务整体交付 Agent：读取上下文、改写文件、启动运行、补写测试，直至通过。人在两端把守——起点定义方向与边界，终点完成审查与验收。",
+          "takeaway": "角色由编码者转为方向定义者与审核者"
+        },
+        "e4": {
+          "year": "阶段 04",
+          "title": "沉淀形成工作流与开发体系",
+          "desc": "不断丰富的编码规则、工具（MCP、CLI、RAG 知识库）与 Agent 记忆、协作模式，积淀成可复用、可并行的个人开发体系与工作流。",
+          "takeaway": "从完成单个任务，走向可复用、可并行的个人开发体系"
+        }
+      },
+      "exploration": {
+        "title": "我的兴趣与探索",
+        "item1": {
+          "title": "Agent 开发团队",
+          "desc": "想复现的不是单个 Agent，而是一支开发团队的运转方式：需求、设计、实现、测试与审校各有承接者，任务在阶段之间有明确交接，让多个智能体像团队一样协作推进。"
+        },
+        "item2": {
+          "title": "Agent 创作者",
+          "desc": "把创作的边界推进到画面之内：一幅有构思的图像、一段可漫游的三维场景、一条完整的创意视频。希望 Agent 承担从构思到成品的整条链路，而不只是其中一环。"
+        },
+        "item3": {
+          "title": "AGI 探索",
+          "desc": "指向的不是更强的模型，而是科幻里贾维斯式的全能助手：能理解意图，能执行任务，也能在需要时创造。理解、执行与创造集于一身，才接近“助手”一词的本意。"
+        },
+        "item4": {
+          "title": "具身Agent",
+          "desc": "让智能走出屏幕，获得感知与行动的实体：在现实环境中观察，在被需要时出手，在长期相处中学习与成长。它不止是工具，也是一种陪伴。"
+        }
+      },
+      "practice": {
+        "title": "我的实践经历",
+        "viewAll": "查看全部实践"
+      },
+      "capabilities": {
+        "title": "我的能力与方向",
+        "subtitle": "从重点探索到实际产出，再到组织 Agent 完成任务的方法。",
+        "direction": {
+          "title": "探索发展",
+          "item1": "Agent 自动化工作流",
+          "item2": "快速原型产出",
+          "item3": "探索 AGI"
+        },
+        "deliver": {
+          "title": "运用掌握",
+          "item1": "提示词设计",
+          "item2": "快速原型产出",
+          "item3": "搭建Agent工作流"
+        },
+        "management": {
+          "title": "管理与方法",
+          "item1": "目标定义 / 需求澄清 / 验收标准",
+          "item2": "任务拆解 / Agent 分工 / 文档约束",
+          "item3": "过程审查 / 质量验证 / 持续迭代"
+        }
+      }
+    },
+    "agents": {
+      "page": {
+        "title": "我的 Agents",
+        "subtitle": "我个人的一些 Agent 使用经验。",
+        "codex": {
+          "eyebrow": "全局配置",
+          "title": "我的全局编码规范",
+          "files": "AGENTS.md（CLAUDE.md）",
+          "desc": "编码规则参考于 Andrej Karpathy 关于 LLM 编码陷阱的总结，主要解决错误假设、隐藏困惑、缺少权衡、过度复杂等 LLM 编码问题。",
+          "reference": "参考：Andrej Karpathy 的 LLM 编码陷阱总结",
+          "principle": {
+            "clarity": {
+              "title": "先问清楚",
+              "desc": "面对任务需求，先确认目标、范围和取舍，避免让 Agent 靠猜测推进。"
+            },
+            "verification": {
+              "title": "每步可验证",
+              "desc": "把修改转成测试、类型检查、构建或可观察结果，确认它真的完成了目标。"
+            },
+            "scope": {
+              "title": "只改必要的",
+              "desc": "尊重现有代码和用户改动，不把一次需求变成无关重构。"
+            }
+          }
+        },
+        "method": {
+          "eyebrow": "我的使用方式",
+          "title": "让 Agent 参与，而不是代替判断",
+          "desc": "我更常把 Agent 当成一个可以协作的工具：它帮助我整理、拆解和执行，但关键取舍仍然由我确认。",
+          "context": {
+            "title": "先给上下文",
+            "desc": "说明目标、已有内容和限制，让 Agent 先理解问题再开始动作。"
+          },
+          "decompose": {
+            "title": "把任务拆小",
+            "desc": "把模糊的大任务拆成几个可以检查的小步骤，减少一次生成带来的偏差。"
+          },
+          "boundaries": {
+            "title": "提供工具与边界",
+            "desc": "告诉它能读取什么、能修改什么，以及哪些决定需要停下来确认。"
+          },
+          "verify": {
+            "title": "看结果再继续",
+            "desc": "通过运行、截图或对照需求检查结果，不把“看起来完成”当成真正完成。"
+          }
+        },
+        "gitnexus": {
+          "eyebrow": "插件工具",
+          "title": "GitNexus：让 Agent 看懂代码库",
+          "desc": "GitNexus 把代码库索引成知识图谱，再通过 CLI 和 MCP 把调用关系、依赖链、执行流程与变更影响交给 Agent。",
+          "badge": "CLI + MCP + 知识图谱",
+          "about": "它解决的不是“帮我写一段代码”，而是“这段代码和整个项目有什么关系”。在陌生代码库、调试问题和准备修改之前，我会先用它补齐上下文。",
+          "repository": "查看 GitNexus 仓库",
+          "cliMcp": "本地索引 · Agent 上下文",
+          "stat": {
+            "cli": "从命令行分析、刷新和检查索引",
+            "mcp": "把代码关系提供给 Agent 查询",
+            "graph": "依赖、调用链和执行流程视图",
+            "map": "可视化关系图谱"
+          },
+          "workflow": {
+            "title": "GitNexus在代码库中的使用",
+            "desc": "我通常要求 Agent 把 GitNexus 放在“理解和修改之间”：先建立索引，再查询上下文；真正准备改动时做影响分析，完成后检查变更范围。",
+            "index": {
+              "title": "建立索引",
+              "desc": "先运行 analyze，让项目结构、符号关系和执行流程进入可查询状态。"
+            },
+            "understand": {
+              "title": "理解代码",
+              "desc": "用 exploring、query 和 context 找到相关流程、调用者与被调用者。"
+            },
+            "impact": {
+              "title": "评估影响",
+              "desc": "修改函数或模块前先看 upstream 依赖，判断直接调用者和风险范围。"
+            },
+            "verify": {
+              "title": "检查变更",
+              "desc": "完成修改后运行 detect_changes，确认影响范围没有偏离预期。"
+            }
+          }
+        },
+        "superpowers": {
+          "eyebrow": "开发方法论",
+          "desc": "Superpowers 是一套面向编码 Agent 的完整软件开发方法论，由一组可以组合的技能和初始指令组成。",
+          "how": "它不会看到需求就直接写代码，而是先澄清目标、确认设计，再形成实施计划，并让 Agent 按计划逐项完成、测试和审查。",
+          "repository": "查看 Superpowers 仓库",
+          "principles": "设计原则",
+          "principle": {
+            "tdd": "测试先行",
+            "systematic": "系统化而非临时应对",
+            "process": "流程优于猜测",
+            "complexity": "减少复杂度",
+            "evidence": "证据优于声明"
+          },
+          "mechanisms": "运行机制",
+          "mechanism": {
+            "automatic": {
+              "title": "自动衔接",
+              "desc": "Agent 会根据当前任务自动选择相关技能，不需要额外切换流程。"
+            },
+            "disciplined": {
+              "title": "流程约束",
+              "desc": "关键工作流被视为必须执行的过程，而不是可忽略的建议。"
+            },
+            "delegated": {
+              "title": "子代理执行",
+              "desc": "复杂计划可以按任务交给新的执行者，再对每一步成果进行检查。"
+            },
+            "reviewed": {
+              "title": "持续审查",
+              "desc": "实现、测试和评审交替进行，问题在进入下一阶段前被处理。"
+            }
+          },
+          "workflow": {
+            "title": "基础工作流",
+            "count": "步",
+            "desc": "从想法澄清到开发分支收尾，每一步都有明确产物和进入下一阶段的检查点。",
+            "brainstorming": {
+              "title": "需求澄清",
+              "desc": "通过问题打磨想法、探索替代方案，分段确认设计并保存设计文档。"
+            },
+            "worktrees": {
+              "title": "隔离工作区",
+              "desc": "设计批准后创建独立分支和工作区，完成项目初始化并确认测试基线。"
+            },
+            "plans": {
+              "title": "编写计划",
+              "desc": "将工作拆成小块任务，为每项任务写明文件路径、代码和验证步骤。"
+            },
+            "execution": {
+              "title": "执行计划",
+              "desc": "每个任务可由新的子代理实现并审查，也可在当前会话中按计划依次完成。"
+            },
+            "tdd": {
+              "title": "测试驱动",
+              "desc": "遵循 RED-GREEN-REFACTOR，先看到测试失败，再写最小实现，最后确认通过。"
+            },
+            "review": {
+              "title": "代码审查",
+              "desc": "在任务之间对照计划检查，按严重程度报告，关键问题阻止继续推进。"
+            },
+            "finish": {
+              "title": "分支收尾",
+              "desc": "验证测试，选择合并、发起 PR、保留或丢弃，并清理工作区。"
+            }
+          },
+          "outcomes": "最终产物",
+          "outcome": {
+            "design": {
+              "title": "确认后的设计",
+              "desc": "把模糊想法收敛成经过确认、可以进入实施的设计。"
+            },
+            "plan": {
+              "title": "可执行计划",
+              "desc": "把设计拆成带文件、代码和验证步骤的小任务。"
+            },
+            "delivery": {
+              "title": "验证后交付",
+              "desc": "通过测试与评审后再合并、发起 PR 或清理分支。"
+            }
+          }
+        },
+        "mcp": {
+          "eyebrow": "能力扩展",
+          "title": "精选 MCP",
+          "desc": "MCP 更像 Agent 可以调用的能力接口。这里记录我实际使用或关注的工具，以及它们在开发流程中补上的一块能力。",
+          "entry": "能力入口",
+          "more": "更多 MCP",
+          "official": "官方仓库",
+          "when": "我会在什么时候用",
+          "item": {
+            "playwright": {
+              "desc": "Playwright MCP 为 Agent 提供浏览器自动化能力，可以导航页面、读取可访问性结构、执行交互并检查真实页面结果。",
+              "use": "做网页功能验收、移动端布局检查、交互回归和截图验证时使用。它让“页面应该能用”变成可以实际操作和观察的结果。"
+            },
+            "gitnexus": {
+              "desc": "GitNexus MCP 把本地代码知识图谱中的查询、上下文、影响分析和变更检测能力提供给 Agent。",
+              "use": "需要理解项目结构、追踪调用链、判断修改影响或检查变更范围时使用。它负责补上下文，不替代我对最终改动的判断。"
+            }
+          }
+        },
+        "skills": {
+          "eyebrow": "技能目录",
+          "title": "我的 Agents 技能",
+          "desc": "把重复的代码理解、调试和变更检查整理成可复用的技能文件。每张卡片都保留完整 SKILL.md，摘要只是入口。",
+          "category": {
+            "featured": "精选技能"
+          },
+          "structure": "核心结构",
+          "market": "技能市场",
+          "community": "社区精选技能",
+          "featured": {
+            "frontendDesign": {
+              "desc": "把视觉方向、排版、颜色和交互作为一个整体来设计，帮助页面形成明确的风格。",
+              "structure": "定主题 → 建立设计 token → 设计信息结构 → 实现交互 → 截图检查"
+            },
+            "skillCreator": {
+              "desc": "把一次性的提示词整理成可复用技能，并通过测试提示词和评估持续改进。",
+              "structure": "定义目标 → 写初稿 → 设计测试 → 评估结果 → 迭代技能"
+            },
+            "imagegen": {
+              "desc": "当任务需要图片素材时，用于生成、编辑或组合位图，而不是用代码勉强模拟真实视觉。",
+              "structure": "明确用途 → 生成或编辑 → 检查素材 → 放入产品场景"
+            },
+            "artifacts": {
+              "desc": "处理文档、PDF 和表格等交付物时，按对应格式的工具链生成、渲染和验证。",
+              "structure": "读取需求 → 选择格式工具 → 生成文件 → 渲染检查 → 交付"
+            }
+          }
+        },
+        "openclaw": {
+          "eyebrow": "Agent特别篇之养虾",
+          "title": "我的 OpenClaw",
+          "desc": "从项目搭建到多 Agent 工作流，记录一个个人 AI 系统持续演进的过程。",
+          "cta": "进入 OpenClaw 专题",
+          "mapLabel": "OpenClaw / 内容导航"
+        },
+        "scenarios": {
+          "eyebrow": "场景速览",
+          "title": "使用场景",
+          "coding": {
+            "label": "编程",
+            "desc": "代码理解、调试与工程协作"
+          },
+          "creating": {
+            "label": "创作",
+            "desc": "从想法整理到内容完成"
+          },
+          "organizing": {
+            "label": "信息整理",
+            "desc": "搜索、总结与知识沉淀"
+          },
+          "automation": {
+            "label": "自动化",
+            "desc": "让重复工作变成可复用流程"
+          }
+        },
+        "articles": {
+          "title": "实践项目",
+          "viewAll": "查看全部项目",
+          "empty": "实践项目正在整理中。"
+        }
+      }
+    },
+    "openclaw": {
+      "sections": [
+        {
+          "id": "overview",
+          "icon": "map",
+          "label": "OpenClaw 蓝图"
+        },
+        {
+          "id": "structure",
+          "icon": "account_tree",
+          "label": "结构介绍"
+        },
+        {
+          "id": "start",
+          "icon": "rocket_launch",
+          "label": "快速开始"
+        },
+        {
+          "id": "config",
+          "icon": "code_blocks",
+          "label": "我的配置"
+        },
+        {
+          "id": "experience",
+          "icon": "psychology",
+          "label": "使用经验"
+        },
+        {
+          "id": "maintenance",
+          "icon": "settings_suggest",
+          "label": "管理维护"
+        }
+      ],
+      "home": "首页",
+      "hero": {
+        "title": "OpenClaw",
+        "subtitle": "适用于任何操作系统的 AI 智能体 Gateway 网关。",
+        "explore": "结构总览",
+        "docs": "快速开始",
+        "scroll": "探索 OpenClaw"
+      },
+      "notice": {
+        "title": "版本说明",
+        "desc": "本页记录的使用方法与配置均基于旧版本 OpenClaw，最后更新时间为 2026.4.2；新版本可能存在行为或字段变化，",
+        "linkPrefix": "具体请看",
+        "linkLabel": "OpenClaw官网",
+        "linkSuffix": "。"
+      },
+      "overview": {
+        "title": "OpenClaw 蓝图",
+        "subtitle": "OpenClaw 它是什么、承担什么角色，理想中是什么样的。",
+        "intro": "OpenClaw 是运行在你个人设备上的开源个人 AI 助手与 Gateway 控制系统。它把消息渠道、Agent、工作区、工具和设备节点连接起来，一个 Gateway 解决编码、生活助理与持续自动化任务。",
+        "currentTitle": "核心特点",
+        "currentDesc": "一个本机 Gateway 统一连接渠道、Agent、工作区和工具，让个人助手在不同入口保持连续上下文。心跳机制主动出击，本地记忆库及自动整理维护越用越懂你；语义搜索，排重滤噪，听得懂你！",
+        "status": [
+          [
+            "系统定位",
+            "个人 AI 助手与编码搭档",
+            "layers"
+          ],
+          [
+            "核心组合",
+            "Gateway + Agents + Channels",
+            "hub"
+          ],
+          [
+            "运行边界",
+            "Local Gateway + loopback",
+            "shield_lock"
+          ]
+        ],
+        "mapOpen": "打开 OpenClaw 全景图",
+        "mapAlt": "OpenClaw 全景架构图",
+        "mapTitle": "系统全景",
+        "source": "以上仅出于个人见解，信息截至 2026.4.2，最新版本具体见 OpenClaw 官方文档。"
+      },
+      "ui": {
+        "guides": "核心指南",
+        "mindmapZoom": "点击查看大图",
+        "close": "关闭菜单"
+      },
+      "structure": {
+        "title": "结构介绍",
+        "subtitle": "从 Gateway 到 Agent、Workspace、Channel 与 Node，理解一整个系统工作链路。",
+        "cards": [
+          [
+            "gateway",
+            "Gateway",
+            "本地控制平面，负责会话、工具、事件和渠道连接，并通过 WebSocket 服务客户端。"
+          ],
+          [
+            "agent",
+            "Agent",
+            "职责专业化，按身份调用专属工具和划分专业工作区，让任务落到细处。"
+          ],
+          [
+            "workspace",
+            "Workspace",
+            "为 Agent 提供文件、上下文和工作边界，是配置与内容隔离的落点。"
+          ],
+          [
+            "channel",
+            "Channel",
+            "把助手接入 WhatsApp、Telegram、Slack、Discord 等已有聊天入口，实现远程操控。"
+          ],
+          [
+            "models",
+            "Models",
+            "云端模型与本地模型可以通过 provider 组合，并使用回退链提高可用性。还可配置任务专属模型，控制质量与成本。"
+          ],
+          [
+            "memory",
+            "Memory",
+            "会话状态、长期文件和记忆插件共同提供跨会话上下文与知识沉淀。划分短、中、长期记忆，合理配置记忆注入频次。"
+          ],
+          [
+            "tools",
+            "Skills & Tools",
+            "Skills、Plugins 与工具扩展搜索、浏览器、文件和业务能力，让 Agent 从回答走向执行。"
+          ],
+          [
+            "security",
+            "Security",
+            "把外部消息视为不可信输入，用配对、允许名单、令牌和沙箱控制设备与工具权限，防止 Agent 操作失误，以及信息泄露。"
+          ]
+        ],
+        "source": "结构描述基于官方 Gateway、Channels、Nodes、Security等文档整理。"
+      },
+      "start": {
+        "title": "快速开始",
+        "subtitle": "从安装到 onboarding、模型配置、渠道接入和健康检查，保留一条可以逐步验证的通用路径。",
+        "requirements": [
+          [
+            "运行时",
+            "安装脚本会准备支持的 Node.js 运行时；手动安装时使用当前官方兼容版本。"
+          ],
+          [
+            "平台",
+            "macOS、Linux 和 Windows 都提供安装路径；Windows 可按实际环境选择 PowerShell 或 WSL2。"
+          ],
+          [
+            "入口",
+            "先在本机或受控网络中启动 Gateway，再接通一个消息渠道并控制访问范围。"
+          ]
+        ],
+        "pathTitle": "最短可用路径",
+        "pathDesc": "不要把安装、模型配置和渠道配置混成一步；每一段都要有可见结果。",
+        "steps": [
+          [
+            "install",
+            "安装 OpenClaw",
+            "按平台运行安装脚本，或使用包管理器安装当前版本。"
+          ],
+          [
+            "models",
+            "完成 onboarding",
+            "配置模型访问、创建默认 Workspace，并让 Gateway 完成基础初始化。"
+          ],
+          [
+            "channel",
+            "接通一个 Channel",
+            "先只接一个私聊入口，确认消息能够进入 Gateway 并到达 Agent。"
+          ],
+          [
+            "verify",
+            "检查状态与健康",
+            "使用 config validate、gateway status、health 和 dashboard 验证运行结果。"
+          ]
+        ],
+        "note": "先完成单 Agent 和单渠道闭环，再按需扩展模型回退、多 Agent 路由与长期记忆。",
+        "source": "安装与验证命令以 OpenClaw 官方 Getting started、Channels 与 Updating 文档为准。"
+      },
+      "config": {
+       "title": "我的配置",
+       "subtitle": "以实际 openclaw.json 为依据，展示脱敏后的 Gateway、飞书、模型、多 Agent 与路由结构。",
+        "repoDesc": "技能包、四个 Workspace 与身份文件均收录在公开仓库中；设计展示保留真实结构，密钥、账号和群组 ID 使用占位符。",
+        "repoLabel": "详见 openclaw-config 仓库",
+        "teamTitle": "多 Agent 团队设计",
+        "teamDesc": "不是复制四个通用助手，而是把入口、决策、专业执行和独立验证拆成清晰角色。每个 Agent 保留自己的上下文、模型和技能边界，团队再通过统一路由与交付标准协作。",
+        "teamDesign": [
+          [
+            "统一入口，明确决策权",
+            "main 负责接收目标、判断任务类型、分派与收敛结果，避免多个 Agent 同时抢答或重复决策。"
+          ],
+          [
+            "角色隔离，保持上下文干净",
+            "每个专业 Agent 使用独立 Workspace、会话、记忆与技能目录，长期积累只围绕自己的职责展开。"
+          ],
+          [
+            "执行与验证分离",
+            "coder 负责实现，tester 使用不同上下文独立验证；需要提炼和交付时，再交给 editor 组织表达。"
+          ]
+        ],
+        "benefitsTitle": "团队设计的收益",
+        "benefitsDesc": "这三项收益来自职责拆分、独立上下文和可验证的分工，而不是单纯增加 Agent 数量。",
+        "benefits": [
+          [
+            "少污染",
+            "长期角色文件让每个 Agent 只积累与职责相关的知识，减少上下文串线。"
+          ],
+          [
+            "可并行",
+            "互不依赖的编码、测试和文档任务可以同时推进，再由主 Agent 汇总。"
+          ],
+          [
+            "易验收",
+            "实现者与验证者分开，质量结论拥有更独立的证据链。"
+          ]
+        ],
+        "skillsTitle": "Agent 技能编队",
+        "skillsDesc": "技能不平均分配，而是按角色选择代表能力。主 Agent 关注设计与协调，专业 Agent 关注各自领域的执行、验证和交付。",
+        "skillsCount": "仓库当前收录 22 个技能包；下面挑选每个 Agent 的 2 个代表技能。",
+        "skills": [
+          ["main", "贾维斯", "brainstorming", "设计前置", "在写代码前先澄清目标、约束与验收标准，把想法收敛成可确认的设计。", "适合新功能、组件和行为从 0 到 1 的阶段。"],
+          ["main", "贾维斯", "project-manager", "任务治理", "把目标拆成阶段、里程碑、风险与交付物，为跨 Agent 协作建立统一推进坐标。", "适合多步骤任务、跨角色协作与进度收敛。"],
+          ["coder", "无敌码农", "architecture-patterns", "架构实现", "用 Clean Architecture、Hexagonal Architecture 和 DDD 组织复杂后端系统。", "适合新系统设计、单体拆分和可维护性重构。"],
+          ["coder", "无敌码农", "coding-agent", "代理编码", "把实现任务交给 Codex、Claude Code 等编码代理，在隔离工作目录中完成探索、修改和迭代。", "适合需要多轮文件操作和验证的编码任务。"],
+          ["tester", "无敌测试", "test-master", "质量策略", "覆盖单元、集成、E2E、性能和安全测试，从策略、执行到报告形成质量闭环。", "适合功能验收、回归测试和测试体系建设。"],
+          ["tester", "无敌测试", "webapp-testing", "浏览器验证", "用 Playwright 操作本地 Web 应用，检查行为、控制台日志、截图和关键交互。", "适合前端功能和可视化回归。"],
+          ["editor", "超级编辑", "docs-writer", "文档标准", "按读者、语气、结构和一致性规则改写技术文档，让内容更容易扫描和维护。", "适合 README、指南、规范与知识库。"],
+          ["editor", "超级编辑", "docx", "正式交付", "创建和编辑 Word 文档，处理样式、结构、评论与修订，并验证最终交付格式。", "适合报告、方案和需要正式排版的文档。"]
+        ],
+        "workspaceTitle": "Agent Team 工作空间",
+        "workspaceDesc": "每个 Agent 有自己的 Workspace，但遵守同一套文件协议。主 Agent 保留团队协调视角，专业 Agent 在自己的目录中积累角色、记忆、工具笔记和局部技能。",
+        "workspaceTreeTitle": "仓库工作空间结构",
+        "workspaceFilesTitle": "角色文件如何协作",
+        "workspaceFilesDesc": "同一套文件协议分别回答身份、行为、启动、偏好、记忆与本地环境问题，让每个 Agent 的长期上下文都可检查、可迁移。",
+        "workspaceFiles": [
+          ["IDENTITY.md", "我是谁", "定义名称、角色、气质、核心能力、工作场景和协作边界。"],
+          ["SOUL.md", "我如何行动", "定义价值观、语气、情绪表达、隐私原则和对外行动准则。"],
+          ["AGENTS.md", "每次会话怎么开始", "定义必读文件、启动顺序、安全红线、记忆流程和心跳规则。"],
+          ["USER.md", "我在帮助谁", "记录称呼、语言、时区、偏好和需要长期遵守的交互规则。"],
+          ["MEMORY.md", "什么值得长期保留", "把短期日志和错误经验提炼为跨会话保留的稳定结论。"],
+          ["TOOLS.md", "环境有什么不同", "保存只属于当前部署的工具规则、路径和本地连接信息。"]
+        ],
+        "identityTitle": "身份由多个 Markdown 共同决定",
+        "identityDesc": "IDENTITY.md 回答“我是谁、负责什么”，SOUL.md 回答“我以什么方式行动”，AGENTS.md 回答“每次会话如何开始和遵守什么规则”，USER.md 与 MEMORY.md 再把身份放进真实的用户关系和历史中。四者共同塑造稳定行为，而不是只靠一段人设。",
+        "identityTemplateTitle": "IDENTITY.md 的组织方式",
+        "identityTemplateDesc": "模板只稳定骨架，不固化人格。每个 Agent 用相同字段描述身份，再通过 SOUL.md 与 AGENTS.md 约束行为。",
+        "identitySkeletonLabel": "通用骨架",
+        "identityMainLabel": "main / IDENTITY.md（真实摘录）",
+        "identityProfilesTitle": "四个 Agent 的身份锚点",
+        "identityTableLabels": ["Agent", "IDENTITY.md", "SOUL.md / AGENTS.md 的约束"],
+        "identityProfiles": [
+          ["main", "贾维斯 / Jarvis", "团队主管、效率伙伴与编码导师。", "专业但有人情味；负责拆解、协调、记忆维护和最终收敛。"],
+          ["coder", "无敌码农 / CodeMaster", "编码专家与实现引擎。", "务实、直接、代码优先；跨 Agent 协作时服从 main 的协调。"],
+          ["tester", "无敌测试 / TestNinja", "质量专家与自动化测试负责人。", "细致、怀疑、证据优先；不以实现者的结论代替独立验证。"],
+          ["editor", "超级编辑 / DocMaster", "文档与内容专家。", "结构清晰、表达准确、读者优先；负责把结果变成可交付内容。"]
+        ],
+        "profiles": [
+          [
+            "运行环境",
+            "Linux 主机 · local Gateway"
+          ],
+          [
+            "模型策略",
+            "Bailian / Antigravity / GPTSAPI / Ollama"
+          ],
+          [
+            "渠道策略",
+            "飞书 WebSocket · 4 账号"
+          ],
+          [
+            "Agent 策略",
+            "1 主管 + 3 专业 Agent"
+          ]
+        ],
+        "agentTitle": "Agent 团队职责",
+        "agents": [
+          [
+            "main",
+            "贾维斯",
+            "主管 Agent",
+            "负责与用户交接、任务分派和跨 Agent 协调，默认承接主入口。",
+            "6h heartbeat · 18 skills"
+          ],
+          [
+            "coder",
+            "无敌码农",
+            "编码 Agent",
+            "负责代码生成、重构、调试和技术实现。",
+            "glm5 · m2.5 / qwen3.5 / k2.5"
+          ],
+          [
+            "tester",
+            "无敌测试",
+            "测试 Agent",
+            "负责测试设计、自动化、缺陷复现与质量验证。",
+            "glm5 · m2.5 / qwen3.5 / k2.5"
+          ],
+          [
+            "editor",
+            "超级编辑",
+            "文档 Agent",
+            "负责文档创作、内容润色、信息组织和知识归档。",
+            "k2.5 · qwen3.5 / m2.5 / glm5"
+          ]
+        ],
+        "principlesTitle": "配置原则",
+        "principlesDesc": "这些原则控制暴露面、上下文边界、模型可用性与凭据流向。",
+        "principles": [
+          [
+            "本机控制面",
+            "Gateway 只绑定 loopback，以 token 鉴权，优先保证控制面不直接暴露到公网。"
+          ],
+          [
+            "Agent 隔离",
+            "每个 Agent 使用独立 Workspace、会话和角色文件，避免长期上下文互相污染。"
+          ],
+          [
+            "模型可回退",
+            "每个专业 Agent 配置主模型与 fallback 链，降低单模型或单服务不可用时的中断。"
+          ],
+          [
+            "密钥与配置分离",
+            "真实密钥保留在环境变量或 Secret 引用中，公开页面只展示脱敏结构。"
+          ]
+        ],
+        "codeTitle": "脱敏配置摘要",
+        "codeDesc": "以下片段保留实际结构，但把账号、密钥、群 ID 和具体身份标识替换为不可逆描述。",
+        "source": "配置字段以 OpenClaw Configuration 与实际 openclaw.json 为准。"
+      },
+      "experience": {
+        "title": "使用经验",
+        "subtitle": "我的 OpenClaw 的一些使用经验和实践记录，包含多 Agent 协作、渠道路由、技能治理、记忆沉淀、模型成本控制与资源选型。",
+        "resultLabel": "得到的结果",
+        "detailsLabel": "查看过程、问题与边界",
+        "fields": [
+          "执行过程",
+          "问题与风险",
+          "适用边界"
+        ],
+        "costTitle": "质量与成本控制",
+        "costDesc": "大型任务先拆成可并行的子任务，再通过 subagent 派发，并在派发时明确模型。简单任务交给便宜、快速的模型，架构、编码、调试、审校等专业任务交给强项模型；最后由主 Agent 验收和合并。这样既避免所有工作都消耗强模型，也不会为了省钱牺牲关键质量。",
+        "costSteps": [
+          ["scope", "判断任务边界", "先判断是否值得并行", "把检索、调研、批量修改、独立验证等能拆开的工作交给子 Agent；强耦合、需要频繁往返的任务留在主 Agent。"],
+          ["route", "派发时写明模型", "不要默认继承主 Agent 模型", "每个 subagent 调用都明确需要的模型档位，让简单任务和关键任务从入口就进入不同成本层。"],
+          ["balance", "按任务价值分配", "简单任务求快，专业任务求准", "搜索、摘要、分类等使用便宜模型；架构、编码、调试、测试和文档审校使用强项模型。"],
+          ["gate", "主 Agent 做质量门槛", "便宜执行不等于降低验收标准", "汇总子 Agent 结果后，由主 Agent 检查证据、运行验证并决定是否交付；高风险或不可逆操作保留强模型复核。"]
+        ],
+        "costRoutingLabels": ["任务类型", "模型路由", "输出要求"],
+        "costRouting": [
+          ["网络搜索、资料摘要、分类整理", "便宜 / 快速模型", "给出来源、结论和不确定项，避免长篇转述。"],
+          ["并行调研、代码库探索、初稿生成", "中档模型", "返回可核验的关键发现和最小必要上下文。"],
+          ["架构设计、编码、调试、测试、文档审校", "强项模型", "提交代码差异、测试结果、截图或审校说明。"],
+          ["最终验收、高风险发布、不可逆操作", "主 Agent / 最强模型", "主 Agent 复核证据并做最终判断，不自动降级。"]
+        ],
+        "costNote": "成本控制不是把模型一律换成最便宜的方案，而是让不同任务匹配不同模型能力，再用主 Agent 的验收流程守住质量。",
+        "costSourceLabel": "参考 OpenClaw 官方文档：",
+        "resourcesTitle": "推荐插件与资源",
+        "resourcesDesc": "以下资源分别解决长期记忆、多 Agent 团队协作、OpenClaw 操作知识、技能发现和真实案例参考。外部插件与 Skill 并非都经过官方审计，安装前应先检查来源、脚本、权限和密钥范围。",
+        "resources": [
+          ["memory-lancedb-pro", "https://github.com/CortexReach/memory-lancedb-pro", "长期记忆插件", "为 OpenClaw 增加基于 LanceDB 的长期记忆：向量与 BM25 混合检索、Cross-Encoder 重排、多 Scope 隔离、自动捕获与遗忘，并提供管理 CLI。", "适合需要跨会话召回项目上下文、偏好和长期结论的 Agent。"],
+          ["ClawTeam-OpenClaw", "https://github.com/win4r/ClawTeam-OpenClaw", "多 Agent 团队", "在 OpenClaw 之上组织 leader 与 worker，让每个 worker 在独立 git worktree、会话和身份中并行工作，并支持文件与 ZeroMQ 通信。", "适合可拆分的编码、调研和验证任务；并行前仍要明确模型与验收责任。"],
+          ["OpenClaw-Skill", "https://github.com/win4r/OpenClaw-Skill", "操作知识库", "一份综合型 OpenClaw Agent Skill，主文件配合大量 references，覆盖安装配置、渠道、Gateway、多 Agent、插件、自动化、安全和记忆等主题。", "适合作为搭建与排查 OpenClaw 时的系统化参考资料。"],
+          ["awesome-openclaw-skills", "https://github.com/VoltAgent/awesome-openclaw-skills", "技能目录", "按类别整理 ClawHub 中的数千个 OpenClaw Skills，并提供 openclaw skills install 与 npx clawhub install 等安装入口。", "适合发现新能力后再按来源、权限和维护状态做二次筛选。"],
+          ["awesome-openclaw-usecases", "https://github.com/hesamsheikh/awesome-openclaw-usecases", "案例参考", "汇总 42 个真实 OpenClaw 使用场景，覆盖社交媒体、创意构建、DevOps、生产力、研究学习与金融等方向。", "适合寻找工作流灵感；仓库也提醒第三方 Skill 未经过审计，使用前需检查源码和权限。"]
+        ],
+        "cases": [
+          [
+            "team",
+            "四个 Agent 分工协作",
+            "让主管 Agent 负责交接，编码、测试和文档分别由专业 Agent 承接。",
+            "任务能够按照角色进入不同上下文，主管保留协调与最终交付视角。",
+            "贾维斯负责目标拆解、任务分派与进度收敛，coder、tester、editor 在各自 Workspace 内执行专业任务。",
+            "多 Agent 会放大路由错误和上下文重复，必须明确谁负责决策、谁负责执行。",
+            "适合边界清楚、可验证的任务；需要频繁往返或强耦合的工作仍应由单一 Agent 完成。"
+          ],
+          [
+            "feishu",
+            "飞书四账号消息路由",
+            "通过不同飞书账号和 bindings 将消息送入对应的专业 Agent。",
+            "每个入口都能绑定到明确 Agent，群聊只响应被允许且满足 mention 规则的消息。",
+            "使用 WebSocket 长连接，配置 default、coder、tester、editor 四个账号；私聊采用 pairing，群聊使用 allowlist 与 mention 门控。",
+            "渠道在线不等于路由正确，账号、binding、Agent 和模型必须逐层验证。",
+            "该模式适合可控团队与个人入口；陌生私聊和未授权群聊不应直接获得 Agent 能力。"
+          ],
+          [
+            "skills",
+            "技能安装与治理",
+            "让 Agent 能力持续扩展，但不在未审查的情况下把复杂脚本直接放进工作区。",
+            "技能经过风险检查、配置和测试后才保留，失败或冗余能力及时移除。",
+            "安装前扫描文件与脚本；安装后验证配置、依赖和实际调用，并把使用规则写入工作区。",
+            "技能越多并不代表能力越强，重复、冲突和未测试技能会增加维护成本与安全面。",
+            "适合可审查、可回滚的扩展；涉及外部账号、系统修改或公开操作时必须单独评估。"
+          ],
+          [
+            "memory",
+            "记忆沉淀与长期上下文",
+            "让 Agent 跨会话保留偏好、错误经验、项目上下文和长期任务线索。",
+            "短记忆、长期记忆和增强检索分工明确，重要信息能被持续整理而不是停留在单次会话。",
+            "session-memory 保持会话连续；日常文件记录原始信息，MEMORY.md 保存长期结论；memory-lancedb-pro 作为向量检索与智能提取的增强方案。",
+            "记忆需要区分事实、偏好和推测，否则错误内容会被长期放大。",
+            "自动化记忆适合低风险知识沉淀；凭据、隐私和未经确认的判断不应进入公开或长期记忆。"
+          ]
+        ]
+      },
+      "maintenance": {
+        "title": "管理维护",
+        "subtitle": "围绕 Gateway 健康、飞书连接、配置变更、记忆备份与版本升级建立一套可重复的维护流程。",
+        "cadence": [
+          [
+            "每次使用前",
+            "检查 Gateway、健康状态和飞书连接，确认主入口可用。"
+          ],
+          [
+            "每周记忆维护",
+            "周日到周一整理日常记忆，把错误经验和重要结论沉淀到 MEMORY.md。"
+          ],
+          [
+            "工作区清理",
+            "把任务产物移动到 outcomes，并清理临时文件和重复材料。"
+          ],
+          [
+            "升级前",
+            "确认配置备份、记忆导出和回滚路径，再预览 OpenClaw 更新。"
+          ]
+        ],
+        "incidentsTitle": "故障定位表",
+        "incidentsDesc": "先判断问题位于 Gateway、渠道、路由还是模型层，避免直接重装或反复改写配置。",
+        "tableLabels": [
+          "症状",
+          "检查项",
+          "处理方向"
+        ],
+        "incidents": [
+          [
+            "Gateway 不可用",
+            "openclaw gateway status",
+            "检查服务、监听地址、token 与配置校验结果。"
+          ],
+          [
+            "飞书没有回复",
+            "logs / dashboard",
+            "检查账号连接、pairing、群聊 allowlist、mention 和 binding。"
+          ],
+          [
+            "Agent 路由错误",
+            "config get bindings",
+            "确认飞书账号与 agentId 的映射，再检查对应 Workspace。"
+          ],
+          [
+            "模型连续失败",
+            "openclaw health",
+            "检查 provider、主模型和 fallback 链，确认环境变量密钥可用。"
+          ]
+        ],
+        "commandsTitle": "常用维护命令",
+        "commandsLabel": "检查、诊断与升级",
+        "memoryTitle": "记忆维护",
+        "memoryLabel": "导出与记忆仓库",
+        "security": "保持 Gateway 本机绑定和 token 鉴权；远程访问优先使用 Tailscale、VPN 或 SSH 隧道。定期检查配对设备、群聊白名单、技能来源和 Agent 工具权限。",
+        "source": "维护流程参考 OpenClaw Updating、Doctor、Security、Memory 与 Gateway runbook 文档。"
+      }
+    },
+    "shared": {
+      "meta": {
+        "title": "ZHANG.LOG | 个人主页",
+        "description": "张的个人主页 - 记录技术、生活与 AI 智能体探索"
+      },
+      "pagination": {
+        "nav": "分页",
+        "previous": "上一页",
+        "next": "下一页"
+      },
+      "code": {
+        "copy": "复制",
+        "copied": "已复制"
+      },
+      "footer": {
+        "copyright": "© 2026 张佳琪的个人网站",
+        "social": {
+          "email": "电子邮箱",
+          "github": "GitHub",
+          "website": "稀土掘金"
+        }
+      }
+    }
+} as const;
+
+type Widen<T> =
+  T extends string ? string :
+  T extends readonly (infer U)[] ? readonly Widen<U>[] :
+  { [K in keyof T]: Widen<T[K]> };
+
+// English mirrors the Chinese source of truth; missing or extra keys fail type-checking.
+const enContent: Widen<typeof cnContent> = {
+    "nav": {
+      "home": "Home",
+      "projects": "Practice",
+      "about": "About",
+      "blog": "Blog",
+      "agents": "My Agents",
+      "backToTop": "Back to top",
+      "menu": {
+        "open": "Open menu",
+        "close": "Close menu"
+      }
+    },
+    "home": {
+      "hero": {
+        "line1": "Use Agents to",
+        "line2": "turn ideas into",
+        "line3": "reality.",
+        "word": {
+          "agent": "Agents",
+          "idea": "ideas",
+          "reality": "reality"
+        },
+        "viewProjects": "View practice",
+      },
+      "projects": {
+        "title": "My practice",
+        "page": {
+          "title": "Practice Results",
+          "subtitle": "Explore my practice of using Agent."
+        },
+        "viewAll": "View All",
+        "selectedWorks": "Selected Works",
+        "featured": {
+          "tag": "Featured"
+        },
+      },
+      "method": {
+        "eyebrow": "How I Use Agent",
+        "title": "Let the Agent participate, not replace judgment",
+        "context": {
+          "label": "Give context",
+          "desc": "Start with the goal, material, and constraints."
+        },
+        "decompose": {
+          "label": "Break work down",
+          "desc": "Turn large questions into checkable steps."
+        },
+        "boundaries": {
+          "label": "Keep judgment",
+          "desc": "Let the Agent execute; I confirm trade-offs."
+        },
+        "verify": {
+          "label": "Verify results",
+          "desc": "Use runs, screenshots, and review to confirm."
+        }
+      },
+      "cta": {
+        "title": "Ready to Build\nSomething Bold?",
+        "subtitle": "Let's collaborate on the next generation of Agent-driven applications.",
+        "button": "Get In Touch"
+      }
+    },
+    "practice": {
+      "list": {
+        "search": "Enter keywords",
+        "sort": {
+          "label": "Sort",
+          "latest": "Newest first",
+          "oldest": "Oldest first",
+          "title": "Title",
+          "featured": "Featured first"
+        },
+        "filter": {
+          "all": "All"
+        },
+        "clear": "Clear filters",
+        "empty": "No projects yet."
+      },
+      "practice": {
+        "detail": {
+          "published": "Published",
+          "readTime": "Read Time",
+          "navigation": "Page Navigation",
+          "related": "You may be interested in",
+          "noRelated": "No related projects found.",
+        },
+        "meta": {
+          "scenario": "Scenario"
+        }
+      },
+    },
+    "blogs": {
+      "blog": {
+        "viewJournal": "View Details",
+        "latestInsights": "Latest Blogs",
+        "category": {
+          "tutorial": "Beginner Tutorial",
+          "explainer": "Technical Explainer",
+          "architecture": "Architecture Practice",
+          "frontend": "Frontend Perspective",
+          "ecosystem": "Ecosystem Governance",
+          "trends": "Industry Trends"
+        },
+        "publishedAt": "Published at",
+        "noArticles": "No articles found in this category.",
+        "page": {
+          "title": "Blog"
+        },
+        "categories": {
+          "tech": "Tech Driven",
+          "community": "Community",
+          "latest": "Latest"
+        },
+        "readMore": "Read More",
+        "readTime": {
+          "format": "{n} min read",
+          "suffix": "read"
+        },
+        "detail": {
+          "home": "Home",
+          "blog": "Blog",
+          "archive": "All posts",
+          "techArticle": "Practice details",
+          "featuredAlt": "Featured Image"
+        }
+      }
+    },
+    "about": {
+      "name": "Jiaqi Zhang",
+      "title": "Data Science and Big Data Technology",
+      "location": "Jiangxi, China",
+      "tagline": "Turning ideas into working applications with agents.",
+      "current": "Focused on frontier AI and agent applications",
+      "me": {
+        "title": "About Me",
+        "paragraph": "A college student who likes getting hands-on and prefers practice-oriented tasks — rapid prototyping, front-end design, UI design and other hands-on kinds of design. Finding a design flaw in the middle of an interaction and then polishing the details is a joy like no other. I also think of myself as a perfectionist, though I am not sure whether that is a good thing or a bad thing (awkward laugh); it happens to match what the new agent-assisted coding model needs — taking a rapid prototype through acceptance, testing and detail polishing until it reaches product quality — and it matches the identity shift programmers are going through in coding: from coder to reviewer and optimizer. I use agent tools fluently, such as Claude Code, Codex and DeepSeek Harness, and I have also raised a \"lobster\" (OpenClaw) and a \"horse\" (Hermes); I understand some of the basic working principles of agent frameworks, and I am still learning the finer professional knowledge. I am good at designing prompts — turning a real situation into a prompt that an LLM grasps at a glance so the agent understands the requirement constructively, which cuts down on trial and error — and at planning the agent's \"construction blueprint\". Combined with software-engineering thinking and agent automation workflows, I only need to take part at the two ends of a task, design and review, to get a basically usable prototype (raising the code quality further takes finer optimization). I understand what agent tools such as MCP, file tools and RAG knowledge bases do and how much they matter, and I understand just as well how important it is to tell an agent about each tool's properties (when to use it, how to call it, its schema); I have a complete agent-collaboration coding system of my own (global coding rules, automated review workflows, and more). Frontier AI and agent technology still feels fresh to me, and I am especially excited about personally customized, AGI-like agents such as OpenClaw — how that category is developing, and the realization of a future all-purpose personal assistant! AI is getting closer and closer to growing \"limbs\" out of a \"brain\" and actually doing work."
+      },
+      "workflow": {
+        "title": "My Way of Using Agents",
+        "subtitle": "Rather than setting an agent loose, we write the development document together: requirements analysis, module design, task breakdown, tool configuration, acceptance criteria, following a software-engineering process shaped for agents. What comes out is one document read two ways, structured enough for an agent to build from and complete enough for a person to audit.",
+        "step1": {
+          "title": "Define the Problem",
+          "desc": "Confirm the goal, boundaries, and acceptance criteria before moving in the wrong direction."
+        },
+        "step2": {
+          "title": "Draw the Blueprint",
+          "desc": "Break requirements into tasks, dependencies, and expected outcomes with clear context for the agent."
+        },
+        "step3": {
+          "title": "Execute with Agents",
+          "desc": "Use the right models, tools, and sub-agents for each task while continuously realigning the direction."
+        },
+        "step4": {
+          "title": "Verify and Deliver",
+          "desc": "Automated tests run alongside manual ones: check the code and the features, keep the evidence, and iterate from there."
+        }
+      },
+      "agent": {
+        "desc": "See how I use agents in real projects, including reusable workflows, tooling, and practice notes.",
+        "cta": "Explore my experience"
+      },
+      "timeline": {
+        "title": "My AI Coding Trajectory",
+        "e1": {
+          "year": "Phase 01",
+          "title": "AI Completion and Local Assistance",
+          "desc": "The trajectory begins with code completion and local generation. Here AI assists: completing code, suggesting between the lines. Authorship stays with the coder, who writes and reviews line by line, and whether each implementation holds is still a human judgment.",
+          "takeaway": "AI becomes a coding accelerator"
+        },
+        "e2": {
+          "year": "Phase 02",
+          "title": "Output Stuck in the Chat, Manual Integration and Debugging",
+          "desc": "AI can produce a complete file in one pass, but the file still has to be placed by hand, fitted into the existing structure, run, and corrected error by error. Coding gets faster; context does not hold together, so debugging and verification cost more.",
+          "takeaway": "The center of gravity moves from writing code to describing needs, integrating, and debugging"
+        },
+        "e3": {
+          "year": "Phase 03",
+          "title": "Agentic Coding: From Task to Automated Tests",
+          "desc": "A task is handed over whole: the agent reads context, rewrites files, runs the project, writes tests, and iterates until they pass. I hold the two ends — setting direction and boundaries at the start, reviewing and accepting at the end.",
+          "takeaway": "The role shifts from author to direction-setter and reviewer"
+        },
+        "e4": {
+          "year": "Phase 04",
+          "title": "Settled into Workflows and a Development System",
+          "desc": "Coding rules that keep growing, tools (MCP, CLI, RAG knowledge bases), agent memory and ways of collaborating settle into a personal development system and workflow that are reusable and can run in parallel.",
+          "takeaway": "From single tasks to a reusable, parallel personal development system"
+        }
+      },
+      "exploration": {
+        "title": "My Interests & Exploration",
+        "item1": {
+          "title": "Agent Development Teams",
+          "desc": "What I want to reproduce is not a single agent but the way a development team operates: requirements, design, implementation, testing, and review each have an owner, and tasks pass between stages with explicit handoffs."
+        },
+        "item2": {
+          "title": "The Agent as Creator",
+          "desc": "Push the edge of making inside the frame: a concept-driven image, a walkable three-dimensional scene, a complete creative video. The hope is for an agent to own the whole path from idea to finished piece, not one link in it."
+        },
+        "item3": {
+          "title": "Toward AGI",
+          "desc": "The goal is not a stronger model but the all-purpose assistant of science fiction: one that understands intent, executes tasks, and creates when creation is needed. Understanding, execution, and creation in one place — that is what the word assistant should mean."
+        },
+        "item4": {
+          "title": "Embodied Agents",
+          "desc": "Let intelligence step out of the screen and gain a body: observing its surroundings, acting when it is needed, learning and growing across long use. Not only a tool, but a companion."
+        }
+      },
+      "practice": {
+        "title": "My Practice Experience",
+        "viewAll": "View all practice"
+      },
+      "capabilities": {
+        "title": "My Capabilities & Direction",
+        "subtitle": "From current focus to practical output, and the way I organize agents around real tasks.",
+        "direction": {
+          "title": "Explore and Develop",
+          "item1": "Agent Automation Workflow",
+          "item2": "Rapid Prototyping Output",
+          "item3": "Explore AGI"
+        },
+        "deliver": {
+          "title": "Application & Mastery",
+          "item1": "Prompt design",
+          "item2": "Rapid prototype output",
+          "item3": "Building Agent workflows"
+        },
+        "management": {
+          "title": "Management & Orchestration",
+          "item1": "Goal definition / requirement clarification / acceptance criteria",
+          "item2": "Task decomposition / agent assignment / context orchestration",
+          "item3": "Process review / quality verification / continuous iteration"
+        }
+      }
+    },
+    "agents": {
+      "page": {
+        "title": "My Agents",
+        "subtitle": "Notes on how I use, configure, and understand agent in real workflows.",
+        "codex": {
+          "eyebrow": "Codex Setup",
+          "title": "My Global Coding Rules",
+          "files": "AGENTS.md (CLAUDE.md)",
+          "desc": "The coding rules are based on Andrej Karpathy's summary of LLM coding pitfalls, addressing wrong assumptions, hidden confusion, missing trade-offs, and over-engineering.",
+          "reference": "Based on Andrej Karpathy's LLM coding pitfalls",
+          "principle": {
+            "clarity": {
+              "title": "Clarify first",
+              "desc": "When a request is ambiguous, confirm the goal, scope, and trade-offs before letting the Agent guess."
+            },
+            "verification": {
+              "title": "Verify each step",
+              "desc": "Turn changes into tests, type checks, builds, or observable results that prove the goal was met."
+            },
+            "scope": {
+              "title": "Keep the scope tight",
+              "desc": "Respect existing code and user changes instead of turning one request into an unrelated refactor."
+            }
+          }
+        },
+        "method": {
+          "eyebrow": "How I Work With Agent",
+          "title": "Let the Agent participate, not replace judgment",
+          "desc": "I usually treat an Agent as a collaborative tool: it helps me organize, decompose, and execute, while I keep the important trade-offs in view.",
+          "context": {
+            "title": "Give context first",
+            "desc": "Explain the goal, existing material, and constraints so the Agent understands the problem before acting."
+          },
+          "decompose": {
+            "title": "Break work down",
+            "desc": "Turn a vague task into small steps that can be checked, reducing the drift of one large generation."
+          },
+          "boundaries": {
+            "title": "Set tools and boundaries",
+            "desc": "Make clear what it can read or change, and which decisions require a pause for confirmation."
+          },
+          "verify": {
+            "title": "Check before continuing",
+            "desc": "Use runs, screenshots, or the original request to verify the result instead of trusting that it merely looks finished."
+          }
+        },
+        "gitnexus": {
+          "eyebrow": "Plugin Tools",
+          "title": "GitNexus: give the Agent a codebase view",
+          "desc": "GitNexus indexes a codebase into a knowledge graph, then exposes call relationships, dependencies, execution flows, and change impact through CLI and MCP.",
+          "badge": "CLI + MCP + Knowledge Graph",
+          "about": "It is not only for “write this snippet”. It helps answer “how is this code related to the rest of the project?”. I use it to fill context before exploring unfamiliar code, debugging, or editing.",
+          "repository": "View GitNexus repository",
+          "cliMcp": "Local index · Agent context",
+          "stat": {
+            "cli": "Analyze, refresh, and inspect indexes from the CLI",
+            "mcp": "Expose code relationships for Agent queries",
+            "graph": "Dependencies, call chains, and execution flows",
+            "map": "Visual relationship map"
+          },
+          "workflow": {
+            "title": "Using GitNexus in a codebase",
+            "desc": "I usually ask the Agent to place GitNexus between understanding and editing: build the index, query context, assess impact before changes, then inspect the changed scope afterwards.",
+            "index": {
+              "title": "Index the repo",
+              "desc": "Run analyze so project structure, symbol relationships, and execution flows become queryable."
+            },
+            "understand": {
+              "title": "Understand the code",
+              "desc": "Use exploring, query, and context to find relevant flows, callers, and callees."
+            },
+            "impact": {
+              "title": "Assess impact",
+              "desc": "Before changing a function or module, inspect upstream dependents and the likely risk boundary."
+            },
+            "verify": {
+              "title": "Check the diff",
+              "desc": "After editing, run detect_changes to confirm the affected scope matches the intention."
+            }
+          }
+        },
+        "superpowers": {
+          "eyebrow": "Development Methodology",
+          "desc": "Superpowers is a complete software development methodology for coding agents, built from composable skills and initial instructions.",
+          "how": "It does not jump from a request straight into code. It clarifies the goal, validates a design, creates an implementation plan, then works through each task with testing and review.",
+          "repository": "View Superpowers repository",
+          "principles": "Design principles",
+          "principle": {
+            "tdd": "Test-driven development",
+            "systematic": "Systematic over ad-hoc",
+            "process": "Process over guessing",
+            "complexity": "Complexity reduction",
+            "evidence": "Evidence over claims"
+          },
+          "mechanisms": "Operating model",
+          "mechanism": {
+            "automatic": {
+              "title": "Automatic activation",
+              "desc": "The Agent selects relevant skills from the task itself without requiring a separate workflow switch."
+            },
+            "disciplined": {
+              "title": "Workflow discipline",
+              "desc": "Key workflows are treated as required stages rather than optional suggestions."
+            },
+            "delegated": {
+              "title": "Delegated execution",
+              "desc": "Complex plans can be assigned task by task, with each result checked before work continues."
+            },
+            "reviewed": {
+              "title": "Continuous review",
+              "desc": "Implementation, testing, and review alternate so issues are handled before the next stage."
+            }
+          },
+          "workflow": {
+            "title": "The basic workflow",
+            "count": "Steps",
+            "desc": "From shaping an idea to finishing a development branch, each stage produces something concrete and a checkpoint before the next stage.",
+            "brainstorming": {
+              "title": "Shape the idea",
+              "desc": "Refine rough ideas through questions, explore alternatives, validate the design in sections, and save the design document."
+            },
+            "worktrees": {
+              "title": "Isolate the workspace",
+              "desc": "After design approval, create an isolated branch and worktree, run setup, and verify a clean test baseline."
+            },
+            "plans": {
+              "title": "Write the plan",
+              "desc": "Break the work into bite-sized tasks with concrete file paths, code, and verification steps."
+            },
+            "execution": {
+              "title": "Execute the plan",
+              "desc": "A fresh subagent can implement and review each task, or the current session can execute the plan inline."
+            },
+            "tdd": {
+              "title": "Test-driven delivery",
+              "desc": "Follow RED-GREEN-REFACTOR: watch a test fail, write the minimal implementation, then verify it passes."
+            },
+            "review": {
+              "title": "Review the work",
+              "desc": "Review each task against the plan, report issues by severity, and block progress on critical problems."
+            },
+            "finish": {
+              "title": "Finish the branch",
+              "desc": "Verify tests, choose merge, PR, keep, or discard, and clean up the worktree."
+            }
+          },
+          "outcomes": "What it produces",
+          "outcome": {
+            "design": {
+              "title": "Validated design",
+              "desc": "A rough idea converges into a reviewed design ready for implementation."
+            },
+            "plan": {
+              "title": "Executable plan",
+              "desc": "The design becomes bite-sized tasks with files, code, and verification steps."
+            },
+            "delivery": {
+              "title": "Verified delivery",
+              "desc": "After testing and review, the branch can be merged, opened as a PR, or cleaned up."
+            }
+          }
+        },
+        "mcp": {
+          "eyebrow": "Selected MCP",
+          "title": "Selected MCPs",
+          "desc": "MCP is an interface for capabilities an Agent can call. This is a short record of tools I use or follow and the missing piece each one adds to development.",
+          "entry": "Capability entry",
+          "more": "More MCPs",
+          "official": "official repository",
+          "when": "When I use it",
+          "item": {
+            "playwright": {
+              "desc": "Playwright MCP gives an Agent browser automation capabilities: navigate pages, read accessibility structure, interact with UI, and inspect real results.",
+              "use": "For web acceptance checks, mobile layout inspection, interaction regressions, and screenshots. It turns “the page should work” into an observable check."
+            },
+            "gitnexus": {
+              "desc": "GitNexus MCP exposes local knowledge-graph queries, context, impact analysis, and change detection to an Agent.",
+              "use": "When I need project structure, call-chain tracing, change-impact reasoning, or diff-scope checks. It supplies context without replacing my final judgment."
+            }
+          }
+        },
+        "skills": {
+          "eyebrow": "Skill Directory",
+          "title": "My Agent Skills",
+          "desc": "Repeated code understanding, debugging, and change-review work is organized into reusable skill files. Every card keeps the full SKILL.md; the summary is only the entry point.",
+          "category": {
+            "featured": "Featured skills"
+          },
+          "structure": "Core structure",
+          "market": "Skill marketplace",
+          "community": "Community skills",
+          "featured": {
+            "frontendDesign": {
+              "desc": "Treat visual direction, typography, color, and interaction as one system so a page develops a clear point of view.",
+              "structure": "Set direction → define tokens → shape information → build interaction → inspect screenshots"
+            },
+            "skillCreator": {
+              "desc": "Turn one-off prompts into reusable skills and improve them through test prompts and evaluation.",
+              "structure": "Define goal → draft → design tests → evaluate → iterate"
+            },
+            "imagegen": {
+              "desc": "Generate, edit, or compose bitmap assets when a task needs real visual material instead of a code-only approximation.",
+              "structure": "Clarify use → generate or edit → inspect asset → place in product context"
+            },
+            "artifacts": {
+              "desc": "For documents, PDFs, and spreadsheets, use the format-specific toolchain to generate, render, and verify deliverables.",
+              "structure": "Read request → choose format tool → generate → render-check → deliver"
+            }
+          }
+        },
+        "openclaw": {
+          "eyebrow": "Agent Special Chapter on Shrimp Farming",
+          "title": "My OpenClaw",
+          "desc": "A continuing record of building a personal AI system, from setup to multi-agent workflows.",
+          "cta": "Open OpenClaw",
+          "mapLabel": "OpenClaw / contents"
+        },
+        "scenarios": {
+          "eyebrow": "At a Glance",
+          "title": "Use Cases",
+          "coding": {
+            "label": "Coding",
+            "desc": "Understanding, debugging, and building software"
+          },
+          "creating": {
+            "label": "Creating",
+            "desc": "From rough ideas to finished pieces"
+          },
+          "organizing": {
+            "label": "Information",
+            "desc": "Research, synthesis, and knowledge capture"
+          },
+          "automation": {
+            "label": "Automation",
+            "desc": "Turning repeated work into reusable flows"
+          }
+        },
+        "articles": {
+          "title": "Practice Projects",
+          "viewAll": "View all projects",
+          "empty": "Practice projects are being organized."
+        }
+      }
+    },
+    "openclaw": {
+      "sections": [
+        {
+          "id": "overview",
+          "icon": "map",
+          "label": "OpenClaw Blueprint"
+        },
+        {
+          "id": "structure",
+          "icon": "account_tree",
+          "label": "Architecture"
+        },
+        {
+          "id": "start",
+          "icon": "rocket_launch",
+          "label": "Quick Start"
+        },
+        {
+          "id": "config",
+          "icon": "code_blocks",
+          "label": "My Configuration"
+        },
+        {
+          "id": "experience",
+          "icon": "psychology",
+          "label": "Usage Notes"
+        },
+        {
+          "id": "maintenance",
+          "icon": "settings_suggest",
+          "label": "Maintenance"
+        }
+      ],
+      "home": "Home",
+      "hero": {
+        "title": "OpenClaw",
+        "subtitle": "AI Agent Gateway suitable for any operating system.",
+        "explore": "Structure Overview",
+        "docs": "Check the document",
+        "scroll": "Explore OpenClaw"
+      },
+      "notice": {
+        "title": "Version note",
+        "desc": "The usage methods and configuration on this page are based on an older version of OpenClaw, last updated on 2026.4.2. Newer versions may change behavior or configuration fields, ",
+        "linkPrefix": "See the ",
+        "linkLabel": "OpenClaw website",
+        "linkSuffix": "."
+      },
+      "overview": {
+        "title": "OpenClaw Blueprint",
+        "subtitle": "What OpenClaw is, the role it plays, and the current capability boundary.",
+        "intro": "OpenClaw is an open-source personal AI assistant and Gateway control system that runs on personal hardware. One Gateway connects channels, agents, workspaces, tools, and device nodes for coding, personal assistance, and continuous automation.",
+        "currentTitle": "Core characteristics",
+        "currentDesc": "One local Gateway connects channels, agents, workspaces, and tools so a personal assistant keeps context across different entry points.",
+        "status": [
+          [
+            "System role",
+            "A personal assistant and coding partner",
+            "layers"
+          ],
+          [
+            "Core stack",
+            "Gateway + Agents + Channels",
+            "hub"
+          ],
+          [
+            "Runtime boundary",
+            "Local Gateway + loopback",
+            "shield_lock"
+          ]
+        ],
+        "mapOpen": "Open the OpenClaw map",
+        "mapAlt": "OpenClaw system architecture map",
+        "mapTitle": "System map",
+        "source": "Source: OpenClaw official documentation and GitHub README."
+      },
+      "ui": {
+        "guides": "Core Guides",
+        "mindmapZoom": "Click to view larger",
+        "close": "Close menu"
+      },
+      "structure": {
+        "title": "Architecture",
+        "subtitle": "Follow the path from Gateway to agents, workspaces, channels, and nodes, then understand how requests are routed and returned.",
+        "cards": [
+          [
+            "gateway",
+            "Gateway",
+            "The local control plane owns sessions, tools, events, and channel connections, and serves clients over WebSocket."
+          ],
+          [
+            "agent",
+            "Agent",
+            "Receives task context and follows the agent runtime loop to call models, tools, and workspace capabilities."
+          ],
+          [
+            "workspace",
+            "Workspace",
+            "Provides files, context, and task boundaries for an agent, and becomes the isolation point for configuration and content."
+          ],
+          [
+            "channel",
+            "Channel",
+            "Connects the assistant to existing chat surfaces such as WhatsApp, Telegram, Slack, and Discord."
+          ],
+          [
+            "models",
+            "Models",
+            "Hosted and local models can be combined through providers, with fallback chains improving availability."
+          ],
+          [
+            "memory",
+            "Memory",
+            "Session state, durable files, and memory plugins provide cross-session context and knowledge retention."
+          ],
+          [
+            "tools",
+            "Skills & Tools",
+            "Skills, plugins, and tools extend search, browser, file, and domain capabilities so agents can move from answering to acting."
+          ],
+          [
+            "security",
+            "Security",
+            "Treat inbound messages as untrusted and use pairing, allowlists, tokens, and sandboxes to control device and tool access."
+          ]
+        ],
+        "source": "Architecture notes are based on the official Gateway, Channels, Nodes, Security, and Multi-agent documentation."
+      },
+      "start": {
+        "title": "Quick Start",
+        "subtitle": "Move from installation to onboarding, model setup, channel access, and health checks with a generic path that stays verifiable.",
+        "requirements": [
+          [
+            "Runtime",
+            "The installer provides a supported Node.js runtime. Manual installs should use the current compatible release."
+          ],
+          [
+            "Platform",
+            "macOS, Linux, and Windows have supported install paths. Choose PowerShell or WSL2 according to the environment."
+          ],
+          [
+            "Ingress",
+            "Start the Gateway locally or inside a controlled network, then connect one channel and restrict access."
+          ]
+        ],
+        "pathTitle": "Shortest usable path",
+        "pathDesc": "Keep installation, model setup, and channel setup separate. Every stage should produce a visible result.",
+        "steps": [
+          [
+            "install",
+            "Install OpenClaw",
+            "Run the platform installer or install the current package with a package manager."
+          ],
+          [
+            "models",
+            "Complete onboarding",
+            "Configure model access, create the default workspace, and let the Gateway finish its basic setup."
+          ],
+          [
+            "channel",
+            "Connect one channel",
+            "Start with one direct-message surface and confirm messages reach the Gateway and an agent."
+          ],
+          [
+            "verify",
+            "Check status and health",
+            "Use config validate, gateway status, health, and dashboard to verify the result."
+          ]
+        ],
+        "note": "Prove the single-agent and single-channel loop first, then add model fallbacks, multi-agent routing, and long-term memory as needed.",
+        "source": "Installation and verification follow the official OpenClaw Getting started, Channels, and Updating documentation."
+      },
+      "config": {
+       "title": "My Configuration",
+       "subtitle": "A redacted view of the actual Gateway, Feishu, model, multi-agent, and routing structure in openclaw.json.",
+        "repoDesc": "The skill packages, four workspaces, and identity files live in a public repository. The design keeps the real structure while secrets, account IDs, and group IDs remain placeholders.",
+        "repoLabel": "Open the openclaw-config repository",
+        "teamTitle": "Multi-agent team design",
+        "teamDesc": "This is not four copies of a general assistant. Intake, decisions, specialist execution, and independent verification are split into clear roles, while every agent keeps its own context, models, and skill boundary.",
+        "teamDesign": [
+          [
+            "One entry point, clear decision ownership",
+            "Main receives the goal, classifies the work, assigns it, and converges the result so multiple agents do not answer or decide at the same time."
+          ],
+          [
+            "Role isolation keeps context clean",
+            "Each specialist has its own workspace, session, memory, and skill directory, so long-term context accumulates only around its responsibility."
+          ],
+          [
+            "Separate execution from verification",
+            "Coder implements while tester verifies in a different context. Editor organizes the result when it needs to become a clear deliverable."
+          ]
+        ],
+        "benefitsTitle": "Why the team structure helps",
+        "benefitsDesc": "These gains come from clear ownership, isolated context, and verifiable handoffs, not from adding more agents alone.",
+        "benefits": [
+          [
+            "Less context pollution",
+            "Durable role files let each agent accumulate only knowledge that belongs to its job."
+          ],
+          [
+            "More parallelism",
+            "Independent implementation, testing, and documentation tasks can move together before the lead agent reconciles them."
+          ],
+          [
+            "Cleaner acceptance",
+            "Separating builder from verifier gives quality decisions a more independent evidence trail."
+          ]
+        ],
+        "skillsTitle": "Agent skill formation",
+        "skillsDesc": "Skills are assigned by role rather than spread evenly. The lead focuses on design and coordination, while specialists focus on execution, verification, and delivery in their domain.",
+        "skillsCount": "The repository currently contains 22 skill packages. These are two representative skills for each agent.",
+        "skills": [
+          ["main", "Jarvis", "brainstorming", "Design first", "Clarify goals, constraints, and acceptance criteria before code starts so an unexamined assumption does not enter implementation.", "Best for new features, components, and behavior from zero to one."],
+          ["main", "Jarvis", "project-manager", "Task governance", "Break a goal into phases, milestones, risks, and deliverables so cross-agent work has one coordination frame.", "Best for multi-step and cross-role work."],
+          ["coder", "CodeMaster", "architecture-patterns", "Architecture", "Use Clean Architecture, Hexagonal Architecture, and DDD to organize complex backend systems.", "Best for new services, monolith decomposition, and maintainability refactors."],
+          ["coder", "CodeMaster", "coding-agent", "Agentic coding", "Delegate implementation to Codex, Claude Code, and similar coding agents inside an isolated work directory.", "Best for coding tasks that need multi-file exploration, edits, and iteration."],
+          ["tester", "TestNinja", "test-master", "Quality strategy", "Cover unit, integration, E2E, performance, and security testing from strategy through execution and reporting.", "Best for feature acceptance, regression, and test infrastructure."],
+          ["tester", "TestNinja", "webapp-testing", "Browser verification", "Use Playwright against a local web app to verify behavior, console logs, screenshots, and key interactions.", "Best for frontend functionality and visual regression."],
+          ["editor", "DocMaster", "docs-writer", "Documentation standards", "Rewrite technical content around audience, tone, structure, and consistency so it is easier to scan and maintain.", "Best for READMEs, guides, standards, and knowledge bases."],
+          ["editor", "DocMaster", "docx", "Formal delivery", "Create and edit Word documents, including styles, structure, comments, and tracked changes, with a verified final format.", "Best for reports, proposals, and documents that need formal layout."]
+        ],
+        "workspaceTitle": "Agent team workspace",
+        "workspaceDesc": "Every agent has a workspace but follows the same file protocol. Main keeps the coordination view while each specialist accumulates role, memory, tool notes, and local skills inside its own directory.",
+        "workspaceTreeTitle": "Repository workspace structure",
+        "workspaceFilesTitle": "How the role files work together",
+        "workspaceFilesDesc": "The same file protocol answers identity, behavior, startup, preferences, memory, and local environment, so each agent's long-term context stays inspectable and portable.",
+        "workspaceFiles": [
+          ["IDENTITY.md", "Who I am", "Defines name, role, vibe, core abilities, work scenarios, and collaboration boundaries."],
+          ["SOUL.md", "How I act", "Defines values, tone, emotional expression, privacy, and external-action boundaries."],
+          ["AGENTS.md", "How each session starts", "Defines mandatory reads, startup order, red lines, memory flow, and heartbeat rules."],
+          ["USER.md", "Who I help", "Records the user's name, language, timezone, preferences, and durable interaction rules."],
+          ["MEMORY.md", "What lasts", "Distills daily logs and mistakes into durable decisions that survive across sessions."],
+          ["TOOLS.md", "What is specific here", "Keeps tool rules, paths, and local connection details that belong only to this deployment."]
+        ],
+        "identityTitle": "Identity comes from several Markdown files",
+        "identityDesc": "IDENTITY.md answers who I am and what I own. SOUL.md answers how I act. AGENTS.md answers how every session starts and which rules apply. USER.md and MEMORY.md place that identity inside a real relationship and history. Together they shape stable behavior instead of relying on a single persona paragraph.",
+        "identityTemplateTitle": "How IDENTITY.md is organized",
+        "identityTemplateDesc": "The template stabilizes the skeleton without freezing personality. Every agent describes identity with the same fields, then lets SOUL.md and AGENTS.md constrain behavior.",
+        "identitySkeletonLabel": "Generic skeleton",
+        "identityMainLabel": "main / IDENTITY.md (actual excerpt)",
+        "identityProfilesTitle": "Identity anchors for the four agents",
+        "identityTableLabels": ["Agent", "IDENTITY.md", "SOUL.md / AGENTS.md constraint"],
+        "identityProfiles": [
+          ["main", "Jarvis", "Team lead, efficiency partner, and coding mentor.", "Professional but personable. Owns decomposition, coordination, memory maintenance, and final convergence."],
+          ["coder", "CodeMaster", "Coding specialist and implementation engine.", "Pragmatic, direct, and code-first. Defers cross-agent coordination to main."],
+          ["tester", "TestNinja", "Quality specialist and test automation owner.", "Meticulous, skeptical, and evidence-first. Never substitutes the builder's conclusion for independent verification."],
+          ["editor", "DocMaster", "Documentation and content specialist.", "Clear, accurate, and reader-first. Turns completed work into a presentable deliverable."]
+        ],
+        "profiles": [
+          [
+            "Runtime",
+            "Linux host · local Gateway"
+          ],
+          [
+            "Model strategy",
+            "Bailian / Antigravity / GPTSAPI / Ollama"
+          ],
+          [
+            "Channel strategy",
+            "Feishu WebSocket · 4 accounts"
+          ],
+          [
+            "Agent strategy",
+            "1 lead + 3 specialists"
+          ]
+        ],
+        "agentTitle": "Agent team responsibilities",
+        "agents": [
+          [
+            "main",
+            "Jarvis",
+            "Lead agent",
+            "Owns user handoff, task assignment, and cross-agent coordination.",
+            "6h heartbeat · 18 skills"
+          ],
+          [
+            "coder",
+            "CodeMaster",
+            "Coding agent",
+            "Owns implementation, refactoring, debugging, and technical delivery.",
+            "glm5 · m2.5 / qwen3.5 / k2.5"
+          ],
+          [
+            "tester",
+            "TestNinja",
+            "Testing agent",
+            "Owns test design, automation, defect reproduction, and quality evidence.",
+            "glm5 · m2.5 / qwen3.5 / k2.5"
+          ],
+          [
+            "editor",
+            "DocMaster",
+            "Documentation agent",
+            "Owns writing, editing, information architecture, and knowledge capture.",
+            "k2.5 · qwen3.5 / m2.5 / glm5"
+          ]
+        ],
+        "principlesTitle": "Configuration principles",
+        "principlesDesc": "These principles control exposure, context boundaries, model availability, and credential flow.",
+        "principles": [
+          [
+            "Local control plane",
+            "Keep the Gateway on loopback with token auth so the control plane is not exposed directly."
+          ],
+          [
+            "Agent isolation",
+            "Give every agent a separate workspace, session, and role file to prevent long-lived context pollution."
+          ],
+          [
+            "Model fallback",
+            "Assign a primary model and fallback chain per specialist to reduce provider or model outages."
+          ],
+          [
+            "Separate secrets",
+            "Keep real credentials in environment variables or secret references and publish only the redacted shape."
+          ]
+        ],
+        "codeTitle": "Redacted configuration summary",
+        "codeDesc": "The snippet preserves the actual structure while replacing accounts, secrets, group IDs, and identifiers with non-reversible descriptions.",
+        "source": "Configuration fields follow OpenClaw Configuration and the actual openclaw.json."
+      },
+      "experience": {
+        "title": "Usage Notes",
+        "subtitle": "Four real practices covering agent roles, Feishu routing, skill governance, and long-term memory, plus model cost control and tool selection notes.",
+        "resultLabel": "What it produced",
+        "detailsLabel": "View process, risk, and boundary",
+        "fields": [
+          "Process",
+          "Risk",
+          "Boundary"
+        ],
+        "costTitle": "Quality and cost control",
+        "costDesc": "Split a large task into parallel work, dispatch it through subagents, and specify the model for each delegated run. Give cheap, fast models to simple work and strong models to architecture, coding, debugging, and review. The main agent then verifies and merges the result. This avoids spending the strongest model on everything without trading away quality where it matters.",
+        "costSteps": [
+          ["scope", "Judge the task boundary", "Decide whether parallel work is worth it", "Delegate separable research, batch edits, and independent verification. Keep tightly coupled work that needs rapid back-and-forth in the main agent."],
+          ["route", "Specify the model at dispatch", "Do not inherit the main model by default", "State the required model tier on each subagent call so simple and critical work enter different cost layers from the start."],
+          ["balance", "Allocate by task value", "Speed for simple work, accuracy for specialist work", "Use cheap models for search, summaries, and classification. Use strong models for architecture, coding, debugging, testing, and documentation review."],
+          ["gate", "Make the main agent the quality gate", "Cheap execution does not lower acceptance standards", "After collecting subagent results, the main agent checks evidence, runs verification, and decides whether to deliver. High-risk or irreversible actions stay with a strong-model review."]
+        ],
+        "costRoutingLabels": ["Task type", "Model route", "Expected output"],
+        "costRouting": [
+          ["Web search, source summaries, classification", "Cheap / fast model", "Return sources, conclusions, and uncertainties instead of a long paraphrase."],
+          ["Parallel research, codebase exploration, first drafts", "Mid-tier model", "Return checkable findings and the minimum context needed for the next step."],
+          ["Architecture, coding, debugging, tests, documentation review", "Strong specialist model", "Submit diffs, test results, screenshots, or review notes."],
+          ["Final acceptance, high-risk release, irreversible action", "Main agent / strongest model", "The main agent verifies the evidence and makes the final call with no automatic downgrade."]
+        ],
+        "costNote": "Cost control is not replacing every model with the cheapest option. It is matching model capability to task value, then using the main agent's acceptance loop to protect quality.",
+        "costSourceLabel": "References:",
+        "resourcesTitle": "Plugins and useful resources",
+        "resourcesDesc": "These resources cover long-term memory, multi-agent collaboration, OpenClaw operations knowledge, skill discovery, and real-world examples. Third-party plugins and skills are not all officially audited. Check their source, scripts, permissions, and secret scope before installation.",
+        "resources": [
+          ["memory-lancedb-pro", "https://github.com/CortexReach/memory-lancedb-pro", "Long-term memory plugin", "Adds a LanceDB-backed memory layer to OpenClaw with vector plus BM25 hybrid retrieval, Cross-Encoder reranking, scope isolation, automatic capture and forgetting, and a management CLI.", "Best for agents that need project context, preferences, and durable conclusions across sessions."],
+          ["ClawTeam-OpenClaw", "https://github.com/win4r/ClawTeam-OpenClaw", "Multi-agent team", "Organizes leader and worker agents on top of OpenClaw. Each worker can run in an isolated git worktree, session, and identity, with file and ZeroMQ communication paths.", "Best for separable coding, research, and verification work. Model routing and acceptance ownership still need to be explicit."],
+          ["OpenClaw-Skill", "https://github.com/win4r/OpenClaw-Skill", "Operations knowledge base", "A comprehensive OpenClaw agent skill whose main file and reference set cover installation, configuration, channels, the Gateway, multi-agent routing, plugins, automation, security, and memory.", "Best as a structured reference while building or troubleshooting an OpenClaw setup."],
+          ["awesome-openclaw-skills", "https://github.com/VoltAgent/awesome-openclaw-skills", "Skill catalog", "A categorized catalog of thousands of OpenClaw skills from ClawHub, with installation paths such as openclaw skills install and npx clawhub install.", "Best for discovering new capabilities, then filtering them by source, permissions, and maintenance state."],
+          ["awesome-openclaw-usecases", "https://github.com/hesamsheikh/awesome-openclaw-usecases", "Use-case reference", "A collection of 42 real OpenClaw use cases spanning social media, creative builds, DevOps, productivity, research, learning, and finance.", "Best for workflow ideas. The repository also warns that third-party skills are unaudited, so inspect source and permissions before use."]
+        ],
+        "cases": [
+          [
+            "team",
+            "Four agents with separate roles",
+            "Let the lead agent coordinate while coding, testing, and documentation move to specialists.",
+            "Tasks reach a matching context while the lead keeps a coordination and delivery view.",
+            "Jarvis decomposes, assigns, and converges work. Coder, tester, and editor execute inside their own workspaces.",
+            "More agents amplify routing mistakes and duplicated context. Decision ownership must stay explicit.",
+            "Good for clear, verifiable work. Tightly coupled or rapidly alternating work is often better in one agent."
+          ],
+          [
+            "feishu",
+            "Feishu routing across four accounts",
+            "Use separate Feishu accounts and bindings to send work to the matching specialist.",
+            "Each entry resolves to a defined agent, while groups only respond to allowed mention-gated messages.",
+            "The channel uses WebSocket with default, coder, tester, and editor accounts. DMs use pairing and groups use allowlists plus mention gating.",
+            "A live channel does not prove routing is correct. Accounts, bindings, agents, and models must be checked layer by layer.",
+            "Useful for controlled personal or team ingress. Unknown DMs and unauthorized groups should not receive agent access."
+          ],
+          [
+            "skills",
+            "Skill installation and governance",
+            "Expand agent capability without dropping unreviewed scripts directly into a workspace.",
+            "Only skills that pass review, configuration, and testing remain available.",
+            "Files and scripts are inspected before installation. Configuration and real calls are verified afterwards, with local usage rules captured in the workspace.",
+            "More skills do not automatically mean more capability. Duplicate, conflicting, or untested skills add maintenance and security risk.",
+            "Good for reviewable and reversible extensions. External accounts, system changes, or public actions need separate approval."
+          ],
+          [
+            "memory",
+            "Memory consolidation and long-term context",
+            "Let agents retain preferences, mistakes, project context, and long-running task clues across sessions.",
+            "Short-term notes, long-term memory, and enhanced retrieval have separate jobs, so important lessons survive a single conversation.",
+            "Session-memory preserves continuity, daily files capture raw notes, and MEMORY.md holds distilled conclusions. Memory-lancedb-pro is the enhanced vector retrieval path.",
+            "Memory must separate facts, preferences, and guesses. Otherwise an error can be amplified for months.",
+            "Automated memory suits low-risk knowledge capture. Credentials, private data, and unconfirmed judgments do not belong in public or long-term memory."
+          ]
+        ]
+      },
+      "maintenance": {
+        "title": "Maintenance",
+        "subtitle": "Repeatable maintenance for Gateway health, Feishu connectivity, configuration changes, memory backups, and updates.",
+        "cadence": [
+          [
+            "Before use",
+            "Check the Gateway, health state, and Feishu connection to confirm the main entry works."
+          ],
+          [
+            "Weekly memory work",
+            "Consolidate daily notes from late Sunday into MEMORY.md, including errors and durable decisions."
+          ],
+          [
+            "Workspace cleanup",
+            "Move task outputs into outcomes and remove temporary or duplicate files."
+          ],
+          [
+            "Before update",
+            "Confirm config backups, memory export, and rollback options before previewing the OpenClaw update."
+          ]
+        ],
+        "incidentsTitle": "Troubleshooting map",
+        "incidentsDesc": "Identify whether the problem is in the Gateway, channel, routing, or model layer before reinstalling or rewriting config.",
+        "tableLabels": [
+          "Symptom",
+          "Check",
+          "Action"
+        ],
+        "incidents": [
+          [
+            "Gateway unavailable",
+            "openclaw gateway status",
+            "Check the service, bind address, token, and config validation result."
+          ],
+          [
+            "Feishu has no reply",
+            "logs / dashboard",
+            "Check account connection, pairing, group allowlist, mention gate, and binding."
+          ],
+          [
+            "Wrong agent route",
+            "config get bindings",
+            "Confirm the Feishu account to agentId mapping, then inspect the matching workspace."
+          ],
+          [
+            "Repeated model failures",
+            "openclaw health",
+            "Check the provider, primary model, fallback chain, and credential availability."
+          ]
+        ],
+        "commandsTitle": "Maintenance commands",
+        "commandsLabel": "Check, diagnose, and update",
+        "memoryTitle": "Memory maintenance",
+        "memoryLabel": "Export and memory repository",
+        "security": "Keep the Gateway on loopback with token auth. Prefer Tailscale, a VPN, or SSH for remote access, and regularly review paired devices, group allowlists, skill sources, and agent tool permissions.",
+        "source": "Maintenance follows the OpenClaw Updating, Doctor, Security, Memory, and Gateway runbook documentation."
+      }
+    },
+    "shared": {
+      "meta": {
+        "title": "ZHANG.LOG | Personal Site",
+        "description": "Zhang's personal site - notes on technology, life, and AI agents."
+      },
+      "pagination": {
+        "nav": "Pagination",
+        "previous": "Previous page",
+        "next": "Next page"
+      },
+      "code": {
+        "copy": "Copy",
+        "copied": "Copied"
+      },
+      "footer": {
+        "copyright": "© 2026 Jiaqi Zhang's Personal Site",
+        "social": {
+          "email": "Email",
+          "github": "GitHub",
+          "website": "Juejin"
+        }
+      }
+    }
 };
 
-export type Dictionary = typeof translations['cn'];
+const CONTENT = { cn: cnContent, en: enContent } as const;
+
+function flattenValue(prefix: string, value: unknown, result: Record<string, string>) {
+  if (typeof value === 'string') {
+    result[prefix] = value;
+    return;
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return;
+  const record = value as Record<string, unknown>;
+  if (typeof record.label === 'string') result[prefix] = record.label;
+  for (const [key, child] of Object.entries(record)) {
+    if (key === 'label') continue;
+    flattenValue(prefix ? `${prefix}.${key}` : key, child, result);
+  }
+}
+
+function flattenPageTree(tree: any) {
+  const result: Record<string, string> = {};
+  flattenValue('nav', tree.nav, result);
+  const { hero, stats, projects, cta, ...homeRest } = tree.home;
+  flattenValue('home', homeRest, result);
+  flattenValue('hero', hero, result);
+  flattenValue('stats', stats, result);
+  flattenValue('projects', projects, result);
+  flattenValue('cta', cta, result);
+  flattenValue('practice', tree.practice.practice ?? {}, result);
+  flattenValue('list', tree.practice.list, result);
+  flattenValue('blog', tree.blogs.blog ?? {}, result);
+  flattenValue('about', tree.about, result);
+  flattenValue('agents', tree.agents, result);
+  flattenValue('meta', tree.shared.meta, result);
+  flattenValue('pagination', tree.shared.pagination, result);
+  flattenValue('code', tree.shared.code, result);
+  flattenValue('footer', tree.shared.footer, result);
+  return result;
+}
+
+export const translations = {
+  cn: flattenPageTree(CONTENT.cn),
+  en: flattenPageTree(CONTENT.en),
+};
+
+export type Dictionary = Record<string, string>;
 
 export function getDictionary(lang: Language): Dictionary {
-  return translations[lang] as Dictionary;
+  return translations[lang];
+}
+
+export function getOpenClawContent(lang: string) {
+  return lang === 'en' ? CONTENT.en.openclaw : CONTENT.cn.openclaw;
 }

@@ -7,6 +7,20 @@ interface UseSectionScrollSpyResult {
   setActiveId: (id: string, lockToCurrentScroll?: boolean) => void;
 }
 
+// 元素在文档中的布局位置（offsetTop 链路累加），不受 transform 影响。
+// 文章页没有 transform 时它与 rect 等价；但 openclaw 页正文外层 motion 容器带
+// scaleY / rotateX 折叠动效，getBoundingClientRect() 返回的是被变换过、随滚动
+// 剧烈变化的框，用它做滚动高亮会乱跳（实测：滚一点就从 01 跳到 04，再跳回 01）。
+function layoutTop(element: HTMLElement): number {
+  let top = 0;
+  let node: HTMLElement | null = element;
+  while (node) {
+    top += node.offsetTop;
+    node = node.offsetParent as HTMLElement | null;
+  }
+  return top;
+}
+
 export function useSectionScrollSpy(ids: string[]): UseSectionScrollSpyResult {
   const [activeId, setActiveIdState] = useState(ids[0] || '');
   const activeIndexRef = useRef(0);
@@ -30,7 +44,6 @@ export function useSectionScrollSpy(ids: string[]): UseSectionScrollSpyResult {
       if (sections.length === 0) return;
 
       const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 8;
-      const viewportCenter = window.innerHeight / 2;
 
       if (lockedIdRef.current !== null) {
         if (Math.abs(window.scrollY - lockedScrollYRef.current) <= 8) {
@@ -45,19 +58,15 @@ export function useSectionScrollSpy(ids: string[]): UseSectionScrollSpyResult {
       } else if (atBottom) {
         activeIndexRef.current = sections.length - 1;
       } else {
-        const containingIndex = sections.findIndex((section) => {
-          const rect = section.getBoundingClientRect();
-          return rect.top <= viewportCenter && rect.bottom > viewportCenter;
+        // 触发线取视口上方 35% 处：章节标题越过这条线才算进入该章节。
+        // 用布局坐标按顺序取"最后一个已越线的章节"，因此高亮只会随滚动单调前进，
+        // 不会因为动画把某个章节的框撑大而乱跳。
+        const anchor = window.scrollY + window.innerHeight * 0.35;
+        let index = 0;
+        sections.forEach((section, sectionIndex) => {
+          if (layoutTop(section) <= anchor) index = sectionIndex;
         });
-
-        if (containingIndex !== -1) {
-          activeIndexRef.current = containingIndex;
-        } else {
-          const precedingIndex = sections.reduce((index, section, sectionIndex) => {
-            return section.getBoundingClientRect().top <= viewportCenter ? sectionIndex : index;
-          }, 0);
-          activeIndexRef.current = precedingIndex;
-        }
+        activeIndexRef.current = index;
       }
 
       setActiveIdState(sections[activeIndexRef.current].id);

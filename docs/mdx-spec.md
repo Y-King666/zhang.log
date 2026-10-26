@@ -11,10 +11,13 @@
 | 产物 | 来源 | 消费方 |
 |---|---|---|
 | `lib/data/content-data.json` | 由 `generate-content-data.js` 从 `content/{blog,practice}/*.mdx` 的 frontmatter 解析生成 | 列表页、详情页、排序/过滤/分页 |
-| `lib/generated/{collection}/{slug}.mdx` | 剥离 frontmatter 的**正文** | 被 MDX 编译为正文组件 |
-| `lib/mdx-registry.ts` | `slug → 组件` 映射 | 详情页按 slug 取正文 |
+| `lib/generated/{collection}/{slug}.mdx` | 剥离 frontmatter 的**中文正文** | 被 MDX 编译为正文组件 |
+| `lib/generated/{collection}/{slug}.en.mdx` | 剥离 frontmatter 的**英文正文 sidecar** | 编译为英文正文组件 |
+| `lib/mdx-registry.ts` | `slug → 组件` 中英文映射 | 详情页按语言取正文，英文缺失时回退中文 |
 
 > `content-data.json`、`lib/generated/*、lib/mdx-registry.ts` 都是**生成物**，不要手动改。改内容只改 `content/` 下的源 MDX，再跑 `npm run generate` 重生成。
+
+**双语 sidecar：** 中文主稿仍是唯一入口；英文翻译放在同目录同名的 `{slug}.en.mdx`（正文 + 需要翻译的元信息）。生成器只读取 sidecar 的 `title`（博客与实践）、`readTime`、`scenario`（实践）字段，日期、封面、tags、icon、featured 等共享字段继续以主稿为准，并生成 `blogComponentsEn` / `practiceComponentsEn` 注册表。英文文件缺失时回退中文正文。
 
 ### 1.2 生成器硬规则（无论写什么都会改写）
 
@@ -35,7 +38,7 @@
 
 ### 1.3 渲染与目录（正文约束的来源）
 
-- `mdx-components.tsx` 只覆盖了 **`h2/h3`**（自动生成锚点 id）和 **`table/thead/tbody/tr`**（剔除纯空白节点）。其余元素走默认渲染。
+- `mdx-components.tsx` 覆盖了 **`h2/h3`**（自动生成锚点 id）、**`table/thead/tbody/tr`**（剔除纯空白节点）、**`pre`**（代码块美化），以及自定义组件 **`ExtLink` / `NoIndent` / `Indent`**。其余元素走默认渲染。
 - 目录组件 `PracticeTableOfContents` 抓取 `[data-project-content]` 作用域内的 `h2[id], h3[id]`。
 - **标题 id 自动生成**：`trim().toLowerCase()`，剔除非「字母/数字/中文/空格/连字符」的标点，空格→`-`。例：`## 项目定位：数字名片` → id `项目定位数字名片`。中文标题 id 含中文，`getElementById` 可正常定位。
 - **正文标题全文必须唯一**：重复标题会生成相同 id，目录滚动定位会撞到第一个。
@@ -55,6 +58,31 @@
 - 组件注册在 `mdx-components.tsx` 的 `useMDXComponents()`，实践与博客正文**都可用**；详情页传入的 `components={{ pre: CodeBlock }}` 会与 `useMDXComponents()` **合并**，互不覆盖。
 - 站内跳转不要用它（会新开窗口）——那是 `next/link` / 原生 `<a>` 的职责，项目当前未提供对应的站内自定义组件。
 
+### 1.5 正文自定义组件：段落缩进 `<NoIndent>` / `<Indent>`
+
+正文段落默认由 `app/globals.css` 的 `.prose p` **统一缩进 2 字符**（`text-indent: 2em`，2em 跟随字号；列表项内的段落、表格单元格不缩进）。需要**逐段**调整时，用下面两个组件包住段落：
+
+```mdx
+<NoIndent>这一段顶格，不缩进。</NoIndent>
+
+<Indent n={1}>这一段缩进 1 个字符。</Indent>
+
+<Indent>省略 n，等价于默认缩进 2 个字符。</Indent>
+```
+
+- `<NoIndent>` → `text-indent: 0`；`<Indent n={N}>` → `text-indent: N em`（N 可为小数，如 `0.5`）。
+- 两者都渲染成 `<p>`，用行内 `style` 覆盖 `.prose p`（行内样式优先级更高），因此仍继承 prose 的段落样式；也可继续传 `className` / `style`。
+- **内容要紧贴标签写、标签内不要留空行**，否则 MDX 会在组件内部再包一层 `<p>`（嵌套段落，HTML 非法）。行内 Markdown（`**加粗**`、反引号代码）在标签内正常生效。
+- 组件注册在 `mdx-components.tsx` 的 `useMDXComponents()`，实践与博客正文、中英文正文**都可用**。
+
+### 1.6 正文在小屏（小于 768px）的渲染
+
+站点是移动优先的：`md:` 断点即 768px，小于 768px 走紧凑规则（完整约定见 `DESIGN.md` 的 Layout / Typography）。写正文时只需要知道这三点：
+
+- **表格**：小屏下 `.table-scroll table` 宽度 100%、单元格字号 0.75rem（12px），文字换行铺满正文宽度，不再强制 32rem 最小宽度。**不要写超过 3 列的宽表**——列多了小屏只能横向滑动，阅读体验会明显变差。
+- **代码块**：小屏字号 0.75rem、内边距收敛，复制按钮常显（触屏没有 hover）。**长行交给横向滚动，不要手工折行**，否则复制出去的代码会带上硬换行。
+- **段落缩进**：默认 2em；需要逐段微调时用 §1.5 的 `<NoIndent>` / `<Indent>`。
+
 ---
 
 ## 二、实践（Practice）MDX 规范
@@ -73,31 +101,35 @@ readTime: 15 分钟           # 必填，带单位
 icon: globe                 # 可选，须在 PracticeIcon 枚举内
 tags: ["Next.js", "TypeScript", "creating"]   # 必填数组
 scenario: 创作 / 信息整理    # 必填，原样展示
-tools: ["Next.js", "MDX"]   # 必填数组
-status: 持续迭代            # 可选（当前页面未渲染，仅作元信息）
-result: 建立双语内容系统     # 可选（同上）
-agent: 协助页面实现         # 可选（同上）
 featured: true              # 可选，true 则默认排序置顶
 ---
 ```
 
 > `slug` 不写则自动取文件名。若写必须与文件名一致。
 
+英文 sidecar `content/practice/{slug}.en.mdx` 只写需要翻译的字段：
+
+```mdx
+---
+title: My Practice Project
+readTime: 15 min
+scenario: Creation / Information organization
+---
+```
+
+其余共享字段继续在主稿维护，不要在 sidecar 重复。
+
 ### 2.2 字段对照（按页面实际消费分三级）
 
 | 字段 | 必填 | 说明 | 被谁消费 |
 |---|---|---|---|
 | `slug` | 靠文件名 | kebab-case；URL/组件名/id 三处一致 | 路由、registry |
-| `title` | ✅ | 单行 | 列表卡片、详情页 `<h1>` |
+| `title` | ✅ | 单行；英文放在 sidecar 的 `title` | 列表卡片、详情页 `<h1>` |
 | `date` | ✅ | **统一 `YYYY-MM-DD`**（见 2.4） | 列表排序、详情「发布于」 |
-| `readTime` | ✅ | **带单位**如 `15 分钟`（原样展示） | 详情「阅读时间」 |
+| `readTime` | ✅ | **带单位**如 `15 分钟`；英文放在 sidecar 的 `readTime`，如 `15 min` | 详情「阅读时间」 |
 | `icon` | 可选 | 枚举：`globe bot chart network cloud terminal cpu sparkles gauge server`，写不存在的值 → 默认 `chart` 图标 | 列表卡片图标 |
 | `tags` | ✅ | **必须混入且仅混入一个场景 key**（见 2.3） | 场景过滤、标签展示 |
-| `scenario` | ✅ | 场景文案，原样展示（不走本地化） | 列表卡片「场景」 |
-| `tools` | ✅ | `join(' / ')` 展示 | 列表卡片「工具」 |
-| `status` | 可选 | 目前未渲染（用于元信息/未来） | — |
-| `result` | 可选 | 同上 | — |
-| `agent` | 可选 | 同上 | — |
+| `scenario` | ✅ | 场景文案；英文放在 sidecar 的 `scenario` | 列表卡片「场景」 |
 | `featured` | 可选 | 裸布尔 `true`/`false` 即可；`"true"`/`"featured"` 亦可 | 默认排序（置顶） |
 
 ### 2.3 `tags` 场景 key（最容易翻车）
@@ -158,9 +190,17 @@ tags: ["Next.js", "TypeScript", "creating", "developing"]   # ✗ 两个场景 k
 title: 前端工程化的未来       # 必填，单行
 date: 2026-09-03            # 必填，统一 YYYY-MM-DD
 readTime: 7                 # 必填，纯数字字符串，如 "7"
-category: 前端视野          # 必填，见 3.3 枚举
+category: frontend          # 必填，见 3.3 枚举
 image: /images/blogs/xxx    # 填一个 truthy 值（会被覆盖成 /images/blogs/{slug}.png）
 tags: ["前端", "Nextjs", "React"]   # 必填数组
+---
+```
+
+英文 sidecar `content/blog/{slug}.en.mdx` 只写英文 `title`，正文从 `##` 开始；`category` 是语言无关的枚举 key，不在 sidecar 重复。
+
+```mdx
+---
+title: The Future of Frontend Engineering
 ---
 ```
 
@@ -183,11 +223,11 @@ tags: ["前端", "Nextjs", "React"]   # 必填数组
 
 | 你要归入的 tab | `category` 必须填 |
 |---|---|
-| 技术驱动（tech） | `新手教程`、`技术科普`、`架构实践`、`前端视野` 之一 |
-| 社区动态（community） | `生态治理` |
-| 最新动态（latest） | `行业趋势` |
+| 技术驱动（tech） | `tutorial`、`explainer`、`architecture`、`frontend` 之一 |
+| 社区动态（community） | `ecosystem` |
+| 最新动态（latest） | `trends` |
 
-**`category` 只能取以上六个值之一。** 写任何其他词，文章会出现在「全部」tab，但永远不出现在对应分类 tab。
+**`category` 只能取以上六个 key 之一。** 中文和英文显示名都放在 `lib/i18n.ts` 的 `blog.category.*` 中；写任何其他词，文章会出现在「全部」tab，但永远不出现在对应分类 tab。
 
 ### 3.4 正文规范
 
@@ -216,10 +256,12 @@ tags: ["前端", "Nextjs", "React"]   # 必填数组
 
 1. **日期统一为 `YYYY-MM-DD`**（定长保证 `localeCompare` 排序正确）。
 2. **image 会自动覆盖** → 只放 `public/images/{collection}/{slug}.png`，别写外链。
-3. **slug 只认文件名**，写了必须与文件名一致，kebab-case。
+3. **slug 只认文件名**，写了必须与文件名一致，kebab-case；英文 sidecar 固定为 `{slug}.en.mdx`。
 4. **featured 写裸布尔**（`true`/`false`），生成器一律字符串化。
-5. **practice 的 tags 必须带且只带一个场景 key**；**blog 的 category 必须取枚举六选一**。
+5. **practice 的 tags 必须带且只带一个场景 key**；**blog 的 category 必须取 `tutorial / explainer / architecture / frontend / ecosystem / trends` 之一**。
 6. **practice 的 readTime 带单位**（`15 分钟`）、**blog 的 readTime 纯数字**（`7`）。
 7. **正文从 `##` 开始、不用 `#`**；`h2/h3` 自动生成 id 且**全文唯一**。
 8. **禁用 `{#id}` 显式锚点**（编译 500）。
-9. **正文是单一语言**：同一份 MDX 同时服务 `cn/en` 两个路由，无双语 frontmatter。展示层双语只靠 `lib/tag-display.ts` 的映射——想让某个 tag 在对方语言下显示成对应语言，必须去补映射。
+9. **中文主稿与英文 sidecar 成对维护**：中文改动后同步更新 `{slug}.en.mdx` 的正文与 `title` / `readTime` / `scenario`；英文缺失时页面会回退中文正文。
+10. **tag 要做对方语言显示时**，补 `lib/tag-display.ts` 的映射；未补映射的 tag 原样显示。
+11. **临时占位内容用完即删**：为验证布局新增的占位条目（如 `layout-test-*`）要连同封面图一起删除，并重跑 `npm run generate`，清掉 `lib/generated/` 与 registry 中的残留。

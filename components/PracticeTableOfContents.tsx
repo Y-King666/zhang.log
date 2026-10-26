@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { AnimatePresence, motion } from 'motion/react';
+import { X } from 'lucide-react';
 import { getLenis } from './SmoothScroll';
 import { useSectionScrollSpy } from './useSectionScrollSpy';
 
@@ -20,13 +23,18 @@ export default function PracticeTableOfContents({
   title,
   items: providedItems,
   mobileOnly = false,
+  desktopOnly = false,
 }: {
   title: string;
   items?: TocItem[];
   mobileOnly?: boolean;
+  desktopOnly?: boolean;
 }) {
   const [discoveredItems, setDiscoveredItems] = useState<TocItem[]>([]);
   const [hoveredGroup, setHoveredGroup] = useState<number | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const drawerCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const items = providedItems ?? discoveredItems;
   const { activeId, setActiveId } = useSectionScrollSpy(items.map((item) => item.id));
 
@@ -72,6 +80,42 @@ export default function PracticeTableOfContents({
     setDiscoveredItems(nextItems);
   }, [providedItems]);
 
+  // portal 只能在客户端挂载后创建
+  useEffect(() => setMounted(true), []);
+
+  // 底部抽屉：Esc 关闭，卸载时清掉延迟关闭的 timer
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setDrawerOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [drawerOpen]);
+
+  useEffect(() => () => {
+    if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
+  }, []);
+
+  // 触屏：点刻度 = 跳到该章节 + 打开可点选的完整目录抽屉
+  const handleTickClick = (group: TocGroup) => {
+    scrollToHeading({ id: group.id, label: group.title, level: 2 });
+    if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
+    setDrawerOpen(true);
+  };
+
+  // 抽屉里选中一项：先跳章节，再收起抽屉（避免遮罩挡住刚跳到的内容）
+  const selectInDrawer = (item: TocItem) => {
+    scrollToHeading(item);
+    closeDrawer();
+  };
+
+  const closeDrawer = () => {
+    setHoveredGroup(null);
+    if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
+    drawerCloseTimer.current = setTimeout(() => setDrawerOpen(false), 240);
+  };
+
   const scrollToHeading = (item: TocItem) => {
     const heading = document.getElementById(item.id);
     if (!heading) return;
@@ -96,16 +140,23 @@ export default function PracticeTableOfContents({
   if (items.length === 0) return null;
 
   return (
-    <div className="fixed right-1 top-1/2 -translate-y-1/2 z-50 lg:static lg:translate-y-0 lg:z-auto">
-      {/* 小屏：右侧波形刻度，hover 显示章节详情 */}
-      <div className="flex flex-col items-end gap-0.5 lg:hidden" onMouseLeave={() => setHoveredGroup(null)}>
+    <>
+      {/* 小屏：右侧波形刻度（hover 放大预览 / 轻点跳转并拉起完整目录抽屉）。
+          同样走 portal 挂到 body：openclaw 页的 motion / parallax 祖先带 transform，
+          会成为 fixed 元素的包含块，把刻度钉在文档中段而永远进不了视口。 */}
+      {!desktopOnly && mounted && createPortal(
+      <div
+        className="fixed right-1 top-1/2 z-50 flex -translate-y-1/2 flex-col items-end gap-0.5 lg:hidden"
+        onMouseLeave={() => setHoveredGroup(null)}
+      >
         {groups.map((group, index) => (
           <div key={group.id} className="relative flex justify-end" onMouseEnter={() => setHoveredGroup(index)}>
             <button
               type="button"
-              onClick={() => scrollToHeading({ id: group.id, label: group.title, level: 2 })}
+              onClick={() => handleTickClick(group)}
               aria-label={group.title}
-              className="group relative z-20 flex h-5 items-center justify-end px-0.5"
+              aria-expanded={drawerOpen}
+              className="group relative z-20 flex h-8 items-center justify-end px-1.5"
             >
               <span
                 className={`block rounded-full transition-all duration-300 ease-out ${
@@ -121,26 +172,114 @@ export default function PracticeTableOfContents({
                 }}
               />
             </button>
+            {/* 桌面 hover 预览；触屏没有 hover，改由下面的底部抽屉接管 */}
             {hoveredGroup === index && (
-              <div className="absolute right-[calc(100%+0.75rem)] top-1/2 z-10 w-max max-w-[16rem] -translate-y-1/2 rounded-2xl border border-white/15 bg-zinc-800/95 p-4 shadow-2xl backdrop-blur-md animate-in fade-in slide-in-from-right-2 duration-200">
-                <h4 className="text-white font-bold text-sm mb-2.5">{group.title}</h4>
-                {group.children.length > 0 && (
-                  <ul className="space-y-1.5">
-                    {group.children.map((child) => (
-                      <li key={child.id} className="flex items-start gap-2 text-slate-200 text-[11px] leading-snug">
-                        <span className="mt-0.5 size-1.5 rounded-full bg-lobster/90"></span>
-                        {child.label}
-                      </li>
-                    ))}
-                  </ul>
-                )}
+              <div className="pointer-events-none absolute right-[calc(100%+0.75rem)] top-1/2 z-10 w-max max-w-[16rem] -translate-y-1/2 rounded-2xl border border-white/15 bg-zinc-800/95 p-4 shadow-2xl backdrop-blur-md">
+              <h4 className="text-white font-bold text-sm mb-2.5">{group.title}</h4>
+              {group.children.length > 0 && (
+                <ul className="space-y-1.5">
+                  {group.children.map((child) => (
+                    <li key={child.id} className="flex items-start gap-2 text-slate-200 text-[11px] leading-snug">
+                      <span className="mt-0.5 size-1.5 rounded-full bg-lobster/90"></span>
+                      {child.label}
+                    </li>
+                  ))}
+                </ul>
+              )}
               </div>
             )}
           </div>
         ))}
-      </div>
+      </div>, document.body)}
 
-      {/* 大屏：右侧 sticky 完整目录 */}
+      {/* 小屏：点刻度后从底部拉起的完整目录，可连续跳转。
+          走 portal 挂到 body：祖先元素一旦带 transform（openclaw 页的 motion 容器、
+          波形容器本身都有），就会成为 fixed 元素的包含块，抽屉会被压扁或跑到页尾。 */}
+      {!desktopOnly && mounted && createPortal(
+      <AnimatePresence>
+        {drawerOpen && (
+          <>
+            <motion.button
+              type="button"
+              key="toc-backdrop"
+              aria-label="关闭目录"
+              onClick={closeDrawer}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+            />
+            <motion.div
+              key="toc-sheet"
+              role="dialog"
+              aria-modal="true"
+              aria-label={title}
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[75vh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/15 bg-zinc-900/95 px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-3 shadow-2xl backdrop-blur-xl lg:hidden"
+            >
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" aria-hidden="true" />
+              <div className="mb-3 flex items-center justify-between">
+                <span className="text-sm font-bold text-white">{title}</span>
+                <button
+                  type="button"
+                  onClick={closeDrawer}
+                  aria-label="关闭"
+                  className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+              <nav className="space-y-4 pb-2" aria-label={title}>
+                {groups.map((group, groupIndex) => (
+                  <div key={group.id}>
+                    <button
+                      type="button"
+                      onClick={() => selectInDrawer({ id: group.id, label: group.title, level: 2 })}
+                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition-colors ${
+                        groupIndex === activeGroupIndex
+                          ? 'bg-lobster/10 text-lobster'
+                          : 'text-slate-300 active:bg-white/5'
+                      }`}
+                    >
+                      <span className="min-w-5 font-mono text-[10px] opacity-60">
+                        {String(numberedItems.find((entry) => entry.id === group.id)?.number ?? groupIndex + 1).padStart(2, '0')}
+                      </span>
+                      <span className="flex-1">{group.title}</span>
+                    </button>
+                    {group.children.length > 0 && (
+                      <ul className="mt-0.5 space-y-0.5 pl-8">
+                        {group.children.map((child) => (
+                          <li key={child.id}>
+                            <button
+                              type="button"
+                              onClick={() => selectInDrawer(child)}
+                              className={`flex w-full items-start gap-2.5 rounded-lg px-3 py-2.5 text-left text-xs leading-snug transition-colors ${
+                                activeId === child.id ? 'text-lobster' : 'text-slate-400 active:bg-white/5'
+                              }`}
+                            >
+                              <span className="mt-[5px] size-1.5 shrink-0 rounded-full bg-lobster/75" aria-hidden="true" />
+                              <span>{child.label}</span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>,
+      document.body)}
+
+      {/* 大屏：右侧 sticky 完整目录。
+          小屏刻度/抽屉只在非 desktopOnly 实例里渲染：openclaw 页同时挂了移动专用实例和
+          侧栏实例，两个实例都会 portal 出刻度条，挂在 body 上就会完全重叠成两份 DOM。 */}
       {!mobileOnly && (
         <section className="hidden lg:block edge-lit-card rounded-3xl p-6 backdrop-blur-md">
         <span className="text-white font-bold">{title}</span>
@@ -170,6 +309,6 @@ export default function PracticeTableOfContents({
         </nav>
         </section>
       )}
-    </div>
+    </>
   );
 }

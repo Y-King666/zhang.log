@@ -1,6 +1,7 @@
 'use client';
 
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useI18n } from '@/lib/i18n-context';
 
 interface PaginationProps {
   page: number;
@@ -17,15 +18,16 @@ function getPages(current: number, total: number): (number | '…')[] {
 }
 
 export default function Pagination({ page, totalPages, onChange }: PaginationProps) {
-  if (totalPages <= 0) return null;
+  const { dict } = useI18n();
+  if (totalPages <= 1) return null;
 
   return (
-    <nav className="mt-12 flex items-center justify-center gap-2" aria-label="分页">
+    <nav className="mt-12 flex items-center justify-center gap-2" aria-label={dict['pagination.nav']}>
       <button
         onClick={() => onChange(page - 1)}
         disabled={page <= 1}
-        aria-label="上一页"
-        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-black text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
+        aria-label={dict['pagination.previous']}
+        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
       >
         <ArrowLeft className="size-3.5" />
       </button>
@@ -40,7 +42,7 @@ export default function Pagination({ page, totalPages, onChange }: PaginationPro
             <button
               key={p}
               onClick={() => onChange(p)}
-              className={`size-9 rounded-full text-xs font-black transition-colors ${
+              className={`size-9 rounded-full text-xs font-semibold transition-colors ${
                 p === page ? 'bg-lobster text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'
               }`}
             >
@@ -53,8 +55,8 @@ export default function Pagination({ page, totalPages, onChange }: PaginationPro
       <button
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages}
-        aria-label="下一页"
-        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-black text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
+        aria-label={dict['pagination.next']}
+        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
       >
         <ArrowRight className="size-3.5" />
       </button>

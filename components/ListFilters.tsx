@@ -63,16 +63,17 @@ export default function ListFilters({
   }, []);
 
   return (
-    <div className="mb-10 border-y border-white/10 py-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="relative w-full lg:max-w-md">
-          <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+    <div className="mb-6 md:mb-10 border-y border-white/10 py-3 sm:py-4">
+      <div className="flex items-center gap-3 lg:gap-4 lg:justify-between">
+        <div className="relative min-w-0 flex-1 lg:max-w-md">
+          <Search className="pointer-events-none absolute left-3 sm:left-4 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
           <input
             type="search"
+            aria-label={searchPlaceholder}
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder={searchPlaceholder}
-            className="h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] pl-11 pr-10 text-sm text-white outline-none transition-colors placeholder:text-slate-600 focus:border-lobster/60"
+            className="h-9 sm:h-10 lg:h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] pl-9 pr-8 text-xs text-white outline-none transition-colors placeholder:text-slate-600 focus:border-lobster/60 sm:pl-11 sm:pr-10 sm:text-sm"
           />
           {search && (
             <button
@@ -87,15 +88,15 @@ export default function ListFilters({
           )}
         </div>
 
-        <div className="relative flex items-center gap-3 text-sm text-slate-400">
+        <div className="relative flex items-center justify-end gap-3 text-sm text-slate-400">
           <span className="whitespace-nowrap">{sortLabel}</span>
-          <div ref={sortRef} className="relative min-w-40">
+          <div ref={sortRef} className="relative min-w-28 sm:min-w-32 lg:min-w-40">
             <button
               type="button"
               aria-haspopup="listbox"
               aria-expanded={sortOpen}
               onClick={() => setSortOpen((open) => !open)}
-              className={`flex h-11 w-full items-center justify-between gap-4 rounded-xl border bg-[#111827] pl-3.5 pr-3 text-left text-sm text-white outline-none transition-all ${
+              className={`flex h-9 sm:h-10 lg:h-11 w-full items-center justify-between gap-3 sm:gap-4 rounded-xl border bg-[#111827] pl-3.5 pr-3 text-left text-sm text-white outline-none transition-all ${
                 sortOpen
                   ? 'border-lobster/60 shadow-[0_0_0_3px_rgba(255,69,0,0.08)]'
                   : 'border-white/10 hover:border-white/20 hover:bg-[#151b2a]'
@@ -109,7 +110,7 @@ export default function ListFilters({
               <div
                 role="listbox"
                 aria-label={sortLabel}
-                className="absolute right-0 top-[calc(100%+0.5rem)] z-50 min-w-full overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-1.5 shadow-[0_20px_55px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
+                className="absolute right-0 top-[calc(100%+0.5rem)] z-50 w-max min-w-full whitespace-nowrap overflow-hidden rounded-2xl border border-white/10 bg-[#0f0f0f]/95 p-1.5 shadow-[0_20px_55px_rgba(0,0,0,0.65),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-xl"
               >
                 {sortOptions.map((option) => {
                   const selected = option.value === sort;
@@ -129,7 +130,7 @@ export default function ListFilters({
                           : 'text-slate-400 hover:bg-white/5 hover:text-white'
                       }`}
                     >
-                      <span>{option.label}</span>
+                      <span className="whitespace-nowrap">{option.label}</span>
                       {selected ? (
                         <Check className="size-4 shrink-0 text-lobster" />
                       ) : (
@@ -145,13 +146,13 @@ export default function ListFilters({
       </div>
 
       {filterOptions && onFilterChange && (
-        <div className="mt-4 flex gap-3 overflow-x-auto pb-1">
+        <div className="mt-4 flex w-full flex-nowrap items-center gap-1 overflow-hidden pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:gap-2 lg:w-auto lg:flex-wrap lg:gap-3 lg:pb-0">
           {filterOptions.map((option) => (
             <button
               key={option.value}
               type="button"
               onClick={() => onFilterChange(option.value)}
-              className={`whitespace-nowrap rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+              className={`min-w-0 flex-1 whitespace-nowrap rounded-full px-1 py-1.5 text-center text-[10px] font-bold transition-colors sm:px-3 sm:text-xs lg:flex-none lg:px-3.5 ${
                 filter === option.value
                   ? 'bg-lobster text-white'
                   : 'bg-white/5 text-slate-400 hover:bg-white/10 hover:text-white'

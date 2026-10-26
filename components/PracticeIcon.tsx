@@ -1,6 +1,6 @@
 import { Network, Cloud, Terminal, BarChart3, Globe, Cpu, Sparkles, Gauge, Server, Bot, type LucideIcon } from 'lucide-react';
 
-/* frontmatter 里的 icon 字段值 → lucide 图表（见 content/projects/*.mdx） */
+/* frontmatter 里的 icon 字段值 → lucide 图表（见 content/practice/*.mdx） */
 const PROJECT_ICONS: Record<string, LucideIcon> = {
   globe: Globe,
   bot: Bot,

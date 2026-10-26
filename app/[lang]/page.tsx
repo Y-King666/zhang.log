@@ -8,13 +8,13 @@ export default async function HomePage({ params }: { params: Promise<{ lang: str
   const dict = getDictionary(lang as Language);
 
   const projects = getPracticeSlugs()
-    .map((slug) => getPracticeMeta(slug))
+    .map((slug) => getPracticeMeta(slug, lang as Language))
     .filter((m): m is NonNullable<typeof m> => m !== null);
 
   const featured = projects.find((p) => p.featured) || projects[0];
 
   const blogs = getBlogSlugs()
-    .map((slug) => getBlogMeta(slug))
+    .map((slug) => getBlogMeta(slug, lang as Language))
     .filter((m): m is NonNullable<typeof m> => m !== null)
     .sort((a, b) => b.date.localeCompare(a.date));
 

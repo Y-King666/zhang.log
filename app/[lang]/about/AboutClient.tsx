@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { Dictionary } from '@/lib/i18n';
+import type { PracticeMeta } from '@/lib/content';
 import {
   MapPin,
   Mail,
@@ -12,24 +13,24 @@ import {
   Wrench,
   Code,
   ArrowRight,
-  ArrowUp,
 } from 'lucide-react';
 import { MotionConfig, motion } from 'motion/react';
 import type { ReactNode } from 'react';
 import ParallaxSection from '@/components/ParallaxSection';
 
-// 区块标题：龙虾色短线 + 大写标题 + 延伸细线，关于页各区块统一使用
-function SectionTitle({ children }: { children: ReactNode }) {
+// 区块标题：龙虾色短线 + 标题 + 延伸细线；action 置于细线右端，用于「查看全部」类出口
+function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
-    <div className="flex items-center gap-4 mb-10">
+    <div className="flex items-center gap-4 mb-6 md:mb-10">
       <div className="h-px w-12 bg-lobster"></div>
-      <h2 className="text-white text-3xl font-black tracking-tighter uppercase">{children}</h2>
+      <h2 className="t-section">{children}</h2>
       <div className="h-px flex-1 bg-white/10"></div>
+      {action}
     </div>
   );
 }
 
-export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: string }) {
+export default function AboutClient({ dict, lang, projects }: { dict: Dictionary; lang: string; projects: PracticeMeta[] }) {
   const t = (key: keyof Dictionary) => dict[key];
 
   const socialLinks = [
@@ -46,20 +47,12 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
 
   const capabilities = [
     {
-      icon: Sparkles,
-      title: t('about.capabilities.direction.title'),
-      items: [
-        t('about.capabilities.direction.item1'),
-        t('about.capabilities.direction.item2'),
-        t('about.capabilities.direction.item3'),
-      ],
-    },
-    {
       icon: Wrench,
       title: t('about.capabilities.deliver.title'),
       items: [
         t('about.capabilities.deliver.item1'),
         t('about.capabilities.deliver.item2'),
+        t('about.capabilities.deliver.item3'),
       ],
     },
     {
@@ -69,6 +62,15 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
         t('about.capabilities.management.item1'),
         t('about.capabilities.management.item2'),
         t('about.capabilities.management.item3'),
+      ],
+    },
+    {
+      icon: Sparkles,
+      title: t('about.capabilities.direction.title'),
+      items: [
+        t('about.capabilities.direction.item1'),
+        t('about.capabilities.direction.item2'),
+        t('about.capabilities.direction.item3'),
       ],
     },
   ];
@@ -82,9 +84,9 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="max-w-6xl mx-auto px-6 pb-20 pt-40 flex flex-col items-center">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 pb-12 md:pb-20 pt-20 sm:pt-28 lg:pt-40 flex flex-col items-center">
         <div className="w-full max-w-[960px]">
-          <nav className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-12">
+          <nav className="t-meta flex items-center gap-2 mb-6 sm:mb-8 lg:mb-12">
             <Link href={`/${lang}`} className="hover:text-lobster transition-colors">
               {t('blog.detail.home')}
             </Link>
@@ -93,24 +95,45 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
           </nav>
         </div>
         <ParallaxSection className="layout-content-container flex flex-col max-w-[960px] flex-1">
-          <section className="flex flex-col gap-10 items-center md:items-start mb-20">
-            <span id="about-hero" className="block scroll-mt-32"></span>
-            <div className="flex flex-col md:flex-row gap-12 items-center w-full">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
+          <section className="flex flex-col gap-5 md:gap-10 items-center md:items-start mb-12 md:mb-20">
+            <div className="flex flex-col md:flex-row gap-6 md:gap-12 items-center w-full">
+              <motion.figure
+                className="about-hero-figure w-full shrink-0 md:w-[20rem] lg:w-[28rem]"
+                initial={{ opacity: 0, scale: 0.96 }}
                 animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="relative group"
+                transition={{ duration: 0.7, delay: 0.1 }}
               >
-                <div className="absolute -inset-4 bg-gradient-to-r from-lobster to-orange-400 rounded-full blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-                <div
-                  className="relative bg-center bg-no-repeat aspect-square bg-cover rounded-full size-48 md:size-56 ring-4 ring-white/10 shadow-2xl z-10"
-                  style={{
-                    backgroundImage:
-                      'url("/images/avatars/avatar.png")',
-                  }}
-                ></div>
-              </motion.div>
+                <div className="about-orbit">
+                  <svg className="about-orbit-lines" viewBox="0 0 520 400" fill="none" aria-hidden="true">
+                    <path d="M0 57H222C246 57 260 80 260 110V156" />
+                    <path d="M260 244V270C260 300 246 343 222 343H0" />
+                    <path d="M308 200H440" />
+                    <circle cx="260" cy="200" r="142" className="about-orbit-guide" />
+                  </svg>
+                  <div className="about-orbit-node about-orbit-node--brief">
+                    <span className="about-orbit-node-dot" />
+                    <span>{workflow[0].title}</span>
+                  </div>
+                  <div className="about-orbit-node about-orbit-node--execute">
+                    <span className="about-orbit-node-dot" />
+                    <span>{workflow[2].title}</span>
+                  </div>
+                  <div className="about-orbit-node about-orbit-node--verify">
+                    <span className="about-orbit-node-dot" />
+                    <span>{workflow[3].title}</span>
+                  </div>
+                  <div className="about-orbit-core">
+                    <div className="about-orbit-core-ring">
+                      <div
+                        className="about-orbit-avatar"
+                        style={{ backgroundImage: "url('/images/avatars/avatar.png')" }}
+                        role="img"
+                        aria-label={t('about.name')}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.figure>
               <div className="flex flex-col gap-4 flex-1">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
@@ -118,14 +141,14 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                   transition={{ delay: 0.2 }}
                   className="text-center md:text-left"
                 >
-                  <h1 className="text-white text-5xl md:text-7xl font-black tracking-tighter leading-none mb-2">
+                  <h1 className="t-display mb-2">
                     {t('about.name')}
                   </h1>
-                  <p className="text-lobster text-xl md:text-2xl font-bold tracking-tight mb-3">{t('about.title')}</p>
-                  <p className="text-slate-200 text-lg font-medium leading-relaxed max-w-xl mb-4">
+                  <p className="t-item text-lobster mb-3">{t('about.title')}</p>
+                  <p className="t-prose max-w-xl mb-4">
                     {t('about.tagline')}
                   </p>
-                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2 text-slate-400 font-medium">
+                  <div className="t-meta flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2">
                     <span className="inline-flex items-center gap-2">
                       <MapPin className="size-5 text-lobster" />
                       {t('about.location')}
@@ -141,18 +164,23 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="flex gap-4 mt-4"
+                  className="flex flex-wrap items-center justify-center gap-3 md:justify-start md:gap-4 mt-6"
                 >
                   {socialLinks.map((social, index) => (
                     <motion.a
                       key={index}
-                      whileHover={{ scale: 1.1, backgroundColor: 'rgba(255, 69, 0, 0.1)' }}
-                      whileTap={{ scale: 0.95 }}
-                      className="p-3 bg-white/5 border border-white/10 rounded-2xl text-slate-300 hover:text-lobster transition-colors"
+                      whileHover={{ y: -3, scale: 1.04 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={{ type: 'spring', stiffness: 380, damping: 24 }}
+                      className="about-social-link group"
                       href={social.href}
                       aria-label={social.label}
                     >
-                      <social.icon className="size-6" />
+                      <social.icon className="size-5 transition-transform duration-300 group-hover:scale-110" />
+                      <span className="pointer-events-none absolute -top-9 left-1/2 z-10 -translate-x-1/2 translate-y-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#0c0e0e] px-2.5 py-1 t-meta text-slate-200 opacity-0 shadow-[0_10px_24px_-12px_rgba(0,0,0,0.9)] transition duration-200 group-hover:translate-y-0 group-hover:opacity-100">
+                        {social.label}
+                        <span className="absolute left-1/2 top-full size-2 -translate-x-1/2 -translate-y-1/2 rotate-45 border-b border-r border-white/10 bg-[#0c0e0e]"></span>
+                      </span>
                     </motion.a>
                   ))}
                 </motion.div>
@@ -160,68 +188,26 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
             </div>
           </section>
 
-          <section className="mb-20">
+          <section className="mb-12 md:mb-20">
             <SectionTitle>{t('about.me.title')}</SectionTitle>
-            <p className="text-slate-300 text-lg leading-loose font-medium [text-indent:2em] mb-8">
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              className="t-prose [text-indent:2em]"
+            >
               {t('about.me.paragraph')}
-            </p>
-            <div className="mb-5">
-              <h3 className="text-white text-lg font-black">{t('about.workflow.title')}</h3>
-              <p className="text-slate-500 text-sm leading-relaxed mt-1">{t('about.workflow.subtitle')}</p>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-              {workflow.map((item, i) => (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.4 }}
-                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
-                  className="edge-lit-card rounded-3xl p-6 group"
-                >
-                  <div className="font-mono text-xs text-lobster mb-5">{item.step}</div>
-                  <h3 className="text-white text-base font-black mb-2 group-hover:text-lobster transition-colors">{item.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
-                </motion.div>
-              ))}
-            </div>
+            </motion.p>
           </section>
 
-          <section className="mb-20">
-            <SectionTitle>{t('about.capabilities.title')}</SectionTitle>
-            <p className="text-slate-400 text-base leading-relaxed mb-8">
-              {t('about.capabilities.subtitle')}
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {capabilities.map((skill, idx) => (
-                <motion.div
-                  key={idx}
-                  whileHover={{ y: -5 }}
-                  className="edge-lit-card p-8 rounded-[32px] transition-all group"
-                >
-                  <div className="size-14 rounded-2xl bg-lobster/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                    <skill.icon className="size-7 text-lobster" />
-                  </div>
-                  <h3 className="text-white text-xl font-black mb-4">{skill.title}</h3>
-                  <ul className="space-y-3">
-                    {skill.items.map((item, i) => (
-                      <li key={i} className="flex items-center gap-3 text-slate-400 text-sm font-medium">
-                        <span className="size-1.5 bg-lobster/40 rounded-full shrink-0"></span> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-
-          <section className="mb-20">
+          <section className="mb-12 md:mb-20">
             <SectionTitle>{t('about.timeline.title')}</SectionTitle>
             <div className="relative">
               <div className="absolute left-0 top-2 bottom-2 w-9 md:w-11 flex justify-center pointer-events-none">
                 <div className="w-px bg-gradient-to-b from-lobster via-white/15 to-transparent"></div>
               </div>
-              <div className="space-y-6">
+              <div className="space-y-4 md:space-y-6">
                 {timeline.map((item, i) => (
                   <motion.div
                     key={item.year}
@@ -234,13 +220,13 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
                     <div className="relative z-10 mt-1 size-9 md:size-11 shrink-0 rounded-full border border-lobster/40 bg-[#0a0a0a] flex items-center justify-center">
                       <span className="size-2 rounded-full bg-lobster"></span>
                     </div>
-                    <div className="edge-lit-card rounded-3xl p-6 flex-1 group">
-                      <div className="text-lobster text-xs font-black tracking-[0.2em] mb-2">{item.year}</div>
-                      <h3 className="text-white text-lg font-black mb-2 group-hover:text-lobster transition-colors">{item.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                    <div className="about-display-card about-display-card--timeline rounded-3xl p-4 md:p-6 flex-1">
+                      <div className="t-meta mb-2">{item.year}</div>
+                      <h3 className="t-item mb-2">{item.title}</h3>
+                      <p className="t-card">{item.desc}</p>
                       <div className="mt-4 flex items-start gap-2 border-t border-white/5 pt-4">
                         <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lobster"></span>
-                        <p className="text-slate-300 text-sm font-medium leading-relaxed">{item.takeaway}</p>
+                        <p className="t-card text-slate-300">{item.takeaway}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -249,9 +235,75 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
             </div>
           </section>
 
-          <section className="mb-20">
+          <section className="mb-12 md:mb-20">
+            <SectionTitle>{t('about.workflow.title')}</SectionTitle>
+            <p className="t-prose text-slate-400 -mt-6 mb-8">{t('about.workflow.subtitle')}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {workflow.map((item, i) => (
+                <motion.div
+                  key={item.step}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ duration: 0.5, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  className="about-display-card about-display-card--process rounded-3xl p-4 md:p-6"
+                >
+                  <div className="about-display-index t-meta mb-2.5 md:mb-4">{item.step}</div>
+                  <h3 className="t-item mb-2">{item.title}</h3>
+                  <p className="t-card">{item.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+            <Link href={`/${lang}/agents`} className="about-agent-entry">
+              <span className="about-agent-entry-mark" aria-hidden="true">A/01</span>
+              <span className="about-agent-entry-copy">
+                <span className="about-agent-entry-title">{t('nav.agents')}</span>
+                <span className="about-agent-entry-desc">{t('about.agent.desc')}</span>
+              </span>
+              <span className="about-agent-entry-action">
+                {t('about.agent.cta')}
+                <ArrowRight className="size-4" />
+              </span>
+            </Link>
+          </section>
+
+          <section className="mb-12 md:mb-20">
+            <SectionTitle>{t('about.capabilities.title')}</SectionTitle>
+            <p className="t-prose text-slate-400 mb-8">
+              {t('about.capabilities.subtitle')}
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-8">
+              {capabilities.map((skill, idx) => (
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, delay: idx * 0.08, ease: [0.22, 1, 0.36, 1] }}
+                  className="about-display-card about-display-card--capabilities p-4 md:p-8 rounded-[32px] flex items-start gap-4 md:block"
+                >
+                  {/* 小屏（<md）：图标在左、文字在右的横向卡片，比竖排省近一半高度；md 起恢复原来的竖排三列卡片 */}
+                  <div className="about-capability-icon-shell size-12 md:size-14 shrink-0 rounded-2xl bg-lobster/10 flex items-center justify-center md:mb-6">
+                    <skill.icon className="size-6 md:size-7 text-lobster" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="t-item mb-3 md:mb-4">{skill.title}</h3>
+                    <ul className="space-y-2.5 md:space-y-3">
+                      {skill.items.map((item, i) => (
+                        <li key={i} className="t-card flex items-start md:items-center gap-3">
+                          <span className="mt-1.5 md:mt-0 size-1.5 bg-lobster/40 rounded-full shrink-0"></span> {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-12 md:mb-20">
             <SectionTitle>{t('about.exploration.title')}</SectionTitle>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="about-index-board">
               {[
                 { num: '01', title: t('about.exploration.item1.title'), desc: t('about.exploration.item1.desc'), icon: Sparkles },
                 { num: '02', title: t('about.exploration.item2.title'), desc: t('about.exploration.item2.desc'), icon: Share2 },
@@ -260,55 +312,67 @@ export default function AboutClient({ dict, lang }: { dict: Dictionary; lang: st
               ].map((item) => (
                 <motion.div
                   key={item.num}
-                  whileHover={{ y: -5 }}
-                  className="edge-lit-card p-6 rounded-3xl transition-all group relative overflow-hidden"
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.5, delay: Number(item.num) * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  className="about-index-entry"
                 >
-                  <span className="absolute -top-3 right-3 text-7xl font-black text-white/5 select-none pointer-events-none">{item.num}</span>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="p-3 rounded-xl bg-lobster/10 text-lobster group-hover:scale-110 transition-transform">
-                      <item.icon className="size-6" />
-                    </div>
-                    <div className="flex items-center gap-2 relative z-10">
-                      <div className="size-2 rounded-full bg-lobster animate-pulse"></div>
-                      <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">{t('about.exploration.badge')}</span>
-                    </div>
+                  <div className="about-index-head">
+                    <span className="about-index-number">{item.num}</span>
+                    <item.icon className="about-index-icon size-6" />
                   </div>
-                  <h3 className="text-white text-lg font-black mb-2 group-hover:text-lobster transition-colors">{item.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                  <h3 className="t-item mb-2">{item.title}</h3>
+                  <p className="t-card">{item.desc}</p>
                 </motion.div>
               ))}
             </div>
           </section>
 
-          <section className="relative rounded-[32px] sm:rounded-[40px] overflow-hidden bg-[#0f0f0f] border border-white/10 py-16 sm:py-20 flex flex-col items-center text-center px-6">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,69,0,0.12),transparent_50%)]"></div>
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white mb-4 sm:mb-6 tracking-tighter leading-none whitespace-pre-line relative z-10">
-              {t('about.cta.title')}
-            </h2>
-            <p className="text-slate-400 text-lg max-w-xl mb-8 font-medium relative z-10">
-              {t('about.cta.subtitle')}
-            </p>
-            <div className="grid gap-2 text-sm text-slate-300 max-w-2xl mb-8 relative z-10">
-              <p>{t('about.cta.fit')}</p>
-              <p className="text-slate-500">{t('about.cta.work')}</p>
-            </div>
-            <div className="flex flex-col sm:flex-row items-center gap-4 relative z-10">
-              <a
-                href="#about-hero"
-                className="relative px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-[0.2em] overflow-hidden group shadow-2xl shadow-lobster/20"
-              >
-                <span className="absolute inset-0 bg-[#ff4500] transition-transform duration-500 ease-out group-hover:translate-y-full"></span>
-                <span className="absolute inset-0 bg-white translate-y-[-100%] transition-transform duration-500 ease-out group-hover:translate-y-0"></span>
-                <span className="relative z-10 text-white group-hover:text-[#ff4500] transition-colors duration-500 inline-flex items-center gap-2">
-                  <ArrowUp className="size-4" /> {t('about.cta.button')}
-                </span>
-              </a>
-              <Link
-                href={`/${lang}/practice`}
-                className="inline-flex items-center gap-2 px-8 py-5 rounded-2xl border border-white/10 text-slate-300 font-black text-sm uppercase tracking-[0.2em] hover:border-lobster/50 hover:text-lobster transition-colors"
-              >
-                {t('about.cta.secondary')} <ArrowRight className="size-4" />
-              </Link>
+          <section>
+            <SectionTitle
+              action={
+                <Link
+                  href={`/${lang}/practice`}
+                  className="t-action group flex shrink-0 items-center gap-2 transition-all duration-300 hover:text-lobster"
+                >
+                  <span className="relative">
+                    {t('about.practice.viewAll')}
+                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-lobster transition-all duration-300 group-hover:w-full"></span>
+                  </span>
+                  <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              }
+            >
+              {t('about.practice.title')}
+            </SectionTitle>
+            <div className="border-t border-white/5">
+              {projects.map((project, idx) => (
+                <motion.div
+                  key={project.slug}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.45, delay: idx * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                  className="border-b border-white/5"
+                >
+                  <Link
+                    href={`/${lang}/practice/${project.slug}`}
+                    className="group grid grid-cols-1 gap-1 py-5 md:grid-cols-[6rem_1fr_auto] md:items-center md:gap-6 md:py-6"
+                  >
+                    <span className="t-meta">
+                      {project.date.slice(0, 7).replace('-', '.')}
+                    </span>
+                    <span className="t-item transition-colors group-hover:text-lobster">
+                      {project.title}
+                    </span>
+                    <span className="t-meta flex items-center gap-3">
+                      {project.scenario ?? project.tags.slice(0, 2).join(' · ')}
+                      <ArrowRight className="size-4 text-slate-600 transition-all group-hover:translate-x-1 group-hover:text-lobster" />
+                    </span>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
           </section>
         </ParallaxSection>

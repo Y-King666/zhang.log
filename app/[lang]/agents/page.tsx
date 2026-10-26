@@ -47,10 +47,11 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
   const { lang } = await params;
   const dict = getDictionary(lang as Language);
   const projects = getPracticeSlugs()
-    .map((slug) => getPracticeMeta(slug))
+    .map((slug) => getPracticeMeta(slug, lang as Language))
     .filter((project): project is NonNullable<typeof project> => project !== null)
     .sort((a, b) => b.date.localeCompare(a.date));
-  const globalPrompt = readFileSync(join(repoRoot, 'content', 'agents', 'global-agents.md'), 'utf8');
+  const promptFile = lang === 'en' ? 'global-agents.en.md' : 'global-agents.md';
+  const globalPrompt = readFileSync(join(repoRoot, 'content', 'agents', promptFile), 'utf8');
 
   return <AgentsClient dict={dict} lang={lang} projects={projects} globalPrompt={globalPrompt} featuredSkills={FEATURED_SKILLS} featuredMcps={FEATURED_MCPS} />;
 }

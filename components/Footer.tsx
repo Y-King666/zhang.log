@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import { Mail, Github, Globe } from 'lucide-react';
 import type { Dictionary } from '@/lib/i18n';
 import { motion } from 'motion/react';
@@ -15,23 +14,22 @@ const Footer = ({ dict }: { dict: Dictionary }) => {
   ];
 
   return (
-    <footer className="border-t border-white/5 bg-background-dark/50 pt-20 pb-10">
-      <div className="max-w-6xl mx-auto px-6 flex flex-col items-center gap-8">
+    <footer className="border-t border-white/5 bg-background-dark/50 pt-12 md:pt-20 pb-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-5 md:gap-8">
         {/* Logo */}
         <div className="flex items-center gap-3">
           <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-1 bg-lobster/40 blur-md rounded-xl animate-pulse"></div>
             <img
               src="/images/icons/site-logo.png"
               alt="ZHANG.LOG"
-              className="relative size-12 rounded-xl object-cover border border-white/20 shadow-lg shadow-lobster/20"
+              className="relative size-12 rounded-xl object-cover border border-white/15"
             />
           </div>
-          <span className="text-xl font-black tracking-tight uppercase">ZHANG.LOG</span>
+          <span className="text-xl font-bold tracking-tight">ZHANG.LOG</span>
         </div>
 
         {/* Social icons */}
-        <div className="flex gap-6">
+        <div className="flex gap-4 md:gap-6">
           {socialLinks.map((social, index) => (
             <motion.a
               key={index}

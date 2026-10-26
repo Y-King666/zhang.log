@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -78,7 +78,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
         href={switchPath('cn')}
         className={cn(
           "w-7 py-0.5 text-center rounded-full text-[10px] font-bold cursor-pointer transition-all",
-          lang === 'cn' ? "bg-lobster text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]" : "text-slate-500 hover:text-white"
+          lang === 'cn' ? "bg-lobster text-white" : "text-slate-500 hover:text-white"
         )}
       >
         中
@@ -87,7 +87,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
         href={switchPath('en')}
         className={cn(
           "w-7 py-0.5 text-center rounded-full text-[10px] font-bold cursor-pointer transition-all",
-          lang === 'en' ? "bg-lobster text-white shadow-[0_0_10px_rgba(255,69,0,0.4)]" : "text-slate-500 hover:text-white"
+          lang === 'en' ? "bg-lobster text-white" : "text-slate-500 hover:text-white"
         )}
       >
         EN
@@ -98,35 +98,20 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   return (
     <nav
       className={cn(
-        'fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[92%] sm:w-[90%] max-w-4xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        'fixed top-3 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[92%] sm:w-[90%] max-w-4xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
         navHidden && '-translate-y-[150%]'
       )}
     >
-      {/* 3D Glowing Edge Effect (Rim Light & Bottom Glow) */}
-      <div className="absolute -inset-[1px] bg-gradient-to-t from-white/30 via-transparent to-transparent rounded-full blur-[0.5px] -z-10"></div>
-      <div className="absolute -bottom-3 -inset-x-8 h-16 bg-lobster/20 blur-3xl rounded-full -z-20 opacity-0 dark:opacity-70"></div>
-
-      <div className="glass-glow rounded-full px-4 sm:px-6 py-3 flex items-center justify-between relative overflow-hidden group">
-        {/* Top Edge Reflection Sheen */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[98%] h-[1px] bg-gradient-to-r from-transparent via-white/50 to-transparent z-20"></div>
-        {/* Bottom Rim Light */}
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[92%] h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent z-20"></div>
-        {/* Inner Glow */}
-        <div className="absolute inset-0 rounded-full bg-gradient-to-b from-white/10 to-transparent pointer-events-none"></div>
-
-        {/* Subtle shimmer effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out pointer-events-none"></div>
-
-        <Link href="/" className="flex items-center gap-2 relative z-10 shrink-0">
+      <div className="glass-glow rounded-full px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between relative overflow-hidden">
+        <Link href="/" className="flex items-center gap-1.5 sm:gap-2 relative z-10 shrink-0">
             <div className="relative flex items-center justify-center">
-            <div className="absolute -inset-1 bg-lobster/40 blur-md rounded-xl"></div>
             <img
               src="/images/icons/site-logo.png"
               alt="ZHANG.LOG"
-              className="relative size-10 rounded-xl object-cover border border-white/20 shadow-lg shadow-lobster/20"
+              className="relative size-8 sm:size-10 rounded-lg sm:rounded-xl object-cover border border-white/15"
             />
           </div>
-          <span className="font-black tracking-tighter text-white drop-shadow-sm">ZHANG.LOG</span>
+          <span className="text-sm sm:text-base font-bold tracking-tighter text-white">ZHANG.LOG</span>
         </Link>
 
         {/* 桌面导航（lg 及以上保持完整横排） */}
@@ -149,7 +134,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
                   />
                   <motion.span
                     layoutId="nav-active-dot"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-lobster rounded-full shadow-[0_0_10px_#ff4500]"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-lobster rounded-full"
                     transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                   />
                 </>
@@ -159,7 +144,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
           ))}
           <Link
             href={`/${lang}/agents`}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1 shadow-[0_0_15px_rgba(255,69,0,0.3)] hover:shadow-[0_0_20px_rgba(255,69,0,0.5)]"
+            className="bg-lobster hover:bg-orange-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1"
           >
             {t('nav.agents')}
           </Link>
@@ -172,7 +157,7 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
           onClick={() => setMenuOpen((o) => !o)}
           aria-label={menuOpen ? t('nav.menu.close') : t('nav.menu.open')}
           aria-expanded={menuOpen}
-          className="lg:hidden relative z-10 size-9 flex items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-lobster/40 transition-colors"
+          className="lg:hidden relative z-10 size-8 sm:size-9 flex items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-lobster/40 transition-colors"
         >
           {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
         </button>
@@ -187,30 +172,33 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
             exit={{ opacity: 0, y: -10, scale: 0.97 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             ref={mobileMenuRef}
-            className="lg:hidden absolute top-full mt-3 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+            className="lg:hidden absolute top-full mt-2 sm:mt-3 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
           >
-            <div className="p-2">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  href={link.href}
-                  className={cn(
-                    'flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-colors',
-                    isActive(link.href)
-                      ? 'bg-lobster/10 text-white'
-                      : 'text-slate-400 hover:text-white hover:bg-white/5'
-                  )}
-                >
-                  {link.name}
-                  {isActive(link.href) && (
-                    <span className="size-1.5 rounded-full bg-lobster shadow-[0_0_10px_#ff4500]" />
-                  )}
-                </Link>
-              ))}
-              <div className="flex items-center justify-between gap-3 px-3 pt-3 mt-2 border-t border-white/5">
+            <div className="p-1.5">
+              {/* 两列排列，4 个入口压缩到 2 行 */}
+              <div className="grid grid-cols-2 gap-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.name}
+                    href={link.href}
+                    className={cn(
+                      'flex min-w-0 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
+                      isActive(link.href)
+                        ? 'bg-lobster/10 text-white'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                    )}
+                  >
+                    <span className="truncate">{link.name}</span>
+                    {isActive(link.href) && (
+                      <span className="size-1.5 shrink-0 rounded-full bg-lobster" />
+                    )}
+                  </Link>
+                ))}
+              </div>
+              <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-white/5 px-1 pt-2">
                 <Link
                   href={`/${lang}/agents`}
-                  className="flex-1 bg-gradient-to-r from-orange-500 to-red-500 text-white px-4 py-2 rounded-full text-xs font-bold flex items-center justify-center gap-1 shadow-[0_0_15px_rgba(255,69,0,0.3)]"
+                  className="flex flex-1 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 text-xs font-bold text-white shadow-[0_0_15px_rgba(255,69,0,0.3)]"
                 >
                   {t('nav.agents')}
                 </Link>

@@ -2,7 +2,6 @@ import type { ReactNode, AnchorHTMLAttributes, TableHTMLAttributes, HTMLAttribut
 import type { MDXComponents } from 'mdx/types';
 import { ArrowUpRight } from 'lucide-react';
 import CodeBlock from '@/components/CodeBlock';
-import Figure from '@/components/Figure';
 
 function textContent(value: ReactNode): string {
   if (typeof value === 'string' || typeof value === 'number') return String(value);
@@ -25,7 +24,12 @@ function withoutWhitespace(children: ReactNode) {
 }
 
 function Table({ children, ...props }: TableHTMLAttributes<HTMLTableElement>) {
-  return <table {...props}>{withoutWhitespace(children)}</table>;
+  // 小屏表格改为横向滑动：外层容器负责滚动，见 globals.css 的 .table-scroll
+  return (
+    <div className="table-scroll">
+      <table {...props}>{withoutWhitespace(children)}</table>
+    </div>
+  );
 }
 
 function TableSection({ children, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -69,6 +73,28 @@ function ExtLink({ children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>
   );
 }
 
+/* 段落缩进覆盖：正文段落默认由 globals.css 的 .prose p 统一缩进 2em。
+   需要逐段调整时在 MDX 里用：
+     <NoIndent>顶格的段落</NoIndent>
+     <Indent n={1}>缩进 1 个字符的段落</Indent>        // n 省略时为 2
+   两者都渲染成 <p>，继续继承 prose 的段落样式；用行内 style 覆盖 .prose p。
+   内容要紧贴标签写（不要空行），否则 MDX 会在组件内再包一层 <p>。 */
+function NoIndent({ children, style, ...props }: HTMLAttributes<HTMLParagraphElement>) {
+  return (
+    <p {...props} style={{ ...style, textIndent: 0 }}>
+      {children}
+    </p>
+  );
+}
+
+function Indent({ n = 2, children, style, ...props }: HTMLAttributes<HTMLParagraphElement> & { n?: number }) {
+  return (
+    <p {...props} style={{ ...style, textIndent: `${n}em` }}>
+      {children}
+    </p>
+  );
+}
+
 export function useMDXComponents(): MDXComponents {
   return {
     table: Table,
@@ -79,6 +105,7 @@ export function useMDXComponents(): MDXComponents {
     h3: Heading3,
     pre: CodeBlock,
     ExtLink,
-    Figure,
+    NoIndent,
+    Indent,
   };
 }

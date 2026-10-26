@@ -1,0 +1,333 @@
+---
+title: "Zhang's Personal Site"
+readTime: 15 min
+scenario: Coding / Information organization
+---
+
+Zhang's personal portfolio site was built in collaboration with Agents. It is a hands-on collection where a university developer records and shares his experience with Agents. It grew out of my curiosity about what Agents can do, and each part of the site came from something I learned along the way. The idea started with a simple question: as a developer, how could I not build a personal site? I handed that idea to Agents to process and develop. Throughout the process I owned the overall design, prompt design, review, acceptance, interaction polish, and detail work; the Agents assisted with the tasks and took over all code development. Let's look at the process I used to work with Agents.
+
+## Technology Choices
+
+| Layer | Technology |
+| --- | --- |
+| Framework | Next.js 16 (App Router) |
+| UI | React 19 + TypeScript |
+| Styling | Tailwind CSS v4 |
+| Animation | framer-motion (motion/react) |
+| Content | MDX + @next/mdx (mdxRs compiler) |
+| Icons | lucide-react |
+
+## Content Design: Goal and Positioning
+
+The key is to make the goal and positioning explicit. I told the Agent what the site is for and which functions I needed, which put the ultimate objective into the context. If needed, the Agent could compare each step against that objective and correct course. Harness's goal mode can achieve the same result as this prompt design. Next came the main content design: a record of Agent use across coding, creation, automation, and other scenarios, followed by lessons learned. Finally, a short introduction to myself. The Agent proposed several directions for me to choose from; when I was not satisfied, we talked through adjustments until I made the final call.
+
+## Content System Design: An MDX-Driven Data-Flow Engine
+
+The content engine has to support long-term, incremental, multi-format output. This project uses one static site for both roles, and the core question is how to unify them under a single route without sacrificing either experience. All content lives in MDX files under `content/`. Before the build, `generate-content-data.js` splits each file into three layers:
+
+| Output | Content | Responsibility |
+|------|------|------|
+| `content-data.json` | frontmatter metadata | Powers the home page, lists, and featured items |
+| `lib/generated/*.mdx` | Chinese body with frontmatter removed | Compiled into body components |
+| `lib/generated/*.en.mdx` | English sidecar body with frontmatter removed | Compiled into English body components |
+| `mdx-registry.ts` | slug to Chinese/English Component map | Supplies the body component by language and falls back to Chinese when English is missing |
+
+```ts
+import Practice0 from '@/lib/generated/practice/zhang.log.mdx';
+
+export const practiceComponents: Record<string, ComponentType> = {
+  'zhang.log': Practice0,
+};
+```
+
+The value of the three-layer split is **decoupling content from structure**: metadata and body compile independently, and each article becomes a component that can be registered or replaced on its own. Adding or removing an article means maintaining one MDX file.
+
+### Rendering Strategy
+
+I discussed deterministic static generation with the Agent. Metadata comes from build-time static data, the body comes from compile-time registered components, and routes are pre-generated with `generateStaticParams`. The site barely makes client-side data requests: the first screen is deterministic, build output is predictable, and deployment has no runtime dependency. This trade of runtime flexibility for build-time determinism fits a personal site whose content does not change often.
+
+### Internationalization
+
+Routing carries the language in the path segment under `app/[lang]`, and `getDictionary(lang)` returns the UI dictionary. Articles and prompts use the same idea: `content/{collection}/{slug}.en.mdx` is an English sidecar next to the Chinese source, and `global-agents.en.md` is the English counterpart of the global prompt. The generator reads only the translated metadata fields from the sidecar, keeps shared fields such as date, image, and tags in the base file, and emits separate `blogComponentsEn` / `practiceComponentsEn` registries for the English body. `getDisplayTag` handles tag localization. Language is modeled as a route parameter plus a lookup, without a heavy i18n framework - light enough to stay compatible with static rendering.
+
+## Structure Design
+
+The directory structure came from several rounds of discussion and revision with the Agent:
+
+```context
+zhang.log/
+├── app/                          # App Router routes and pages
+│   ├── [lang]/                   # Language segment (cn / en), statically prerendered per language
+│   │   ├── layout.tsx            # Root layout (generateStaticParams returns two languages)
+│   │   ├── page.tsx              # Home: hero + featured practice bento grid + latest articles
+│   │   ├── HomeClient.tsx        # Home animation client component ('use client')
+│   │   ├── about/                # About page
+│   │   │   ├── page.tsx
+│   │   │   └── AboutClient.tsx
+│   │   ├── agents/               # My Agents page (methods, skills, and boundaries)
+│   │   │   ├── page.tsx
+│   │   │   └── AgentsClient.tsx
+│   │   ├── blogs/                # Blog routes
+│   │   │   ├── page.tsx          # Article list (category tabs)
+│   │   │   ├── BlogClient.tsx
+│   │   │   └── [slug]/page.tsx   # Article detail (generateStaticParams)
+│   │   ├── practice/             # Practice routes
+│   │   │   ├── page.tsx          # Practice list (search / filter / sort / pagination)
+│   │   │   ├── PracticeClient.tsx
+│   │   │   └── [slug]/page.tsx   # Practice detail (generateStaticParams)
+│   │   └── openclaw/             # OpenClaw gateway documentation page
+│   │       ├── page.tsx
+│   │       ├── OpenClawClient.tsx
+│   │       └── sections/         # Section components (blueprint / structure / start / config / experience / maintenance)
+│   ├── globals.css               # Global styles and Tailwind v4 theme colors
+│   ├── mdx.d.ts                  # MDX module declarations
+│   └── icon.png                  # Site icon
+├── components/                   # Shared components
+│   ├── BackToTop.tsx             # Back-to-top button
+│   ├── CodeBlock.tsx             # Code block (language label, copy button)
+│   ├── Footer.tsx
+│   ├── ImageLightbox.tsx         # In-article image lightbox
+│   ├── ListFilters.tsx           # List search, filters, and sorting
+│   ├── Navbar.tsx
+│   ├── Pagination.tsx            # List pagination
+│   ├── ParallaxImage.tsx         # Parallax image
+│   ├── ParallaxSection.tsx       # Section-level parallax container
+│   ├── PracticeIcon.tsx          # frontmatter icon value to lucide icon
+│   ├── PracticeTableOfContents.tsx # Long-read table of contents (practice detail + OpenClaw page)
+│   ├── SmoothScroll.tsx          # Lenis smooth scrolling
+│   ├── ZoomableImage.tsx         # Zoomable article image
+│   └── useSectionScrollSpy.ts    # Section scroll-spy hook
+├── content/                      # Content source (MDX / Markdown), the only content entry point
+│   ├── agents/                   # Agent methods and boundaries (global-agents.md + English sidecar)
+│   ├── blog/                     # Blog articles (base files + .en.mdx sidecars)
+│   └── practice/                 # Practice entries (base files + .en.mdx sidecars)
+├── docs/                         # Design and specification documents
+│   └── mdx-spec.md               # MDX authoring specification
+├── lib/                          # Data and business logic
+│   ├── content.ts                # Content reading API (imports content-data.json)
+│   ├── i18n.ts                   # Chinese and English copy (cnContent / enContent)
+│   ├── i18n-context.tsx          # Client-side language context for shared components
+│   ├── scenarios.ts              # Shared practice scenario keys
+│   ├── tag-display.ts            # Tag display language mapping
+│   ├── mdx-registry.ts           # Generated: static MDX component registry
+│   ├── use-parallax.ts           # Parallax value hook
+│   ├── utils.ts                  # cn() utility (clsx + tailwind-merge)
+│   ├── data/content-data.json    # Generated: content metadata
+│   └── generated/                # Generated: MDX bodies without frontmatter
+│       ├── blog/
+│       └── practice/
+├── scripts/
+│   └── generate-content-data.js  # Generates content data (JSON + registry + clean bodies)
+├── public/
+│   ├── images/                   # Local image assets
+│   │   ├── avatars/              # Author avatar
+│   │   ├── backgrounds/          # Background assets
+│   │   ├── blogs/                # Blog covers, named by slug
+│   │   ├── icons/                # Site icons
+│   │   ├── method/               # Method card images
+│   │   ├── practice/             # Practice covers, named by slug
+│   │   └── openclaw_map.png      # OpenClaw structure diagram
+│   └── videos/                   # Video assets (home_video.mp4)
+├── DESIGN.md                     # Visual design-system spec (Google Stitch design.md format)
+├── AGENTS.md / CLAUDE.md         # Behaviour rules for the coding Agent
+├── proxy.ts                      # Route middleware (redirects non-language paths to /cn)
+├── mdx-components.tsx            # MDX rendering component map
+├── next.config.ts                # Next.js configuration (mdxRs, remote image allowlist)
+├── postcss.config.mjs
+├── eslint.config.mjs
+├── tsconfig.json
+└── package.json
+```
+
+## Style and Interaction Design
+
+I wrote `DESIGN.md` to unify the visual language. <ExtLink href="https://github.com/google-labs-code/design.md">`DESIGN.md`</ExtLink> is an open design-system specification format from Google's Stitch team. It describes a visual identity to coding agents in a durable, structured way. By writing a set of visual rules for the site, it keeps the design language consistent. The site's visual language is:
+
+```DESIGN.md
+---
+version: alpha
+name: ZHANG.LOG
+description: A dark-themed personal portfolio and content site with Lobster orange as the primary color, teal accents, interactive and display card tiers, and an MDX-driven reading experience.
+colors:
+  primary: "#ff4500"
+  secondary: "#2dd4bf"
+  on-dark: "#f8fafc"
+  background-dark: "#0a0a0a"
+  surface: "#121212"
+  muted: "#94a3b8"
+typography:
+  body:
+    fontFamily: Inter
+    fontSize: 1rem
+    lineHeight: 1.7
+  display:
+    fontFamily: Playfair Display
+    fontSize: 4.5rem
+    fontWeight: 900
+    lineHeight: 1.1
+  label-caps:
+    fontFamily: Inter
+    fontSize: 0.75rem
+    fontWeight: 700
+    letterSpacing: 0.2em
+  mono:
+    fontFamily: JetBrains Mono
+    fontSize: 0.85rem
+rounded:
+  chip: 16px
+  card: 24px
+  pill: 9999px
+spacing:
+  xs: 4px
+  sm: 8px
+  md: 16px
+  lg: 24px
+components:
+  card:
+    backgroundColor: "{colors.background-dark}"
+    rounded: "{rounded.card}"
+    padding: "{spacing.md}"
+    typography: "{typography.body}"
+  navbar:
+    backgroundColor: "rgba(10,10,10,0.9)"
+    rounded: "{rounded.pill}"
+    padding: "{spacing.lg}"
+  button-primary:
+    backgroundColor: "{colors.primary}"
+    textColor: "{colors.on-dark}"
+    rounded: "{rounded.pill}"
+    padding: "{spacing.sm}"
+  chip:
+    backgroundColor: "rgba(255,255,255,0.05)"
+    textColor: "{colors.muted}"
+    rounded: "{rounded.pill}"
+    padding: "{spacing.xs}"
+  badge:
+    backgroundColor: "{colors.secondary}"
+    textColor: "{colors.surface}"
+    rounded: "{rounded.pill}"
+  code-block:
+    typography: "{typography.mono}"
+    backgroundColor: "{colors.surface}"
+    textColor: "{colors.on-dark}"
+    rounded: "{rounded.chip}"
+---
+
+## Overview
+
+A dark-themed digital business card and content engine. It folds the blog, practice notes, and about page into one MDX-driven narrative. Visually, it pursues the idea that "quality comes from contrast, rhythm, and whitespace, not decoration": a cool dark base, a single strong warm-orange accent, and glass blur plus edge lighting to define hierarchy.
+
+Overall character: a personal workstation running in the dark, accented with technical numbering and terminal texture. Motion is restrained but everywhere: Lenis smooth scrolling, parallax float, and hover glow.
+
+Reading experience: `lenis` provides smooth scrolling inertia, while `useSectionScrollSpy` and `PracticeTableOfContents` build a section coordinate system for long articles. The right-hand table of contents highlights with reading progress and collapses into a waveform scale on small screens. Together with `motion` section transitions, the goal is to make scrolling part of the content and give technical long reads navigation, rhythm, and coordinates.
+
+Visual language: warm orange "lobster" is the accent against a dark base; rounded cards and edge-lit borders define hierarchy, and heavy-weight headings create visual anchors. The visuals serve reading and recognition rather than competing with content. Quality comes from contrast, rhythm, and whitespace, not decoration.
+
+Card semantics must match interaction affordances: only cards that navigate to a page or run an action may use the `edge-lit-card` glass highlight; purely informational cards use `display-card` and must not borrow orange corners, glow, or hover cues.
+
+## Colors
+
+Dark base plus one warm orange accent; teal is used only in very small doses.
+
+- **Primary (#ff4500, Lobster orange):** The only color that drives interaction. Used for CTAs, active states, numbering, hover highlights, and accent underlines. **Do not** use it for large text areas or full backgrounds - it is a spotlight, not a wall.
+- **Secondary (#2dd4bf, teal):** A secondary accent for badges, status markers, and small gradient endings. Used far less than the primary color.
+- **Background-dark (#0a0a0a):** The page base (the project is dark by default). Tables and cards can use the darker `surface` (#121212).
+- **On-dark (#f8fafc) and muted (#94a3b8):** The text hierarchy on dark backgrounds. Body text uses on-dark, secondary descriptions use muted, and weaker metadata falls back to slate-600.
+- **Border (rgba(255,255,255,0.08)):** Dividers and card outlines. Several border tones (0.05/0.1/0.2) separate layers, but all stay very light.
+
+The background noise texture (`body::before`, an SVG noise layer at 0.03 opacity) is only texture and never covers foreground content. The primary color has strong contrast on the dark base (about 15:1), which makes CTAs stand out, but it should not be used as a body text color.
+
+Note: white CTA text (#f8fafc) on the primary color (#ff4500) has a contrast ratio of about 3.3:1, below WCAG AA's 4.5:1. This is a deliberate trade-off for short, high-emphasis text; for strict compliance, darken the button background or use a brighter on-color.
+
+## Typography
+
+Three typefaces have distinct roles. Headings build anchors through weight hierarchy, not through different font families:
+
+- **Body (Inter):** The body typeface at 1rem/1.7. Descriptive text often drops to slate-500.
+- **Display (Playfair Display):** The serif display face for large headings and hero emphasis. It pairs with `font-black` (900) for hierarchy; `tracking-tight` keeps large type from feeling loose.
+- **Mono (JetBrains Mono):** The technical voice for code blocks, numbering (01-04), terminal-style status panels, and paths or filenames.
+- **Label-caps:** Small uppercase labels such as `text-[10px] uppercase tracking-widest`, used for section eyebrows, metadata rows, and stat labels. Wide letter spacing (0.2em) adds precision.
+- **Paragraph indent and small-screen sizes:** article paragraphs are indented 2 characters (`text-indent: 2em`, which follows the font size; paragraphs inside list items and table cells are not indented), and any single paragraph can override it with `<Indent n={N}>` / `<NoIndent>`. Code blocks and tables drop to 0.75rem (12px) on small screens and fill the article width.
+
+## Layout
+
+- **Language-segment routing:** `app/[lang]` (cn / en) carries the language, and pages are statically prerendered per language; `generateStaticParams` returns both.
+- **Card grids:** The practice and blog lists use `grid-cols-1 md:grid-cols-2 lg:grid-cols-3`; the gap is `gap-4` on small screens and `gap-6` (1.5rem) from `md:` up.
+- **Detail columns:** The practice detail page uses `grid-cols-12`: an 8-column article body on the left and a 4-column sticky table of contents on the right.
+- **Spacing base:** 4px (Tailwind's default scale), usually `p-4 md:p-6`, `mb-8 md:mb-16`, and `gap-4 md:gap-6`.
+- **Mobile first:** spacing, padding, radii, and type sizes take their base value from small screens (below 768px) and restore the desktop value at `md:` (768px), for example `p-4 md:p-6`, `rounded-2xl md:rounded-3xl`, `text-base md:text-lg`. Use `clamp()` when a value should scale continuously; do not scale the root font size for compactness - it also resizes icons, avatars, and buttons.
+- **Readable width:** The article area stays around `max-w-4xl` / `max-w-2xl` to avoid long, wide lines.
+
+## Elevation & Depth
+
+Depth comes mainly from blur, borders, glow, and inset shadows rather than heavy drop shadows:
+
+- **Glass blur** (backdrop-blur 16px + saturate 180%): navigation pill and floating panels.
+- **Edge highlight** (edge-lit-card): cards use a double background (padding-box + border-box) to build a white-to-orange gradient outline, with a 1px top highlight and a dark bottom line.
+- **Inset highlight/shadow:** a 1px inner highlight (inset 0 1px 0 white/16) plus a dark bottom line replaces large outer shadows.
+- **Lobster glow:** active items and CTAs use soft glow such as `shadow-[0_0_10px_rgba(255,69,0,0.4)]`, intensified on hover. Hover interactions tend to float, shift, and brighten the border, for example `whileHover={{ x: 10 }}` or `group-hover:scale-110`.
+
+## Shapes
+
+- **Large radii:** cards use `rounded-3xl` (24px, tightening to `rounded-2xl` 16px on small screens), icon containers use `rounded-2xl` (16px), and pills, navigation, and badges use `rounded-full`.
+- **Thin borders:** Most borders use very light values such as `border-white/10`, reading as inner structure lines rather than closed outlines.
+- **Straight dividers:** Information rows use `border-t border-white/10` for a hard split that contrasts with the soft rounded shapes.
+
+## Components
+
+- **card (edge-lit-card):** List cards with a `background-dark` base, gradient outline, and inset highlight; they contain an icon container (rounded-2xl + white/5), a small uppercase label, a title that turns Lobster on hover, a description, and metadata.
+- **display-card:** Informational only. Used for structure explanations, configuration summaries, and experience cases that are not links; it uses a matte graphite background, a fine dot texture, an inset border, and a short top tick, with no orange corners, outer glow, or hover lift.
+- **interactive-card (edge-lit-card):** Only for cards that navigate or run an action. It may use a gradient outline, orange corners, hover brightening, and motion feedback, and must not be used for pure information.
+- **navbar (glass-glow):** The centered glass pill at the top hides and restores on scroll. It contains the cn/en language switch, desktop links, a gradient "My Agents" button, and a mobile hamburger menu that stays visible while the menu is open.
+- **button-primary:** An orange-to-red gradient pill (`from-orange-500 to-red-500`) with Lobster glow, used only for strong calls to action such as entering the Agents page.
+- **chip:** Tag or category badges with a `white/5` background, large radius, and small uppercase text, used in tag rows and category filter buttons.
+- **code-block:** Code blocks with JetBrains Mono, a dark curved surface, and a copy button; `[&_code]:font-mono` enforces monospace. On small screens the size drops to 0.75rem and padding tightens, and the copy button stays visible on touch devices (`pointer-coarse` / `max-sm`) because there is no hover; long lines scroll horizontally instead of wrapping.
+- **panel (display-panel):** Information and status panels with a light gradient background and inset highlight, optionally collapsible.
+
+## Do's and Don'ts
+
+**Do**
+- Use the primary color (Lobster orange) only for emphasis, CTAs, active states, and numbering; leave everything else to neutral grays.
+- On dark backgrounds, use the on-dark / muted / slate-600 hierarchy to keep contrast readable.
+- Prefer token values for radii, borders, and spacing (`rounded.card/chiP/pill`, `spacing.*`, `colors.*`) over one-off values.
+- Keep motion light: scrolling, parallax, and glow create atmosphere without slowing reading; large headings use font-black for anchors.
+- Before implementing a card, decide whether it is clickable; informational content defaults to `display-card`, and only real interactive entry points use `interactive-card` / `edge-lit-card`.
+
+**Don't**
+- Do not spread the primary color across large backgrounds or long body text - it becomes harsh and loses its spotlight role.
+- Do not place several high-saturation colors next to each other; secondary is only a small accent.
+- Do not stack noise or blur over foreground content (`body::before` stays at z-index: -1).
+- Do not use harsh straight white text at large sizes; long text must use a narrower column.
+- Do not give non-clickable display cards orange corner light, glass hover, hover lift, or arrows; it implies interaction that does not exist.
+```
+
+With the design rules in place, the site then went through a pass on small screens (below 768px): spacing, card padding, and radii take their base value from mobile and restore the desktop scale at the `md:` breakpoint; tables and code blocks drop to 12px and fill the article width; article paragraphs are indented 2 characters by default and can override that per paragraph. The long-read table of contents collapses into a tick bar on the right of small screens and opens a bottom drawer, and because the TOC nodes are portaled onto `body`, the parallax containers' `transform` cannot disturb their fixed positioning.
+
+Once the design language was consistent, I asked the Agent to use the web access and screenshot tools from `playwright MCP` after each part of the implementation. It could look at the screenshots, compare the result with the intended design, and correct the code. The Agent could also reference screenshots of good web work to adjust the site's presentation and components in real time. Through this repeated loop of prompting, design, review, and acceptance between the human and the AI, the site's presentation was developed.
+
+## Other Workflows
+
+Beyond design, structure, and interaction polish, a few workflows ran through the whole project and protected the quality of the collaboration.
+
+### Using GitNexus
+
+The Agent uses <ExtLink href="https://github.com/abhigyanpatwari/GitNexus">`GitNexus`</ExtLink> to understand the codebase.
+
+The size of this project makes "just change it" risky. GitNexus adds a layer of context between understanding and editing. It indexes the codebase into a knowledge graph, then exposes call relationships, dependency chains, and execution flows through CLI and MCP.
+
+- **Build the index:** `node .gitnexus/run.cjs analyze` makes the project structure, symbols, and execution flows queryable.
+- **Understand code:** use `query` to find relevant execution flows and `context` to inspect a symbol's callers and callees instead of searching unfamiliar code blindly.
+- **Assess impact:** before changing a function, run `impact` to see upstream dependencies, direct callers, and the risk range. Stop and confirm when the risk is HIGH or CRITICAL.
+- **Check changes:** after editing, use `detect_changes` to verify that the impact matches expectations before final acceptance. Running it before a git commit is especially valuable.
+
+These actions are written into the project's `AGENTS.md / CLAUDE.md` as a required habit: run `impact` before editing a symbol, run `detect_changes` around commits, and use `query` instead of grep when exploring.
+
+### Skill Invocation: Manuals for Tools
+
+This project uses the GitNexus skill family: `exploring`, `impact-analysis`, `debugging`, `refactoring`, `guide`, and `cli`. These skills describe how to use GitNexus effectively. When a task matches a skill trigger, the Agent loads the skill before acting instead of rebuilding the context every time.
+
+## Summary
+
+In this site build, I mainly managed and monitored the work while the Agent executed the tasks directly. The Agent showed strong programming and design ability, while I contributed overall coordination, prompt design, and acceptance testing. In short, Agents are shifting the human role in programming from coder to manager. People only need to step in for coordination, task definition, key direction decisions, and final acceptance; the rest can be handled by AI Agents with hands and feet.
+
+Project repository: <ExtLink href="">zhang.log</ExtLink>

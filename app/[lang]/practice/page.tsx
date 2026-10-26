@@ -9,7 +9,7 @@ export default async function PracticePage({ params, searchParams }: { params: P
   const dict = getDictionary(lang as Language);
 
   const projects = getPracticeSlugs()
-    .map((slug) => getPracticeMeta(slug))
+    .map((slug) => getPracticeMeta(slug, lang as Language))
     .filter((m): m is NonNullable<typeof m> => m !== null);
 
   return <PracticeClient dict={dict} lang={lang} projects={projects} initialScenario={scenario} />;

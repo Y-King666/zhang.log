@@ -5,14 +5,15 @@
       "title": "OpenClaw 入门：从零构建你的 AI 智能体网关",
       "date": "2026-03-13",
       "readTime": "8",
-      "category": "新手教程",
+      "category": "tutorial",
       "image": "/images/blogs/exploring-openclaw-project.png",
       "tags": [
         "LLM",
         "OpenClaw",
         "效率"
       ],
-      "featured": "true"
+      "featured": "true",
+      "titleEn": "OpenClaw for Beginners: Build Your AI Agent Gateway from Scratch"
     }
   ],
   "projects": [
@@ -30,7 +31,10 @@
         "coding"
       ],
       "scenario": "编程 / 信息整理",
-      "featured": "true"
+      "featured": "true",
+      "titleEn": "Zhang's Personal Site",
+      "readTimeEn": "15 min",
+      "scenarioEn": "Coding / Information organization"
     }
   ]
 }

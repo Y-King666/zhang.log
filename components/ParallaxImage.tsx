@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, useScroll, useTransform } from 'motion/react';
 import { cn } from '@/lib/utils';
@@ -23,13 +23,23 @@ export default function ParallaxImage({
   priority?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  // 小屏按比例收窄滑动量与出血：效果保留，但图片可见占比大幅提高
+  const [isWide, setIsWide] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 768px)');
+    const update = () => setIsWide(query.matches);
+    update();
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  const slide = isWide ? distance : Math.max(12, Math.round(distance * 0.3));
   const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
-  const y = useTransform(scrollYProgress, [0, 1], [distance, -distance]);
+  const y = useTransform(scrollYProgress, [0, 1], [slide, -slide]);
 
   return (
     // 用 cn 合并：调用方传 absolute inset-0（详情页 hero）时会覆盖内置 relative，避免容器塌陷。
     <div ref={ref} className={cn('relative overflow-hidden', className)}>
-      <motion.div style={{ y }} className="absolute -inset-y-16 inset-x-0">
+      <motion.div style={{ y }} className={isWide ? 'absolute -inset-y-16 inset-x-0' : 'absolute -inset-y-6 inset-x-0'}>
         <Image src={src} alt={alt} fill sizes={sizes} priority={priority} className="object-cover" />
       </motion.div>
     </div>

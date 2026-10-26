@@ -73,26 +73,40 @@ function localImagePath(collection, slug) {
   return `/images/${directory}/${slug}.png`;
 }
 
-function processCollection(dir, generatedDir) {
+function processCollection(dir, generatedDir, localizedFields) {
   if (!fs.existsSync(dir)) return [];
   fs.rmSync(generatedDir, { recursive: true, force: true });
   fs.mkdirSync(generatedDir, { recursive: true });
-  return fs.readdirSync(dir)
-    .filter(f => f.endsWith('.mdx'))
-    .map(f => {
-      const file = f.replace('.mdx', '');
-      const raw = fs.readFileSync(path.join(dir, f), 'utf-8');
-      const fm = parseFrontmatter(raw);
-      const slug = (fm && fm.slug) || file;
-      // 写入剥离 frontmatter 的干净正文，供 MDX 编译器渲染（编译器默认不剥离 frontmatter）
-      fs.writeFileSync(path.join(generatedDir, `${slug}.mdx`), stripFrontmatter(raw));
-      return {
-        file,
-        ...fm,
-        slug,
-        image: fm && fm.image ? localImagePath(path.basename(generatedDir), slug) : fm?.image,
-      };
-    });
+  const files = fs.readdirSync(dir).filter(f => f.endsWith('.mdx'));
+  const baseFiles = files.filter(f => !f.endsWith('.en.mdx'));
+
+  return baseFiles.map(f => {
+    const file = f.replace(/\.mdx$/, '');
+    const raw = fs.readFileSync(path.join(dir, f), 'utf-8');
+    const fm = parseFrontmatter(raw) || {};
+    const slug = fm.slug || file;
+    // 写入剥离 frontmatter 的干净正文，供 MDX 编译器渲染（编译器默认不剥离 frontmatter）
+    fs.writeFileSync(path.join(generatedDir, `${slug}.mdx`), stripFrontmatter(raw));
+
+    const entry = {
+      ...fm,
+      slug,
+      image: fm.image ? localImagePath(path.basename(generatedDir), slug) : fm.image,
+    };
+
+    const enFile = `${file}.en.mdx`;
+    if (files.includes(enFile)) {
+      const enRaw = fs.readFileSync(path.join(dir, enFile), 'utf-8');
+      const enFm = parseFrontmatter(enRaw) || {};
+      fs.writeFileSync(path.join(generatedDir, `${slug}.en.mdx`), stripFrontmatter(enRaw));
+      for (const field of localizedFields) {
+        if (enFm[field] !== undefined) entry[`${field}En`] = enFm[field];
+      }
+      entry.hasEn = true;
+    }
+
+    return entry;
+  });
 }
 
 function generateMdxRegistry(blogs, projects) {
@@ -104,9 +118,11 @@ function generateMdxRegistry(blogs, projects) {
 
   blogs.forEach((b, i) => {
     lines.push(`import Blog${i} from '@/lib/generated/blog/${b.slug}.mdx'`);
+    if (b.hasEn) lines.push(`import Blog${i}En from '@/lib/generated/blog/${b.slug}.en.mdx'`);
   });
   projects.forEach((p, i) => {
     lines.push(`import Project${i} from '@/lib/generated/practice/${p.slug}.mdx'`);
+    if (p.hasEn) lines.push(`import Project${i}En from '@/lib/generated/practice/${p.slug}.en.mdx'`);
   });
 
   lines.push('');
@@ -114,20 +130,28 @@ function generateMdxRegistry(blogs, projects) {
   blogs.forEach((b, i) => lines.push(`  '${b.slug}': Blog${i},`));
   lines.push('};');
   lines.push('');
+  lines.push('export const blogComponentsEn: Record<string, ComponentType<any>> = {');
+  blogs.forEach((b, i) => { if (b.hasEn) lines.push(`  '${b.slug}': Blog${i}En,`); });
+  lines.push('};');
+  lines.push('');
   lines.push('export const practiceComponents: Record<string, ComponentType<any>> = {');
   projects.forEach((p, i) => lines.push(`  '${p.slug}': Project${i},`));
+  lines.push('};');
+  lines.push('');
+  lines.push('export const practiceComponentsEn: Record<string, ComponentType<any>> = {');
+  projects.forEach((p, i) => { if (p.hasEn) lines.push(`  '${p.slug}': Project${i}En,`); });
   lines.push('};');
   lines.push('');
 
   fs.writeFileSync(path.join('lib', 'mdx-registry.ts'), lines.join('\n'));
 }
 
-const blogs = processCollection(blogDir, generatedBlogDir);
-const projects = processCollection(projectDir, generatedProjectDir);
+const blogs = processCollection(blogDir, generatedBlogDir, ['title']);
+const projects = processCollection(projectDir, generatedProjectDir, ['title', 'readTime', 'scenario']);
 
 const data = {
-  blogs: blogs.map(({ file, ...rest }) => rest),
-  projects: projects.map(({ file, ...rest }) => rest),
+  blogs: blogs.map(({ hasEn, ...rest }) => rest),
+  projects: projects.map(({ hasEn, ...rest }) => rest),
 };
 fs.writeFileSync(path.join(outputDir, 'content-data.json'), JSON.stringify(data, null, 2));
 

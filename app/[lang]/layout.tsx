@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Inter, JetBrains_Mono, Playfair_Display } from 'next/font/google';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import '../globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SmoothScroll from '@/components/SmoothScroll';
+import { I18nProvider } from '@/lib/i18n-context';
 import { getDictionary } from '@/lib/i18n';
 import type { Language } from '@/lib/i18n';
 
@@ -18,15 +19,14 @@ const jetbrainsMono = JetBrains_Mono({
   variable: '--font-mono',
 });
 
-const playfair = Playfair_Display({
-  subsets: ['latin'],
-  variable: '--font-serif',
-});
-
-export const metadata: Metadata = {
-  title: 'ZHANG.LOG | 个人主页',
-  description: '张的个人主页 - 记录技术、生活与 AI 智能体探索',
-};
+export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
+  const { lang } = await params;
+  const dict = getDictionary(lang === 'en' ? 'en' : 'cn');
+  return {
+    title: dict['meta.title'],
+    description: dict['meta.description'],
+  };
+}
 
 export function generateStaticParams() {
   return [{ lang: 'cn' }, { lang: 'en' }];
@@ -52,13 +52,15 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} ${playfair.variable} bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased selection:bg-lobster/30`}
+        className={`${inter.variable} ${jetbrainsMono.variable} bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased selection:bg-lobster/30`}
         suppressHydrationWarning
       >
         <SmoothScroll />
-        <Navbar lang={lang} dict={dict} />
-        {children}
-        <Footer dict={dict} />
+        <I18nProvider lang={lang} dict={dict}>
+          <Navbar lang={lang} dict={dict} />
+          {children}
+          <Footer dict={dict} />
+        </I18nProvider>
       </body>
     </html>
   );

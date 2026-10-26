@@ -2,12 +2,22 @@
 import type { ComponentType } from 'react'
 
 import Blog0 from '@/lib/generated/blog/exploring-openclaw-project.mdx'
+import Blog0En from '@/lib/generated/blog/exploring-openclaw-project.en.mdx'
 import Project0 from '@/lib/generated/practice/zhang.log.mdx'
+import Project0En from '@/lib/generated/practice/zhang.log.en.mdx'
 
 export const blogComponents: Record<string, ComponentType<any>> = {
   'exploring-openclaw-project': Blog0,
 };
 
+export const blogComponentsEn: Record<string, ComponentType<any>> = {
+  'exploring-openclaw-project': Blog0En,
+};
+
 export const practiceComponents: Record<string, ComponentType<any>> = {
   'zhang.log': Project0,
+};
+
+export const practiceComponentsEn: Record<string, ComponentType<any>> = {
+  'zhang.log': Project0En,
 };

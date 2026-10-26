@@ -8,7 +8,7 @@ export default async function BlogListPage({ params }: { params: Promise<{ lang:
   const dict = getDictionary(lang as Language);
 
   const articles = getBlogSlugs()
-    .map((slug) => getBlogMeta(slug))
+    .map((slug) => getBlogMeta(slug, lang as Language))
     .filter((m): m is NonNullable<typeof m> => m !== null)
     .sort((a, b) => b.date.localeCompare(a.date));
 

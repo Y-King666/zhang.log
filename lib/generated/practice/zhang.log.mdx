@@ -22,13 +22,14 @@ Zhang（张）的，Agent 协作打造的个人作品集网站 —— 一名大�
 | 产物 | 内容 | 职责 |
 |------|------|------|
 | `content-data.json` | frontmatter 元信息 | 驱动首页、列表与"精选" |
-| `lib/generated/*.mdx` | 剥离 frontmatter 的正文 | 编译为正文组件 |
-| `mdx-registry.ts` | slug → Component 映射 | 按路由取用正文组件 |
+| `lib/generated/*.mdx` | 剥离 frontmatter 的中文正文 | 编译为正文组件 |
+| `lib/generated/*.en.mdx` | 剥离 frontmatter 的英文 sidecar 正文 | 编译为英文正文组件 |
+| `mdx-registry.ts` | slug → 中英文 Component 映射 | 按语言取用正文组件，英文缺失时回退中文 |
 
 ```ts
 import Practice0 from '@/lib/generated/practice/zhang.log.mdx';
 
-export const projectComponents: Record<string, ComponentType> = {
+export const practiceComponents: Record<string, ComponentType> = {
   'zhang.log': Practice0,
 };
 ```
@@ -41,7 +42,7 @@ export const projectComponents: Record<string, ComponentType> = {
 
 ### 国际化
 
-路径段驱动的词典`app/[lang]` 用路径段承载语言，`getDictionary(lang)` 返回结构化词典，`getDisplayTag` 负责标签本地化。语言被建模为一个路由参数加一次查表动作，没有引入重型 i18n 框架——轻量，且与静态渲染天然兼容。
+路径段驱动的词典 `app/[lang]` 用路径段承载语言，`getDictionary(lang)` 返回 UI 词典。文章与提示词采用同一思路：`content/{collection}/{slug}.en.mdx` 是中文主稿旁的英文 sidecar，`global-agents.en.md` 是全局提示词的英文版本。生成器只读取 sidecar 中需要翻译的元信息字段，日期、封面、标签等共享字段仍以主稿为准，并分别生成 `blogComponentsEn` / `practiceComponentsEn` 供英文正文使用。`getDisplayTag` 负责标签本地化。语言被建模为一个路由参数加一次查表动作，没有引入重型 i18n 框架，轻量且与静态渲染天然兼容。
 
 ## 结构设计
 
@@ -70,37 +71,43 @@ zhang.log/
 │   │   │   └── [slug]/page.tsx   # 实践详情（generateStaticParams）
 │   │   └── openclaw/             # OpenClaw 网关文档页
 │   │       ├── page.tsx
-│   │       └── OpenClawClient.tsx
+│   │       ├── OpenClawClient.tsx
+│   │       └── sections/         # 章节组件（蓝图 / 结构 / 快速开始 / 配置 / 经验 / 维护）
 │   ├── globals.css               # 全局样式与 Tailwind v4 主题色
-│   ├── mdx.d.ts                  # MDX 模块类型声明                 
+│   ├── mdx.d.ts                  # MDX 模块类型声明
 │   └── icon.png                  # 站点图标
 ├── components/                   # 共享组件
+│   ├── BackToTop.tsx             # 回到顶部按钮
 │   ├── CodeBlock.tsx             # 代码块（语言标签、复制按钮）
 │   ├── Footer.tsx
+│   ├── ImageLightbox.tsx         # 正文图片灯箱
 │   ├── ListFilters.tsx           # 列表搜索、筛选和排序
 │   ├── Navbar.tsx
 │   ├── Pagination.tsx            # 列表分页（页码窗口、当前页/收拢省略号）
 │   ├── ParallaxImage.tsx         # 视差图片（滚动上浮/下沉、防露底板）
 │   ├── ParallaxSection.tsx       # 贯穿视差容器（滚动整段浮动）
 │   ├── PracticeIcon.tsx          # frontmatter icon 值 → lucide 图标
-│   ├── PracticeTableOfContents.tsx # 实践详情自动目录
+│   ├── PracticeTableOfContents.tsx # 长文自动目录（实践详情 + OpenClaw 页共用）
 │   ├── SmoothScroll.tsx          # Lenis 惯性滚动
+│   ├── ZoomableImage.tsx         # 可缩放正文图片
 │   └── useSectionScrollSpy.ts    # 目录章节滚动监听 hook
 ├── content/                      # 内容源（MDX / Markdown，唯一内容入口）
-│   ├── agents/                   # Agent 方法与边界（global-agents.md）
-│   ├── blog/                     # 博客文章
-│   └── practice/                 # 实践（YAML frontmatter 驱动）
+│   ├── agents/                   # Agent 方法与边界（global-agents.md + 英文 sidecar）
+│   ├── blog/                     # 博客文章（主稿 + .en.mdx sidecar）
+│   └── practice/                 # 实践（主稿 + .en.mdx sidecar，YAML frontmatter 驱动）
 ├── docs/                         # 设计与规范文档
 │   └── mdx-spec.md               # MDX 编写规范
 ├── lib/                          # 数据与业务逻辑
 │   ├── content.ts                # 内容读取接口（导入 content-data.json）
-│   ├── i18n.ts                   # 中英文案（translations 对象）
+│   ├── i18n.ts                   # 中英文案（cnContent / enContent）
+│   ├── i18n-context.tsx          # 共享组件的客户端语言上下文
+│   ├── scenarios.ts              # 实践场景 key 的唯一来源
 │   ├── tag-display.ts            # 标签展示语言映射
-│   ├── mdx-registry.ts           # 生成：MDX 正文静态导入注册表
+│   ├── mdx-registry.ts           # 生成：中英文 MDX 正文静态导入注册表
 │   ├── use-parallax.ts           # 视差数值 hook（供 ParallaxImage / Section 用）
 │   ├── utils.ts                  # cn() 工具（clsx + tailwind-merge）
 │   ├── data/content-data.json    # 生成：内容元数据
-│   └── generated/                # 生成：去除 frontmatter 的 MDX 正文副本
+│   └── generated/                # 生成：去除 frontmatter 的中英文 MDX 正文副本
 │       ├── blog/
 │       └── practice/
 ├── scripts/
@@ -108,10 +115,15 @@ zhang.log/
 ├── public/
 │   ├── images/                   # 本地图片资源
 │   │   ├── avatars/              # 作者头像
+│   │   ├── backgrounds/          # 背景素材
 │   │   ├── blogs/                # 博客封面，按 slug 命名
+│   │   ├── icons/                # 站点图标
 │   │   ├── method/               # 方法卡配图
-│   │   └── practice/             # 实践封面，按 slug 命名
+│   │   ├── practice/             # 实践封面，按 slug 命名
+│   │   └── openclaw_map.png      # OpenClaw 结构图
 │   └── videos/                   # 视频资源（home_video.mp4）
+├── DESIGN.md                     # 视觉设计系统规范（Google Stitch design.md 格式）
+├── AGENTS.md / CLAUDE.md         # 给编码 Agent 的行为准则
 ├── proxy.ts                      # 路由中间件（非语言路径重定向到 /cn）
 ├── mdx-components.tsx            # MDX 渲染组件映射
 ├── next.config.ts                # Next.js 配置（mdxRs、远程图片白名单）
@@ -129,7 +141,7 @@ zhang.log/
 ---
 version: alpha
 name: ZHANG.LOG
-description: 深色主题的个人作品集内容站——Lobster 橙主色、青色点缀、玻璃磨砂与边缘高光卡片、MDX 驱动的阅读体验。
+description: 深色主题的个人作品集内容站——Lobster 橙主色、青色点缀、交互卡与展示卡分层、MDX 驱动的阅读体验。
 colors:
   primary: "#ff4500"
   secondary: "#2dd4bf"
@@ -165,6 +177,16 @@ spacing:
   md: 16px
   lg: 24px
 components:
+  display-card:
+    backgroundColor: "#0b0d0d"
+    borderColor: "rgba(255,255,255,0.08)"
+    rounded: "{rounded.card}"
+    padding: "{spacing.md}"
+  interactive-card:
+    backgroundColor: "#040707"
+    borderColor: "rgba(255,255,255,0.16)"
+    accent: "{colors.primary}"
+    rounded: "{rounded.card}"
   card:
     backgroundColor: "{colors.background-dark}"
     rounded: "{rounded.card}"
@@ -201,9 +223,11 @@ components:
 
 整体气质：一个运行在暗处、以技术编号与终端质感点缀的个人工作站。动效克制但无处不在（Lenis 惯性滚动、视差浮动、hover 微光）。
 
-阅读体验：滚动与章节坐标系`lenis` 提供平滑滚动惯性，`useSectionScrollSpy` 与 `ProjectTableOfContents` 为长文建立章节坐标：右侧目录随阅读进度高亮，小屏收敛为一条波形刻度。配合 `motion` 的区块过渡，方向是让滚动本身成为内容的一部分，为深技术长文提供导航、节奏与坐标感。
+阅读体验：滚动与章节坐标系`lenis` 提供平滑滚动惯性，`useSectionScrollSpy` 与 `PracticeTableOfContents` 为长文建立章节坐标：右侧目录随阅读进度高亮，小屏收敛为一条波形刻度（点击展开底部抽屉目录；目录节点挂载到 `body`，避免被视差容器的 `transform` 改变 `fixed` 定位参照）。配合 `motion` 的区块过渡，方向是让滚动本身成为内容的一部分，为深技术长文提供导航、节奏与坐标感。
 
 视觉语言：冷暖、对比与层级以"lobster"暖橙为强调色，深色底统一全站气质；rounded 卡片与 edge-lit 描边勾勒层级，粗字重标题建立视觉锚点。视觉不抢内容，而是服务于阅读与识别——高级感来自对比、节奏与留白，而非装饰的堆砌。
+
+卡片语义必须与交互能力一致：可点击跳转或执行动作的卡片才使用 `edge-lit-card` 的玻璃突出色高光；仅用于展示信息的卡片使用 `display-card`，不得借用可点击卡片的橙色边角、光晕或悬浮提示。
 
 ## Colors
 
@@ -227,13 +251,15 @@ components:
 - **Display（Playfair Display）：** 衬线展示字体，用于大标题 / hero 强调。配合 `font-black`（900）建立层级；`tracking-tight` 收敛大字距，视觉更稳重。
 - **Mono（JetBrains Mono）：** 技术语汇，专门用于代码块、编号（01—04）、终端风格状态面板、路径/文件名等，营造"工程系统"质感。
 - **Label-caps：** 大量 `text-[10px] uppercase tracking-widest` 的小号大写标签，用于章节眉题、元信息行、统计标题，字距拉宽（0.2em）制造精致感。
+- **正文缩进与小屏字号：** 文章正文段落首行缩进 2 字符（`.prose p { text-indent: 2em }`，2em 跟随字号；列表项内的段落与表格单元格不缩进），单段可用 `<Indent n={N}>` / `<NoIndent>` 覆盖。代码块与表格在小屏降到 0.75rem（12px），并铺满正文宽度。
 
 ## Layout
 
 - **语言段路由** `app/[lang]`（cn / en）承载多语言，页面按语言静态预渲染；`generateStaticParams` 返回两语言。
-- **卡片网格**：实践/博客列表用 `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` 的分栏网格，间距 `gap-6`（1.5rem）。
+- **卡片网格**：实践/博客列表用 `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` 的分栏网格；间距小屏 `gap-4`，`md:` 起 `gap-6`（1.5rem）。
 - **详情分栏**：实践详情用 `grid-cols-12`——左侧 `col-span-8` 正文、右侧 `col-span-4` sticky 目录边栏。
-- **间距基准** 4px（Tailwind 默认刻度），常用 `p-5/6`、`mb-16/12`、`gap-2/4/6`。
+- **间距基准** 4px（Tailwind 默认刻度），常用 `p-4 md:p-6`、`mb-8 md:mb-16`、`gap-4 md:gap-6`。
+- **移动端优先（mobile-first）**：间距、内边距、圆角与字号一律以小屏（小于 768px）为基准值，用 `md:`（768px）恢复桌面值，例如 `p-4 md:p-6`、`rounded-2xl md:rounded-3xl`、`text-base md:text-lg`。需要连续变化的间距可用 `clamp()`；不要用缩放根字号来做紧凑——那会连带改变图标、头像和按钮尺寸。
 - **可读宽度**：正文区维持 `max-w-4xl`/`max-w-2xl` 左右的窄列，避免长文宽直排。
 
 ## Elevation & Depth
@@ -242,22 +268,25 @@ components:
 
 - **玻璃磨砂**（backdrop-blur 16px + saturate 180%）：导航胶囊、浮动面板。
 - **边缘高光**（edge-lit-card）：卡片用双背景（padding-box + border-box）叠出"上白下橙"的渐变描边，内嵌顶部 1px 亮线 + 底部暗线，营造轻浮雕。
+- **展示卡**（display-card）：静态信息卡使用哑光石墨渐变底、低对比描边、右下渐隐点阵和顶部短刻度线；不出现橙色边角光、外发光、缩放或上浮，避免被误认为可点击入口。
 - **inset 高光/阴影**：表面 1px 内高光（inset 0 1px 0 white/16）+ 底部暗线，替代大外投影。
 - **Lobster 光晕**：激活项、CTA 用 `shadow-[0_0_10px_rgba(255,69,0,0.4)]` 类柔光，hover 时增强。hover 交互倾向 "上浮 + 位移 + 描边变亮"（如 `whileHover={{ x: 10 }}`、`group-hover:scale-110`）。
 
 ## Shapes
 
-- **大圆角**：卡片 `rounded-3xl`（24px）、图标容器 `rounded-2xl`（16px）、胶囊/导航/徽章 `rounded-full`——整体走"圆润 + 胶囊"路线。
+- **大圆角**：卡片 `rounded-3xl`（24px，小屏收敛为 `rounded-2xl` 16px）、图标容器 `rounded-2xl`（16px）、胶囊/导航/徽章 `rounded-full`——整体走"圆润 + 胶囊"路线。
 - **细描边**：边框多用 `border-white/10` 之内的极淡浅色，弱化成内嵌结构线而不是封闭轮廓。
 - **直线分割**：信息行用 `border-t border-white/10` 做硬分割，与圆软形体形成对比。
 
 ## Components
 
 - **card（edge-lit-card）：** 列表卡片。`background-dark` 底 + 渐变描边 + 内嵌高光；内含图标容器（rounded-2xl + white/5 底）、小号大写标签、标题（hover 变 Lobster）、描述与元信息。
+- **display-card：** 纯展示卡片。用于结构说明、配置摘要、经验案例等不可跳转内容；采用哑光石墨底、细点阵肌理、内嵌描边与顶部短刻度线，不设置橙色边角、外发光或 hover 抬升。
+- **interactive-card（edge-lit-card）：** 仅用于可点击跳转或执行动作的卡片。可使用渐变描边、橙色边角、hover 提亮、位移与视觉反馈；不得用于纯信息展示。
 - **navbar（glass-glow）：** 顶部居中的磨砂胶囊，滚动时隐藏/恢复；含语言切换（cn/en pill）、桌面链接 + 渐变 "我的 Agents" 按钮、移动端汉堡菜单（下拉时按钮保持可见）。
 - **button-primary：** 橙→红渐变胶囊（`from-orange-500 to-red-500`），带 Lobster 光晕；仅用于强引导（如进入 Agents）。
 - **chip：** 标签/分类徽章，`white/5` 底 + 大圆角 + 小号大写文字；用于顶部标签行、分类筛选按钮。
-- **code-block：** 代码块，JetBrains Mono、深色曲面底、复制按钮；`[&_code]:font-mono` 强制等宽。
+- **code-block：** 代码块，JetBrains Mono、深色曲面底、复制按钮；`[&_code]:font-mono` 强制等宽。小屏降为 0.75rem、内边距收敛，复制按钮在触屏（`pointer-coarse` / `max-sm`）常显——触屏没有 hover；长行横向滚动，不手工折行。
 - **panel（display-panel）：** 信息/状态面板，浅渐变底 + 内嵌高光，可折叠（`[open]` 时背景提亮）。
 
 ## Do's and Don'ts
@@ -267,13 +296,17 @@ components:
 - 深底为主时，文字层级用 on-dark / muted / slate-600 三级递进，保证可读对比。
 - 圆角、描边、间距优先取 token 值（rounded.card/chiP/pill、spacing.*、colors.*），而非临时色值。
 - 动效以"轻"为准：滚动/视差/光晕做氛围，不拖慢阅读；大标题用 font-black 建立锚点。
+- 在实现卡片前先判断它是否可点击；展示型内容默认使用 `display-card`，只有真实交互入口才使用 `interactive-card` / `edge-lit-card`。
 
 **Don't**
 - 不要把 primary 铺成大面积背景或长段正文——会刺眼且失去"聚光灯"作用。
 - 不要用多套高饱和色并置；secondary 只做极少量点缀。
 - 不要在正文上方堆透明噪点或磨砂覆盖前景（body::before 固定 z-index: -1，别挪上来）。
 - 不要用生硬纯白大字直排；长文必须收窄列宽。
+- 不要给不可跳转、不可执行的展示卡片添加橙色边角光、玻璃悬浮、hover 抬升或箭头，以免暗示不存在的交互。
 ```
+
+设计规范落地后，站点又做了一轮小屏（小于 768px）打磨：间距、卡片内边距与圆角以移动端为基准值，用 `md:` 断点恢复桌面尺度；表格与代码块在小屏降到 12px 并铺满正文宽度；正文段落默认首行缩进 2 字符，需要时可逐段覆盖。长文目录在小屏收敛为右侧刻度条，点击展开底部抽屉；因为目录节点挂在 `body` 上，它不会被视差容器的 `transform` 影响定位。
 
 设计语言统一后，提示 Agent 每完成一部分实现，便可调用 `playwright MCP` 提供的网页访问和网页截图等工具，通过视觉能力查看截图，对比实际实现与预期实现效果，来修正代码，以达到预期实现。同时 Agent 可以参考优秀网页作品截图来实时回调我们的网页呈现效果，以及组件优化等。如此，不断的人与人工智能双方共同提示，设计，审核，验收，最后完成网站呈现效果的开发。
 

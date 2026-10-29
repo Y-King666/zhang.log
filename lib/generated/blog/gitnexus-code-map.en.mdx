@@ -1,0 +1,111 @@
+Changing one function and missing five call sites is the classic way an agent fails, and it is not because the agent is stupid. The "map" in its hands comes from grep: a string of filenames and line numbers that shows neither who calls whom nor which execution paths a change will flow into.
+
+GitNexus supplies that missing map. It indexes a repository into a knowledge graph, then exposes call relationships, dependency chains, execution flows, and change impact to agents through a CLI and MCP. I use it on this site not to "see everything," but so that every change is preceded by one more look.
+
+## What It Builds
+
+After indexing, this repository contains 313 symbols, 505 relationships, and 9 execution flows. Symbols are addressable things such as functions, classes, and components; relationships are calls, imports, and inheritance; an execution flow is a complete path that can be traced from an entry point.
+
+The index lives in `.gitnexus/` at the project root, containing the graph database, parser cache, and a `gitnexus.json`. It is a build artifact that should not be committed and should not be expected to work across machines. Re-indexing on a new machine is cleaner than moving the cache around.
+
+## Building the Index and Checking Freshness
+
+```bash
+node .gitnexus/run.cjs analyze --index-only --repo .
+node .gitnexus/run.cjs status --repo .
+```
+
+`status` reports the version and the commit that was indexed. The most recent output I saw was GitNexus 1.6.12, indexed through commit `4d3c8c6`.
+
+The importance of this step is often underestimated: **a stale index is more dangerous than no index at all**. Without an index, the agent reads the code. With a stale index, it confidently cites a call chain that has already changed, and you cannot tell that the answer is three days old.
+
+## Before a Change: Upstream Impact
+
+My most recent example was adding a few English mappings to `getDisplayTag` in `lib/tag-display.ts`. The function translates Chinese tags into English and looks harmless:
+
+```bash
+node .gitnexus/run.cjs impact "getDisplayTag" \
+  --direction upstream --repo .
+```
+
+The result was `risk: HIGH`, with five call sites affected across three execution flows: `HomeClient`, `PracticeDetailPage`, and `BlogDetailPage`.
+
+Strictly speaking, this change only adds keys to a lookup table. Not a line of `getDisplayTag` logic changed, so the real risk was not high. But the value of HIGH is not that it decides who is right or wrong; it is that it forced me to inspect those three flows. The home page, practice detail page, and blog detail page all call the function, and I had tested tags only on the home page.
+
+That is why I put it between understanding and editing: it does not make the decision for me. It makes the connections visible before I decide.
+
+## The Easiest Mistake: Treating UNKNOWN as Safe
+
+It is intuitive that callers imply risk. The reverse does not hold: **an empty caller set does not mean nobody calls the symbol**.
+
+The graph may fail to resolve property access on plain objects, dynamic dispatch, or cross-language calls. In those cases, the tool reports `risk: UNKNOWN` with a note explaining that this means "not found," not "no problem." I made this mistake once: I treated UNKNOWN as low risk, changed the symbol, and only later discovered another path still using the old signature.
+
+My process is rigid now: when I see UNKNOWN, I search for the symbol name with text search, and continue only if that turns up nothing. The graph shows structure; text search fills the gaps. Neither can replace the other.
+
+## After a Change: detect-changes
+
+```bash
+node .gitnexus/run.cjs detect-changes \
+  --scope all --repo .
+node .gitnexus/run.cjs detect-changes \
+  --scope compare --base-ref main --repo .
+```
+
+`--scope all` shows which symbols and flows are affected by changes across the whole workspace; run it before committing. `--scope compare` uses a branch as the baseline, which is useful for regression review.
+
+One result is easy to misread: `partial: true` or `truncated: true` **does not count as a pass**. It means only part of the check ran, so zero findings may mean "not seen." My response is to rerun it and, if necessary, narrow the scope, rather than treating green as the final answer.
+
+## How Often to Refresh the Index
+
+I refresh it on three occasions: after pulling other people's changes, after a large rename, and before touching a module I have not worked on for a long time.
+
+The first two are obvious; the third is the important one. A graph is most likely to mislead you where you think you are familiar—in a module changed several months ago, callers may be two generations ahead while your memory is still stuck on the old version.
+
+Refreshing is not expensive: `analyze --index-only` rebuilds only the index and does not rerun the entire analysis pipeline. The expensive part is the cold start; the first full parse can take a few minutes. I treat the index as "a compile before starting work," not "a button to press whenever I feel like it."
+
+## Two Ways In: CLI and MCP
+
+I use the CLI as a fallback: when I have a terminal open, one command gets the answer. MCP exposes those capabilities directly to the agent so it can investigate in the middle of a task.
+
+The common MCP tools have clear divisions of labor: `query` finds concepts and flows ("how does this feature run?"), `context` finds a symbol's definition and callers, `impact` finds the blast radius of a change, `explain` performs taint analysis, and `detect_changes` finds changes. The resource side also provides repository-level `context`, `clusters`, and `processes`, plus `process/{name}` for one flow by name.
+
+I prefer to let the agent use MCP for self-checks and use the CLI for my own review. With one graph and two entry points, I proceed only when their conclusions line up.
+
+## How It Divides Work with grep
+
+I do not use it to replace grep. The two answer different questions:
+
+- "Where does this string appear?"—grep. For configuration keys, copy, error messages, and hard-coded paths, a text search is the fastest way to find literal values.
+- "What will this function change affect?"—the graph. Call relationships, execution flows, and cross-file dependencies are structures text search cannot provide.
+
+A real example: when adding English mappings for tags, grep immediately lists every place `getDisplayTag` appears, but it does not tell you which calls are on rendering paths and which are only tests. The graph answers that second question.
+
+The reverse is also true: the graph has blind spots, including calls assembled from strings and handlers selected only at runtime. So my default order is "graph first, text second"—the graph provides structure, and text fills in the details.
+
+## What It Cannot Solve
+
+First, the graph cannot see calls assembled dynamically from strings in dynamic languages; only tests can cover that class of problem.
+
+Second, it reads code but not deployment. It cannot explain behavioral differences caused by configuration, environment variables, or runtime switches.
+
+Third, when the index is stale, it confidently provides the wrong answer. That is why you must actually look at `status` rather than casually running it.
+
+Fourth, and most important: risk is a hint, not a verdict. HIGH does not mean you cannot change something, and LOW does not mean you can change it with your eyes closed. It only puts "places you may not have considered" on the table.
+
+## Three Hard Rules I Wrote into AGENTS.md
+
+Tools matter only if I do not have to remember to use them every time, so I wrote these three rules into the project-level instructions:
+
+- Before changing any function, class, or method, run `impact` with upstream direction and report the callers, flows, and risk level.
+- Before committing, run `detect-changes --scope all`; treat `partial` or `truncated` as a failure and rerun it.
+- Treat `risk: UNKNOWN` as unresolved, confirm it with text search, and never let it pass as low risk.
+
+The rules sound verbose, but they solve a structural problem: an agent's default behavior is to start editing, while the graph asks it to look first. I cannot remind it in every session, so the reminder belongs in a file the agent reads every time.
+
+The most obvious change after writing those rules is that the agent asks more questions. It has started asking "who else uses this symbol?" before producing a revised version of the code.
+
+## Closing
+
+The value of a map is not that it is complete, but that it makes you look once before acting. One look costs a few dozen seconds; skipping it usually costs a rework. The most expensive part of that rework is figuring out what has already been broken.
+
+I later added a sentence to my mental model: the graph tells you "who else is involved," and tests tell you "whether the result is still correct." A change is complete only when both have answered.

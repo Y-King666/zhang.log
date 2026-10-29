@@ -6,12 +6,16 @@ const cnContent = {
       "projects": "实践",
       "about": "关于",
       "blog": "博客",
-      "agents": "我的 Agents",
+      "myOpenClaw": "我的 OpenClaw",
       "backToTop": "回到顶部",
       "menu": {
         "open": "打开菜单",
         "close": "关闭菜单"
-      }
+      },
+      "primaryLabel": "主导航",
+      "mobileLabel": "移动端主导航",
+      "switchToCn": "切换到中文",
+      "switchToEn": "切换到英文"
     },
     "home": {
       "hero": {
@@ -24,6 +28,7 @@ const cnContent = {
           "reality": "现实"
         },
         "viewProjects": "查看实践",
+        "readBlog": "阅读博客",
       },
       "projects": {
         "title": "我的实践",
@@ -33,29 +38,10 @@ const cnContent = {
         },
         "viewAll": "查看全部",
         "selectedWorks": "精选作品",
-        "featured": {
-          "tag": "精选"
-        },
       },
       "method": {
         "eyebrow": "我的 Agent 使用方式",
-        "title": "让 Agent 参与，而不是代替判断",
-        "context": {
-          "label": "给上下文",
-          "desc": "先说明目标、已有内容和限制。"
-        },
-        "decompose": {
-          "label": "拆解任务",
-          "desc": "把大问题变成可以检查的小步骤。"
-        },
-        "boundaries": {
-          "label": "保留判断",
-          "desc": "让 Agent 执行，关键取舍由我确认。"
-        },
-        "verify": {
-          "label": "验证结果",
-          "desc": "通过运行、截图和复盘确认完成。"
-        }
+        "title": "让 Agent 参与，而不是代替判断"
       },
       "cta": {
         "title": "准备好构建\n大胆的作品了吗？",
@@ -86,9 +72,6 @@ const cnContent = {
           "navigation": "页面导航",
           "related": "你可能感兴趣",
           "noRelated": "暂无相关作品",
-        },
-        "meta": {
-          "scenario": "场景"
         }
       },
     },
@@ -104,7 +87,6 @@ const cnContent = {
           "ecosystem": "生态治理",
           "trends": "行业趋势"
         },
-        "publishedAt": "发布于",
         "noArticles": "该分类下暂无文章。",
         "page": {
           "title": "博客"
@@ -139,7 +121,7 @@ const cnContent = {
         "paragraph": "一个喜欢上手实操的大学生，偏爱实践型任务，有如快速原型设计、前端设计、UI设计等这类交互型设计，在交互中体验发现设计不足与细节优化的快乐无与伦比。另外，个人认为自己是完美主义追求者，也不明是好是坏[尬笑]，但恰匹配新的 Agent 编码模式下需要将快速原型验收，测试，细节优化，将原型升级到产品级的需求，匹配程序员在编码领域的新身份转变（编码者 → 审核优化者）。本人熟练使用 Agent 类工具，如：Claude Code、Codex、DeepSeek Harness等，也曾养过“虾”（OpenClaw）、“马”（Hermes），了解 Agent 框架的一些基本的工作原理，细致的专业知识正在学习中。我善于设计提示词，能将实际状况转述成一段LLM一目了然的提示词供 Agent 正向理解需求，以减少试错成本；善于统筹规划 Agent “施工图纸”，结合软件工程的开发思维和 Agent 自动化工作流，我只需在任务两端参与 —— 设计与审查，便可得到一个基本可用的原型（提升代码品质则需更为细致的优化）。本人明确 Agent 工具的作用与重要性，如：MCP，文件工具，RAG知识库等；也同样知道向 Agent 披露工具的各种属性的重要性（如：使用时机、方法、schema等）；拥有一套自己的完整的 Agent 协作代码开发系统（全局编码规则、自动化审查工作流等）。我对于 AI/Agent 前沿技术感到新鲜，尤其是对于像 OpenClaw 这种私人定制化的、类 AGI 的 Agent （类）的发展和未来全能个人助手的实现充满期待！AI 从只有大脑到长出四肢干实事正越来越近！"
       },
       "workflow": {
-        "title": "我的Agent使用方式",
+        "title": "我的 Agent 使用方式",
         "subtitle": "不让 Agent 盲目施工，而是共同协商编写开发文档，包括需求分析、设计功能模块、任务拆解、工具配置和验收标准等，走一套 “适合 Agent 的软件工程开发流程”，最终形成一版系统架构清晰、正文内容完整、细节完善的可供 Agent 开发参考又可供人工审查的双向文档。",
         "step1": {
           "title": "明确任务需求",
@@ -158,12 +140,8 @@ const cnContent = {
           "desc": "自动化测试与人工测试双管齐下，检查代码、功能，保留证据，再继续迭代。"
         }
       },
-      "agent": {
-        "desc": "查看我在实践项目中如何使用 Agent，以及可复用的工作流、工具配置与实践记录。",
-        "cta": "查看使用经验"
-      },
       "timeline": {
-        "title": "我的AI编码轨迹",
+        "title": "我的 AI 编码轨迹",
         "e1": {
           "year": "阶段 01",
           "title": "AI 代码补全与局部辅助",
@@ -261,28 +239,10 @@ const cnContent = {
           }
         },
         "method": {
-          "eyebrow": "我的使用方式",
-          "title": "让 Agent 参与，而不是代替判断",
-          "desc": "我更常把 Agent 当成一个可以协作的工具：它帮助我整理、拆解和执行，但关键取舍仍然由我确认。",
-          "context": {
-            "title": "先给上下文",
-            "desc": "说明目标、已有内容和限制，让 Agent 先理解问题再开始动作。"
-          },
-          "decompose": {
-            "title": "把任务拆小",
-            "desc": "把模糊的大任务拆成几个可以检查的小步骤，减少一次生成带来的偏差。"
-          },
-          "boundaries": {
-            "title": "提供工具与边界",
-            "desc": "告诉它能读取什么、能修改什么，以及哪些决定需要停下来确认。"
-          },
-          "verify": {
-            "title": "看结果再继续",
-            "desc": "通过运行、截图或对照需求检查结果，不把“看起来完成”当成真正完成。"
-          }
+          "title": "让 Agent 参与，而不是代替判断"
         },
         "gitnexus": {
-          "eyebrow": "插件工具",
+          "eyebrow": "我使用的插件工具",
           "title": "GitNexus：让 Agent 看懂代码库",
           "desc": "GitNexus 把代码库索引成知识图谱，再通过 CLI 和 MCP 把调用关系、依赖链、执行流程与变更影响交给 Agent。",
           "badge": "CLI + MCP + 知识图谱",
@@ -296,7 +256,7 @@ const cnContent = {
             "map": "可视化关系图谱"
           },
           "workflow": {
-            "title": "GitNexus在代码库中的使用",
+            "title": "GitNexus 在代码库中的使用",
             "desc": "我通常要求 Agent 把 GitNexus 放在“理解和修改之间”：先建立索引，再查询上下文；真正准备改动时做影响分析，完成后检查变更范围。",
             "index": {
               "title": "建立索引",
@@ -419,7 +379,7 @@ const cnContent = {
         "skills": {
           "eyebrow": "技能目录",
           "title": "我的 Agents 技能",
-          "desc": "把重复的代码理解、调试和变更检查整理成可复用的技能文件。每张卡片都保留完整 SKILL.md，摘要只是入口。",
+      "desc": "把重复的代码理解、调试和变更检查整理成可复用的技能文件。每项技能都保留完整 SKILL.md，这里只展示摘要入口。",
           "category": {
             "featured": "精选技能"
           },
@@ -446,7 +406,7 @@ const cnContent = {
           }
         },
         "openclaw": {
-          "eyebrow": "Agent特别篇之养虾",
+          "eyebrow": "Agent 特别篇：养一只 OpenClaw",
           "title": "我的 OpenClaw",
           "desc": "从项目搭建到多 Agent 工作流，记录一个个人 AI 系统持续演进的过程。",
           "cta": "进入 OpenClaw 专题",
@@ -455,6 +415,7 @@ const cnContent = {
         "scenarios": {
           "eyebrow": "场景速览",
           "title": "使用场景",
+          "empty": "暂无项目",
           "coding": {
             "label": "编程",
             "desc": "代码理解、调试与工程协作"
@@ -471,11 +432,6 @@ const cnContent = {
             "label": "自动化",
             "desc": "让重复工作变成可复用流程"
           }
-        },
-        "articles": {
-          "title": "实践项目",
-          "viewAll": "查看全部项目",
-          "empty": "实践项目正在整理中。"
         }
       }
     },
@@ -507,6 +463,11 @@ const cnContent = {
           "label": "使用经验"
         },
         {
+          "id": "scenarios",
+          "icon": "route",
+          "label": "使用场景"
+        },
+        {
           "id": "maintenance",
           "icon": "settings_suggest",
           "label": "管理维护"
@@ -516,9 +477,8 @@ const cnContent = {
       "hero": {
         "title": "OpenClaw",
         "subtitle": "适用于任何操作系统的 AI 智能体 Gateway 网关。",
-        "explore": "结构总览",
-        "docs": "快速开始",
-        "scroll": "探索 OpenClaw"
+        "explore": "查看全景图",
+        "docs": "快速开始"
       },
       "notice": {
         "title": "版本说明",
@@ -557,8 +517,7 @@ const cnContent = {
       },
       "ui": {
         "guides": "核心指南",
-        "mindmapZoom": "点击查看大图",
-        "close": "关闭菜单"
+        "close": "关闭"
       },
       "structure": {
         "title": "结构介绍",
@@ -876,6 +835,17 @@ const cnContent = {
           ]
         ]
       },
+      "scenarios": {
+        "title": "我的使用场景",
+        "subtitle": "把 OpenClaw 接进每天真实在跑的流程：定时唤醒、读本地文件、调外部接口，结果直接落在已经在用的聊天工具里。",
+        "pushTitle": "每日推送：从 cron 到飞书",
+        "pushDesc": "给 OpenClaw 加一条 cron 任务，每天 07:00 唤醒主 Agent 执行工作区里的脚本：读当天的学习计划，查天气与关注仓库的发布，抓取新闻并按历史去重，最后拼成一条飞书富文本消息投递出去。整条链路无人值守，Agent 只在脚本失败时留下日志。",
+        "pushShotAlt": "飞书里收到的一条每日推送消息，包含日历、天气、学习任务、做题任务与今日新闻。",
+        "pushShotCaption": "07:00 到达的实际消息：日历、天气、学习与做题任务、今日新闻，以及末尾的鼓励语。",
+        "pushJobTitle": "cron/jobs.json（路径与群 ID 已省略）",
+        "pushScriptTitle": "daily_push_cron.py（节选）",
+        "pushNote": "定时任务只负责唤醒与投递，内容全部由脚本生成；改投递目标时 APP ID 与 chat id 必须一起改。"
+      },
       "maintenance": {
         "title": "管理维护",
         "subtitle": "围绕 Gateway 健康、飞书连接、配置变更、记忆备份与版本升级建立一套可重复的维护流程。",
@@ -935,6 +905,19 @@ const cnContent = {
       }
     },
     "shared": {
+      "ui": {
+        "openImage": "查看大图",
+        "close": "关闭",
+        "closeNavigation": "关闭目录"
+      },
+      "notFound": {
+        "eyebrow": "404 / 页面不存在",
+        "title": "这里没有可读取的内容。",
+        "description": "页面可能已经移动、删除，或者链接地址有误。",
+        "home": "返回首页",
+        "practice": "浏览实践",
+        "blog": "阅读博客"
+      },
       "meta": {
         "title": "ZHANG.LOG | 个人主页",
         "description": "张的个人主页 - 记录技术、生活与 AI 智能体探索"
@@ -971,12 +954,16 @@ const enContent: Widen<typeof cnContent> = {
       "projects": "Practice",
       "about": "About",
       "blog": "Blog",
-      "agents": "My Agents",
+      "myOpenClaw": "My OpenClaw",
       "backToTop": "Back to top",
       "menu": {
         "open": "Open menu",
         "close": "Close menu"
-      }
+      },
+      "primaryLabel": "Primary navigation",
+      "mobileLabel": "Mobile navigation",
+      "switchToCn": "Switch to Chinese",
+      "switchToEn": "Switch to English"
     },
     "home": {
       "hero": {
@@ -989,43 +976,25 @@ const enContent: Widen<typeof cnContent> = {
           "reality": "reality"
         },
         "viewProjects": "View practice",
+        "readBlog": "Read Blog",
       },
       "projects": {
-        "title": "My practice",
+        "title": "My Practice",
         "page": {
           "title": "Practice Results",
-          "subtitle": "Explore my practice of using Agent."
+          "subtitle": "Explore projects shaped through my work with agents."
         },
-        "viewAll": "View All",
+        "viewAll": "View all",
         "selectedWorks": "Selected Works",
-        "featured": {
-          "tag": "Featured"
-        },
       },
       "method": {
-        "eyebrow": "How I Use Agent",
-        "title": "Let the Agent participate, not replace judgment",
-        "context": {
-          "label": "Give context",
-          "desc": "Start with the goal, material, and constraints."
-        },
-        "decompose": {
-          "label": "Break work down",
-          "desc": "Turn large questions into checkable steps."
-        },
-        "boundaries": {
-          "label": "Keep judgment",
-          "desc": "Let the Agent execute; I confirm trade-offs."
-        },
-        "verify": {
-          "label": "Verify results",
-          "desc": "Use runs, screenshots, and review to confirm."
-        }
+        "eyebrow": "How I Use Agents",
+        "title": "Let agents participate, not replace judgment"
       },
       "cta": {
         "title": "Ready to Build\nSomething Bold?",
-        "subtitle": "Let's collaborate on the next generation of Agent-driven applications.",
-        "button": "Get In Touch"
+        "subtitle": "Let's collaborate on the next generation of agent-built applications.",
+        "button": "Get in touch"
       }
     },
     "practice": {
@@ -1051,9 +1020,6 @@ const enContent: Widen<typeof cnContent> = {
           "navigation": "Page Navigation",
           "related": "You may be interested in",
           "noRelated": "No related projects found.",
-        },
-        "meta": {
-          "scenario": "Scenario"
         }
       },
     },
@@ -1064,22 +1030,21 @@ const enContent: Widen<typeof cnContent> = {
         "category": {
           "tutorial": "Beginner Tutorial",
           "explainer": "Technical Explainer",
-          "architecture": "Architecture Practice",
-          "frontend": "Frontend Perspective",
+          "architecture": "Architecture",
+          "frontend": "Frontend",
           "ecosystem": "Ecosystem Governance",
           "trends": "Industry Trends"
         },
-        "publishedAt": "Published at",
         "noArticles": "No articles found in this category.",
         "page": {
           "title": "Blog"
         },
         "categories": {
-          "tech": "Tech Driven",
+          "tech": "Technology",
           "community": "Community",
           "latest": "Latest"
         },
-        "readMore": "Read More",
+        "readMore": "Read more",
         "readTime": {
           "format": "{n} min read",
           "suffix": "read"
@@ -1122,10 +1087,6 @@ const enContent: Widen<typeof cnContent> = {
           "title": "Verify and Deliver",
           "desc": "Automated tests run alongside manual ones: check the code and the features, keep the evidence, and iterate from there."
         }
-      },
-      "agent": {
-        "desc": "See how I use agents in real projects, including reusable workflows, tooling, and practice notes.",
-        "cta": "Explore my experience"
       },
       "timeline": {
         "title": "My AI Coding Trajectory",
@@ -1195,7 +1156,7 @@ const enContent: Widen<typeof cnContent> = {
         "management": {
           "title": "Management & Orchestration",
           "item1": "Goal definition / requirement clarification / acceptance criteria",
-          "item2": "Task decomposition / agent assignment / context orchestration",
+          "item2": "Task decomposition / Agent delegation / documentation constraints",
           "item3": "Process review / quality verification / continuous iteration"
         }
       }
@@ -1203,7 +1164,7 @@ const enContent: Widen<typeof cnContent> = {
     "agents": {
       "page": {
         "title": "My Agents",
-        "subtitle": "Notes on how I use, configure, and understand agent in real workflows.",
+        "subtitle": "Notes on how I use, configure, and understand agents in real workflows.",
         "codex": {
           "eyebrow": "Codex Setup",
           "title": "My Global Coding Rules",
@@ -1226,32 +1187,14 @@ const enContent: Widen<typeof cnContent> = {
           }
         },
         "method": {
-          "eyebrow": "How I Work With Agent",
-          "title": "Let the Agent participate, not replace judgment",
-          "desc": "I usually treat an Agent as a collaborative tool: it helps me organize, decompose, and execute, while I keep the important trade-offs in view.",
-          "context": {
-            "title": "Give context first",
-            "desc": "Explain the goal, existing material, and constraints so the Agent understands the problem before acting."
-          },
-          "decompose": {
-            "title": "Break work down",
-            "desc": "Turn a vague task into small steps that can be checked, reducing the drift of one large generation."
-          },
-          "boundaries": {
-            "title": "Set tools and boundaries",
-            "desc": "Make clear what it can read or change, and which decisions require a pause for confirmation."
-          },
-          "verify": {
-            "title": "Check before continuing",
-            "desc": "Use runs, screenshots, or the original request to verify the result instead of trusting that it merely looks finished."
-          }
+          "title": "Let agents participate, not replace judgment"
         },
         "gitnexus": {
           "eyebrow": "Plugin Tools",
-          "title": "GitNexus: give the Agent a codebase view",
+          "title": "GitNexus: Give Agents a Codebase View",
           "desc": "GitNexus indexes a codebase into a knowledge graph, then exposes call relationships, dependencies, execution flows, and change impact through CLI and MCP.",
           "badge": "CLI + MCP + Knowledge Graph",
-          "about": "It is not only for “write this snippet”. It helps answer “how is this code related to the rest of the project?”. I use it to fill context before exploring unfamiliar code, debugging, or editing.",
+          "about": "It is not only for “write this snippet.” It answers “how is this code related to the rest of the project?” I use it to fill in context before exploring unfamiliar code, debugging, or editing.",
           "repository": "View GitNexus repository",
           "cliMcp": "Local index · Agent context",
           "stat": {
@@ -1334,7 +1277,7 @@ const enContent: Widen<typeof cnContent> = {
               "desc": "A fresh subagent can implement and review each task, or the current session can execute the plan inline."
             },
             "tdd": {
-              "title": "Test-driven delivery",
+              "title": "Test-driven development",
               "desc": "Follow RED-GREEN-REFACTOR: watch a test fail, write the minimal implementation, then verify it passes."
             },
             "review": {
@@ -1363,10 +1306,10 @@ const enContent: Widen<typeof cnContent> = {
           }
         },
         "mcp": {
-          "eyebrow": "Selected MCP",
+          "eyebrow": "Selected MCP tools",
           "title": "Selected MCPs",
           "desc": "MCP is an interface for capabilities an Agent can call. This is a short record of tools I use or follow and the missing piece each one adds to development.",
-          "entry": "Capability entry",
+          "entry": "Capability surface",
           "more": "More MCPs",
           "official": "official repository",
           "when": "When I use it",
@@ -1384,7 +1327,7 @@ const enContent: Widen<typeof cnContent> = {
         "skills": {
           "eyebrow": "Skill Directory",
           "title": "My Agent Skills",
-          "desc": "Repeated code understanding, debugging, and change-review work is organized into reusable skill files. Every card keeps the full SKILL.md; the summary is only the entry point.",
+      "desc": "Repeated code understanding, debugging, and change-review work is organized into reusable skill files. Every skill keeps the full SKILL.md; this index shows only the summary.",
           "category": {
             "featured": "Featured skills"
           },
@@ -1411,15 +1354,16 @@ const enContent: Widen<typeof cnContent> = {
           }
         },
         "openclaw": {
-          "eyebrow": "Agent Special Chapter on Shrimp Farming",
+          "eyebrow": "Agent Special: Raising a Lobster",
           "title": "My OpenClaw",
           "desc": "A continuing record of building a personal AI system, from setup to multi-agent workflows.",
-          "cta": "Open OpenClaw",
-          "mapLabel": "OpenClaw / contents"
+          "cta": "Explore OpenClaw",
+          "mapLabel": "OpenClaw / Contents"
         },
         "scenarios": {
-          "eyebrow": "At a Glance",
+          "eyebrow": "Scenarios at a Glance",
           "title": "Use Cases",
+          "empty": "No entries yet",
           "coding": {
             "label": "Coding",
             "desc": "Understanding, debugging, and building software"
@@ -1429,18 +1373,13 @@ const enContent: Widen<typeof cnContent> = {
             "desc": "From rough ideas to finished pieces"
           },
           "organizing": {
-            "label": "Information",
+            "label": "Organizing",
             "desc": "Research, synthesis, and knowledge capture"
           },
           "automation": {
             "label": "Automation",
             "desc": "Turning repeated work into reusable flows"
           }
-        },
-        "articles": {
-          "title": "Practice Projects",
-          "viewAll": "View all projects",
-          "empty": "Practice projects are being organized."
         }
       }
     },
@@ -1472,6 +1411,11 @@ const enContent: Widen<typeof cnContent> = {
           "label": "Usage Notes"
         },
         {
+          "id": "scenarios",
+          "icon": "route",
+          "label": "Scenarios"
+        },
+        {
           "id": "maintenance",
           "icon": "settings_suggest",
           "label": "Maintenance"
@@ -1481,9 +1425,8 @@ const enContent: Widen<typeof cnContent> = {
       "hero": {
         "title": "OpenClaw",
         "subtitle": "AI Agent Gateway suitable for any operating system.",
-        "explore": "Structure Overview",
-        "docs": "Check the document",
-        "scroll": "Explore OpenClaw"
+        "explore": "View System Map",
+        "docs": "Quick Start"
       },
       "notice": {
         "title": "Version note",
@@ -1494,10 +1437,10 @@ const enContent: Widen<typeof cnContent> = {
       },
       "overview": {
         "title": "OpenClaw Blueprint",
-        "subtitle": "What OpenClaw is, the role it plays, and the current capability boundary.",
+        "subtitle": "What OpenClaw is, the role it plays, and what the ideal system can become.",
         "intro": "OpenClaw is an open-source personal AI assistant and Gateway control system that runs on personal hardware. One Gateway connects channels, agents, workspaces, tools, and device nodes for coding, personal assistance, and continuous automation.",
         "currentTitle": "Core characteristics",
-        "currentDesc": "One local Gateway connects channels, agents, workspaces, and tools so a personal assistant keeps context across different entry points.",
+        "currentDesc": "One local Gateway connects channels, agents, workspaces, and tools so a personal assistant keeps context across different entry points. Heartbeats let it take the initiative, while local memory and ongoing curation make it more useful over time. Semantic search reduces duplication and noise so retrieval stays relevant.",
         "status": [
           [
             "System role",
@@ -1518,12 +1461,11 @@ const enContent: Widen<typeof cnContent> = {
         "mapOpen": "Open the OpenClaw map",
         "mapAlt": "OpenClaw system architecture map",
         "mapTitle": "System map",
-        "source": "Source: OpenClaw official documentation and GitHub README."
+        "source": "These notes reflect my own view and information available as of 2026.4.2. See the official OpenClaw documentation for the latest version."
       },
       "ui": {
         "guides": "Core Guides",
-        "mindmapZoom": "Click to view larger",
-        "close": "Close menu"
+        "close": "Close"
       },
       "structure": {
         "title": "Architecture",
@@ -1653,7 +1595,7 @@ const enContent: Widen<typeof cnContent> = {
             "Separating builder from verifier gives quality decisions a more independent evidence trail."
           ]
         ],
-        "skillsTitle": "Agent skill formation",
+        "skillsTitle": "Agent skill lineup",
         "skillsDesc": "Skills are assigned by role rather than spread evenly. The lead focuses on design and coordination, while specialists focus on execution, verification, and delivery in their domain.",
         "skillsCount": "The repository currently contains 22 skill packages. These are two representative skills for each agent.",
         "skills": [
@@ -1667,7 +1609,7 @@ const enContent: Widen<typeof cnContent> = {
           ["editor", "DocMaster", "docx", "Formal delivery", "Create and edit Word documents, including styles, structure, comments, and tracked changes, with a verified final format.", "Best for reports, proposals, and documents that need formal layout."]
         ],
         "workspaceTitle": "Agent team workspace",
-        "workspaceDesc": "Every agent has a workspace but follows the same file protocol. Main keeps the coordination view while each specialist accumulates role, memory, tool notes, and local skills inside its own directory.",
+        "workspaceDesc": "Every agent has a workspace but follows the same file protocol. The lead agent keeps the coordination view while each specialist accumulates role, memory, tool notes, and local skills inside its own directory.",
         "workspaceTreeTitle": "Repository workspace structure",
         "workspaceFilesTitle": "How the role files work together",
         "workspaceFilesDesc": "The same file protocol answers identity, behavior, startup, preferences, memory, and local environment, so each agent's long-term context stays inspectable and portable.",
@@ -1841,6 +1783,17 @@ const enContent: Widen<typeof cnContent> = {
           ]
         ]
       },
+      "scenarios": {
+        "title": "My Scenarios",
+        "subtitle": "Where OpenClaw runs inside a real daily routine: a scheduled wake-up, local files, external APIs, and the result landing in the chat tool already in use.",
+        "pushTitle": "Daily push: from cron to Feishu",
+        "pushDesc": "One cron job wakes the main agent at 07:00 to run a script in the workspace: read the day's study plan, check the weather and watched repositories, scrape news with history de-duplication, then post a single rich-text Feishu message. The chain runs unattended, and the agent only leaves a log when the script fails.",
+        "pushShotAlt": "A daily push message received in Feishu, covering calendar, weather, study tasks, practice tasks, and today's news.",
+        "pushShotCaption": "The message that actually arrives at 07:00: calendar, weather, study and practice tasks, today's news, and a closing line.",
+        "pushJobTitle": "cron/jobs.json (path and chat id elided)",
+        "pushScriptTitle": "daily_push_cron.py (excerpt)",
+        "pushNote": "The schedule only wakes and delivers; every piece of content comes from the script. Changing the delivery target means changing the app ID and chat id together."
+      },
       "maintenance": {
         "title": "Maintenance",
         "subtitle": "Repeatable maintenance for Gateway health, Feishu connectivity, configuration changes, memory backups, and updates.",
@@ -1900,6 +1853,19 @@ const enContent: Widen<typeof cnContent> = {
       }
     },
     "shared": {
+      "ui": {
+        "openImage": "View larger image",
+        "close": "Close",
+        "closeNavigation": "Close navigation"
+      },
+      "notFound": {
+        "eyebrow": "404 / Page Not Found",
+        "title": "There is nothing to read here.",
+        "description": "The page may have moved, been removed, or the link may be incorrect.",
+        "home": "Back Home",
+        "practice": "Browse Practice",
+        "blog": "Read the Blog"
+      },
       "meta": {
         "title": "ZHANG.LOG | Personal Site",
         "description": "Zhang's personal site - notes on technology, life, and AI agents."
@@ -1954,6 +1920,8 @@ function flattenPageTree(tree: any) {
   flattenValue('blog', tree.blogs.blog ?? {}, result);
   flattenValue('about', tree.about, result);
   flattenValue('agents', tree.agents, result);
+  flattenValue('ui', tree.shared.ui, result);
+  flattenValue('notFound', tree.shared.notFound, result);
   flattenValue('meta', tree.shared.meta, result);
   flattenValue('pagination', tree.shared.pagination, result);
   flattenValue('code', tree.shared.code, result);
@@ -1961,7 +1929,7 @@ function flattenPageTree(tree: any) {
   return result;
 }
 
-export const translations = {
+const translations = {
   cn: flattenPageTree(CONTENT.cn),
   en: flattenPageTree(CONTENT.en),
 };

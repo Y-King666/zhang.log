@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getPracticeSlugs, getPracticeMeta } from '@/lib/content';
 import Link from 'next/link';
+import { ArrowUpRight } from 'lucide-react';
+import { getPracticeSlugs, getPracticeMeta } from '@/lib/content';
 import { getDictionary } from '@/lib/i18n';
 import type { Language, Dictionary } from '@/lib/i18n';
-
 import { practiceComponents, practiceComponentsEn } from '@/lib/mdx-registry';
 import { SCENARIO_SET } from '@/lib/scenarios';
 import { getDisplayTag } from '@/lib/tag-display';
@@ -15,131 +15,161 @@ import BackToTop from '@/components/BackToTop';
 
 const MAX_RELATED = 3;
 
-// 详情页「你可能感兴趣」：优先同场景、不足补齐、按日期最新，最多 3 篇
 function getRelatedSlugs(currentSlug: string, lang: Language): string[] {
-  const currentScenarios = (getPracticeMeta(currentSlug, lang)?.tags ?? []).filter((t) => SCENARIO_SET.has(t));
-  const byDateDesc = (a: string, b: string) => (getPracticeMeta(b, lang)?.date ?? '').localeCompare(getPracticeMeta(a, lang)?.date ?? '');
-  const peers = getPracticeSlugs().filter((s) => s !== currentSlug);
+  const currentScenarios = (getPracticeMeta(currentSlug, lang)?.tags ?? []).filter((tag) => SCENARIO_SET.has(tag));
+  const byDateDesc = (a: string, b: string) =>
+    (getPracticeMeta(b, lang)?.date ?? '').localeCompare(getPracticeMeta(a, lang)?.date ?? '');
+  const peers = getPracticeSlugs().filter((slug) => slug !== currentSlug);
 
   const same = peers
-    .filter((s) => (getPracticeMeta(s, lang)?.tags ?? []).some((t) => SCENARIO_SET.has(t) && currentScenarios.includes(t)))
+    .filter((slug) =>
+      (getPracticeMeta(slug, lang)?.tags ?? []).some(
+        (tag) => SCENARIO_SET.has(tag) && currentScenarios.includes(tag),
+      ),
+    )
     .sort(byDateDesc)
     .slice(0, MAX_RELATED);
 
   const fillCount = MAX_RELATED - same.length;
   if (fillCount <= 0) return same;
 
-  const fill = peers.filter((s) => !same.includes(s)).sort(byDateDesc).slice(0, fillCount);
+  const fill = peers.filter((slug) => !same.includes(slug)).sort(byDateDesc).slice(0, fillCount);
   return [...same, ...fill];
 }
 
 export function generateStaticParams() {
-  return getPracticeSlugs().map(slug => ({ slug }));
+  return getPracticeSlugs().map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ lang: string; slug: string }> }): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}): Promise<Metadata> {
   const { lang, slug } = await params;
   const meta = getPracticeMeta(slug, lang as Language);
   if (!meta) return {};
   return { title: `${meta.title} | ZHANG.LOG` };
 }
 
-export default async function PracticeDetailPage({ params }: { params: Promise<{ lang: string; slug: string }> }) {
+export default async function PracticeDetailPage({
+  params,
+}: {
+  params: Promise<{ lang: string; slug: string }>;
+}) {
   const { lang, slug } = await params;
   const dict = getDictionary(lang as Language);
   const t = (key: keyof Dictionary) => dict[key];
   const meta = getPracticeMeta(slug, lang as Language);
   if (!meta) notFound();
 
-  const MDXContent = (lang === 'en' ? practiceComponentsEn[slug] : practiceComponents[slug]) ?? practiceComponents[slug];
+  const MDXContent =
+    (lang === 'en' ? practiceComponentsEn[slug] : practiceComponents[slug]) ?? practiceComponents[slug];
   const relatedSlugs = getRelatedSlugs(slug, lang as Language);
+
   return (
-    <main className="max-w-7xl mx-auto px-5 sm:px-6 pt-20 pb-8 sm:pt-28 lg:pt-44 lg:pb-24">
-      <nav className="flex items-center gap-2 text-[10px] font-semibold tracking-[0.2em] text-slate-500 mb-6 sm:mb-8 lg:mb-12">
-        <Link href={`/${lang}`} className="hover:text-lobster transition-colors">
+    <main className="cocoon-home mx-auto w-full max-w-[1120px] px-5 pb-16 pt-28 sm:px-6 sm:pt-36 lg:pb-24 lg:pt-40">
+      <nav className="mb-10 flex items-center gap-3 font-mono text-[10px] tracking-[0.12em] text-fog sm:mb-14">
+        <Link href={`/${lang}`} className="transition-colors hover:text-paper">
           {t('blog.detail.home')}
         </Link>
-        <span className="size-1 rounded-full bg-white/20"></span>
-        <Link href={`/${lang}/practice`} className="hover:text-lobster transition-colors">
+        <span className="text-rule">/</span>
+        <Link href={`/${lang}/practice`} className="transition-colors hover:text-paper">
           {t('nav.projects')}
         </Link>
-        <span className="size-1 rounded-full bg-lobster"></span>
-        <span className="text-slate-300">{t('blog.detail.techArticle')}</span>
+        <span className="text-rule">/</span>
+        <span className="text-paper">{t('blog.detail.techArticle')}</span>
       </nav>
-      <header className="max-w-4xl mb-8 sm:mb-12 lg:mb-16">
-        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6 lg:mb-8">
-          {meta.tags.filter((tag) => !SCENARIO_SET.has(tag)).map((tag: string, i: number) => (
-            <span key={i} className={`px-3 py-1 rounded-full ${i === 0 ? 'bg-lobster/10 border border-lobster/20 text-lobster' : 'bg-white/5 border border-white/10 text-slate-400'} text-[10px] font-bold tracking-widest`}>
-              {getDisplayTag(tag, lang)}
-            </span>
-          ))}
+
+      <header className="max-w-[850px] border-b border-rule pb-10 sm:pb-14">
+        <div className="mb-5 flex flex-wrap gap-x-4 gap-y-2 text-[10px] text-fog">
+          {meta.tags
+            .filter((tag) => !SCENARIO_SET.has(tag))
+            .map((tag, index) => (
+              <span key={tag} className={index === 0 ? 'text-signal' : undefined}>
+                {getDisplayTag(tag, lang)}
+              </span>
+            ))}
         </div>
-        <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white leading-tight mb-4 sm:mb-6 lg:mb-8 tracking-tight">
+        <h1 className="text-[clamp(2.7rem,6vw,5.4rem)] font-medium leading-[0.98] tracking-[-0.06em] text-paper">
           {meta.title}
         </h1>
-        <div className="flex flex-wrap items-center gap-5 md:gap-8 py-4 sm:py-6 lg:py-8 border-y border-white/10">
-          <div className="flex flex-col">
-            <span className="text-slate-500 text-[10px] font-bold tracking-[0.2em] mb-1">{t('practice.detail.published')}</span>
-            <span className="text-slate-200 font-medium">{meta.date}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-slate-500 text-[10px] font-bold tracking-[0.2em] mb-1">{t('practice.detail.readTime')}</span>
-            <span className="text-slate-200 font-medium">{meta.readTime}</span>
-          </div>
+        <div className="mt-8 flex flex-wrap gap-x-8 gap-y-3 font-mono text-[10px] text-fog">
+          <span>
+            {t('practice.detail.published')} {meta.date}
+          </span>
+          <span>
+            {t('practice.detail.readTime')} {meta.readTime}
+          </span>
         </div>
       </header>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8 lg:gap-12">
-        <div className="lg:col-span-8">
-          <div className="rounded-3xl overflow-hidden mb-6 sm:mb-8 lg:mb-12 aspect-[16/9] border border-white/10 shadow-2xl relative group">
-            <ZoomableImage src={meta.image} alt={meta.title} sizes="(min-width: 1024px) 66vw, 100vw" className="absolute inset-0" priority />
+      <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
+        <div className="min-w-0 lg:col-span-8">
+          <div className="relative mb-10 aspect-[16/9] sm:mb-14">
+            <ZoomableImage
+              src={meta.image}
+              alt={meta.title}
+              sizes="(min-width: 1024px) 66vw, 100vw"
+              blurDataURL={meta.imageBlur}
+              className="absolute inset-0"
+              priority
+              distance={28}
+              fit="contain"
+            />
           </div>
 
-
           {MDXContent ? (
-            <article data-project-content className="prose prose-invert lg:prose-lg max-w-none text-slate-400">
+            <article
+              data-project-content
+              className="prose prose-invert max-w-none text-fog lg:prose-lg"
+            >
               <MDXContent components={{ pre: CodeBlock }} />
             </article>
           ) : (
-            <article data-project-content className="prose prose-invert lg:prose-lg max-w-none text-slate-400">
-              <p className="text-xl text-slate-300 leading-relaxed font-light mb-8 md:mb-12">{meta.slug}</p>
+            <article data-project-content className="prose prose-invert max-w-none text-fog lg:prose-lg">
+              <p className="text-xl font-light leading-relaxed text-paper">{meta.slug}</p>
             </article>
           )}
-
         </div>
 
-        <aside className="lg:col-span-4 space-y-5 md:space-y-8">
-          <div className="space-y-5 md:space-y-8 lg:sticky lg:top-36">
+        <aside className="lg:col-span-4">
+          <div className="space-y-10 lg:sticky lg:top-28">
             <PracticeTableOfContents title={t('practice.detail.navigation')} />
-            <div className="mt-12 pt-10 border-t border-white/10">
-              <h3 className="text-white font-bold mb-6">{t('practice.detail.related')}</h3>
-              <div className="space-y-4">
+
+            <section className="border-t border-rule pt-5">
+              <h3 className="text-xs text-fog">{t('practice.detail.related')}</h3>
+              <div className="mt-3">
                 {relatedSlugs.map((relatedSlug) => {
-                    const relatedMeta = getPracticeMeta(relatedSlug, lang as Language);
-                    if (!relatedMeta) return null;
-                    const displayTag = relatedMeta.tags?.find((tag) => !SCENARIO_SET.has(tag));
-                    return (
-                      <Link
-                        key={relatedSlug}
-                        href={`/${lang}/practice/${relatedSlug}`}
-                        className="edge-lit-card group block rounded-2xl p-4 transition-all"
-                      >
+                  const relatedMeta = getPracticeMeta(relatedSlug, lang as Language);
+                  if (!relatedMeta) return null;
+                  const displayTag = relatedMeta.tags?.find((tag) => !SCENARIO_SET.has(tag));
+                  return (
+                    <Link
+                      key={relatedSlug}
+                      href={`/${lang}/practice/${relatedSlug}`}
+                      prefetch={false}
+                      className="group flex items-start justify-between gap-4 border-b border-rule py-4"
+                    >
+                      <span>
                         {displayTag && (
-                          <p className="text-[10px] text-lobster font-bold tracking-widest mb-1">
+                          <span className="mb-1.5 block text-[10px] text-fog">
                             {getDisplayTag(displayTag, lang)}
-                          </p>
+                          </span>
                         )}
-                        <h4 className="text-sm font-bold text-slate-200 group-hover:text-lobster transition-colors">
+                        <span className="block text-sm leading-6 text-paper transition-colors group-hover:text-signal">
                           {relatedMeta.title}
-                        </h4>
-                      </Link>
-                    );
-                  })}
+                        </span>
+                      </span>
+                      <ArrowUpRight className="mt-1 size-4 shrink-0 text-fog transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
+                    </Link>
+                  );
+                })}
                 {relatedSlugs.length === 0 && (
-                  <p className="text-xs text-slate-500 italic">{t('practice.detail.noRelated')}</p>
+                  <p className="py-4 text-xs text-fog">{t('practice.detail.noRelated')}</p>
                 )}
               </div>
-            </div>
+            </section>
           </div>
         </aside>
       </div>

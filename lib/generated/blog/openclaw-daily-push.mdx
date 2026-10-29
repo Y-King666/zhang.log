@@ -1,0 +1,126 @@
+我每天早上要做四件事：看天气、看课程表、看关注的仓库有没有发版、翻一遍新闻。四件事都不难，难的是它们每天顺序一样、动作一样、加起来二十分钟。二十分钟不多，但它是每一天里最没有信息量的二十分钟。
+
+现在的做法是：07:00 整，飞书弹一条消息，上面这些东西按顺序排好。我只需要看。
+
+这条链路上没有「AI 帮我写文案」这种浪漫的部分。Agent 只做一件事：到点醒来、跑脚本、把结果投出去。真正干活的是 `daily_push_cron.py`。
+
+## 它每天发什么
+
+消息从上到下的顺序是固定的：日期与日历、天气（open-meteo）、关注仓库的新发布（有新版本才出现）、今天的学习任务、做题任务、七条新闻、一句随机鼓励。
+
+顺序是设计过的。第一行是日期，因为早上最先要确认的就是今天几号、周几；天气和课程表决定穿什么、几点出门；新闻放最后，因为它最长，也最容易被跳过。
+
+## 触发点：一条 cron
+
+这条任务存在 Gateway 的定时任务存储里，配置长这样：
+
+```json
+{
+  "agentId": "main",
+  "name": "每日推送",
+  "enabled": true,
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 7 * * *",
+    "tz": "Asia/Shanghai"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "thinking": "medium",
+    "message": "跑脚本：daily_push_cron.py"
+  },
+  "delivery": {
+    "mode": "announce",
+    "channel": "feishu",
+    "to": "oc_[已脱敏]",
+    "bestEffort": false
+  }
+}
+```
+
+几个字段值得单独说：
+
+- `tz` 必须写。cron 表达式不带时区时按 Gateway 主机时区解释，而主机时区是部署时最容易忘的一件事。
+- `sessionTarget: isolated` 让这次运行落在一个专用会话 `cron:<jobId>` 里，不碰主会话的上下文。每天一条独立记录，既不会把 07:00 的长文本塞进我正在聊的对话，出问题时也能单独翻这一次的运行历史。
+- `payload.kind: agentTurn` 是一次模型驱动的回合：Agent 收到那句话，调用工具执行，然后结束。它的价值不在于模型多聪明，而在于脚本失败时它能把错误说清楚。
+- `delivery.mode: announce` 表示把结果发出去，并在目标端记录确认投递；`bestEffort: false` 保留失败告警，投递或执行出问题会走通知，而不是安静地当作跑过了。
+
+对应的命令是 `openclaw automations list`、`openclaw automations runs <job-id>`、`openclaw automations show <job-id>`，旧写法 `openclaw cron` 仍可用。字段含义以 <ExtLink href="https://docs.openclaw.ai/automation/cron-jobs">官方 Automations 文档</ExtLink> 为准。
+
+## 脚本在做什么
+
+Agent 那句提示词只指向一个文件，内容全部由脚本生成：
+
+```python
+def main():
+    plan = get_today_plan()          # Excel 课程表
+    weather = get_weather()          # open-meteo
+    repos = get_github_updates()     # 关注仓库新发布
+    news = get_news_articles()       # 七个源按优先级
+
+    parts = [plan['calendar'], '', weather, '']
+    if repos:                        # 没新版本就跳过
+        parts += [repos, '']
+    parts += ['【学习任务】']
+    parts += [f'   {t}' for t in plan['tasks']]
+    parts += ['', '【做题任务】', plan['homework']]
+
+    message = '\n'.join(parts)
+    send_to_feishu(message, news,
+                   random.choice(ENCOURAGEMENT))
+```
+
+两个细节。第一，空段落直接不插入，不是留一行「今日无更新」。一条消息里出现三次「无更新」，人就不看了。第二，新闻是七个源按优先级抓的，抓完还要按历史记录去重——同一个标题连着三天出现，比没有新闻更糟。
+
+## 投递：飞书富文本
+
+飞书的富文本消息（post）是自己拼 JSON 的：正文按行切成段落，新闻标题转成带链接的文本节点。所以这条消息在飞书里点得开，不是一坨纯文本。
+
+```python
+post = {'zh_cn': {'title': '', 'content': []}}
+for line in message.split('\n'):
+    post['zh_cn']['content'].append(
+        [{'tag': 'text', 'text': line}])
+for a in news:                      # 标题变链接
+    post['zh_cn']['content'].append([{
+        'tag': 'a', 'href': a['url'],
+        'text': a['title'][:50]}])
+```
+
+标题截到 50 字是个务实的选择：新闻站的标题长度不一致，不截断的话，长标题会把整条消息撑成两三屏。
+
+## 三个坑
+
+**第一条**：应用 ID 和 chat id 是两处常量，改投递目标时必须一起改。只改 chat id，消息会静默地发到旧应用可见的地方，而日志里全是 200。
+
+**第二条**：脚本失败，人是不知道的。这类任务的失败方式是「今天什么都没发生」，不是报错弹窗。所以我保留了失败告警，并且养成一个习惯——某天 07:00 没收到消息，第一件事是 `openclaw automations runs <job-id>`，而不是重启 Gateway。
+
+**第三条**：不要在这个任务里加需要人判断的步骤。它凌晨无人值守，任何「要不要发」的判断最后都会变成拍脑袋的规则；需要判断的内容应该留在我醒着的时候。
+
+## 没收到消息时我怎么查
+
+顺序是固定的，别跳步：
+
+1. `openclaw automations list` 看任务还是不是 `enabled`。跳过这一步直接重启 Gateway，是我犯过的错，而且那次任务是被自己跑挂的。
+2. `openclaw automations runs <job-id>` 看最近一次运行的状态和输出。这里能区分「没触发」和「触发了但失败了」——这两种情况的修法完全不同。
+3. 运行正常但消息没到，就去查投递：channel、chat id、应用权限，三样一样一样对。飞书的失败经常只体现在返回码里，不在异常里。
+
+脚本本身能不能跑，我不用这条链路验证——直接手动执行一次脚本，比等第二天 07:00 快得多。定时任务只该验证「调度 + 投递」，不该用来调试内容逻辑。
+## 什么时候不该用 cron
+
+定时任务适合「时间确定、动作确定、结果可以无人确认」的事：报表、备份、推送、监控。
+
+如果某件事需要来回对话，或者依赖「我昨天说了什么」，它属于主会话，不属于 cron。另外要说清一个区别：主管 agent 还有一条 6 小时心跳做低优先级巡检，那种检查可以漂移、可以合并成一批；而 07:00 这条必须准点，所以它走 cron，不走心跳。
+
+## 成本
+
+一天一次模型回合，一次脚本运行。模型只负责跑脚本、读结果、投递，不做内容生成，所以成本基本可以忽略；真正花时间的是脚本里的网络请求，那部分和模型无关。
+
+这也是我对自动化的判断标准：能用脚本确定完成的事，不要让模型自由发挥。模型的不可预测性应该花在需要它的地方。
+
+## 收尾
+
+这条推送跑了一阵子之后，最大的变化不是我少做四件事，而是我开始把「每天都一样」的动作往外挪。挪一个，就能挪第二个。
+
+写清楚它之后我才发现，定时任务真正的门槛不在 cron 表达式，而在「谁来兜住失败」。一条没人看的推送和一条没有的推送，区别只在于前者会让你以为自己看了。

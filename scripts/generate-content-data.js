@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const sharp = require('sharp');
 
 const contentDir = 'content';
 const blogDir = path.join(contentDir, 'blog');
@@ -18,7 +19,8 @@ function parseFrontmatter(raw) {
   let currentKey = '';
   let inArray = false;
 
-  for (const line of lines) {
+  for (let index = 0; index < lines.length; index++) {
+    const line = lines[index];
     if (inArray) {
       if (line.trim().startsWith('- ')) {
         let item = line.trim().slice(2);
@@ -27,32 +29,31 @@ function parseFrontmatter(raw) {
         }
         if (!Array.isArray(result[currentKey])) result[currentKey] = [];
         result[currentKey].push(item);
+        continue;
       } else {
         inArray = false;
       }
-      continue;
     }
 
+    if (!line.trim() || line.trimStart().startsWith('#')) continue;
     const idx = line.indexOf(':');
     if (idx === -1) continue;
     const key = line.slice(0, idx).trim();
     let value = line.slice(idx + 1).trim();
     currentKey = key;
 
-    if (value.startsWith('[')) {
-      if (value.endsWith(']')) {
-        const arrayContent = value.slice(1, -1);
-        result[key] = arrayContent.split(',').map(s => {
-          s = s.trim();
-          if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-            s = s.slice(1, -1);
-          }
-          return s;
-        }).filter(Boolean);
-      } else {
-        inArray = true;
-        result[key] = [];
-      }
+    if (value.startsWith('[') && value.endsWith(']')) {
+      const arrayContent = value.slice(1, -1);
+      result[key] = arrayContent.split(',').map(s => {
+        s = s.trim();
+        if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
+          s = s.slice(1, -1);
+        }
+        return s;
+      }).filter(Boolean);
+    } else if (value === '' && lines[index + 1]?.trim().startsWith('- ')) {
+      inArray = true;
+      result[key] = [];
     } else {
       let val = value.trim();
       if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
@@ -73,14 +74,28 @@ function localImagePath(collection, slug) {
   return `/images/${directory}/${slug}.png`;
 }
 
-function processCollection(dir, generatedDir, localizedFields) {
+async function createImageBlur(collection, slug) {
+  const directory = collection === 'blog' ? 'blogs' : 'practice';
+  const imagePath = path.join('public', 'images', directory, `${slug}.png`);
+  if (!fs.existsSync(imagePath)) return undefined;
+
+  const buffer = await sharp(imagePath)
+    .resize({ width: 24, withoutEnlargement: true })
+    .blur(3)
+    .webp({ quality: 45 })
+    .toBuffer();
+
+  return `data:image/webp;base64,${buffer.toString('base64')}`;
+}
+
+async function processCollection(dir, generatedDir, localizedFields) {
   if (!fs.existsSync(dir)) return [];
   fs.rmSync(generatedDir, { recursive: true, force: true });
   fs.mkdirSync(generatedDir, { recursive: true });
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.mdx'));
   const baseFiles = files.filter(f => !f.endsWith('.en.mdx'));
 
-  return baseFiles.map(f => {
+  return Promise.all(baseFiles.map(async f => {
     const file = f.replace(/\.mdx$/, '');
     const raw = fs.readFileSync(path.join(dir, f), 'utf-8');
     const fm = parseFrontmatter(raw) || {};
@@ -92,6 +107,7 @@ function processCollection(dir, generatedDir, localizedFields) {
       ...fm,
       slug,
       image: fm.image ? localImagePath(path.basename(generatedDir), slug) : fm.image,
+      imageBlur: await createImageBlur(path.basename(dir), slug),
     };
 
     const enFile = `${file}.en.mdx`;
@@ -106,7 +122,7 @@ function processCollection(dir, generatedDir, localizedFields) {
     }
 
     return entry;
-  });
+  }));
 }
 
 function generateMdxRegistry(blogs, projects) {
@@ -146,15 +162,22 @@ function generateMdxRegistry(blogs, projects) {
   fs.writeFileSync(path.join('lib', 'mdx-registry.ts'), lines.join('\n'));
 }
 
-const blogs = processCollection(blogDir, generatedBlogDir, ['title']);
-const projects = processCollection(projectDir, generatedProjectDir, ['title', 'readTime', 'scenario']);
+async function main() {
+  const blogs = await processCollection(blogDir, generatedBlogDir, ['title']);
+  const projects = await processCollection(projectDir, generatedProjectDir, ['title', 'readTime', 'scenario']);
 
-const data = {
-  blogs: blogs.map(({ hasEn, ...rest }) => rest),
-  projects: projects.map(({ hasEn, ...rest }) => rest),
-};
-fs.writeFileSync(path.join(outputDir, 'content-data.json'), JSON.stringify(data, null, 2));
+  const data = {
+    blogs: blogs.map(({ hasEn, ...rest }) => rest),
+    projects: projects.map(({ hasEn, ...rest }) => rest),
+  };
+  fs.writeFileSync(path.join(outputDir, 'content-data.json'), JSON.stringify(data, null, 2));
 
-generateMdxRegistry(blogs, projects);
+  generateMdxRegistry(blogs, projects);
 
-console.log('Generated:', blogs.length, 'blogs,', projects.length, 'projects');
+  console.log('Generated:', blogs.length, 'blogs,', projects.length, 'projects');
+}
+
+main().catch(error => {
+  console.error(error);
+  process.exitCode = 1;
+});

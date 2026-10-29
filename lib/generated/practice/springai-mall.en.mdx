@@ -1,0 +1,240 @@
+SpringAiMall is an intelligent product management system built around "2 Vue 3 frontends + 1 Spring Boot backend + 1 Python analytics service." The admin frontend consists of four management tables and a data dashboard, while the customer frontend is a curated-marketplace-style storefront. In the middle sits an AI customer service agent that can look up products, report best sellers, check orders, and cancel an order on the user's behalf when explicitly asked. I finalized the directory structure, request wrappers, routing, and component rules for both frontend projects; Agent implemented them in batches, and every deliverable was accepted item by item against the checklist.
+
+This article covers only the frontend side: why the system was split into two projects, which lines in `vite.config.js` must be written explicitly, how to organize Element Plus table pages, how three components are reused, where state and requests live, how streaming responses are rendered, and why the responsive design has only two breakpoints.
+
+## Two frontends: why split them into two projects
+
+The system has four processes:
+
+| Service | Port | Technology | Responsibility |
+| --- | --- | --- | --- |
+| mall-admin | 3000 | Vue 3 + Element Plus + ECharts | Admin dashboard: products, categories, orders, users, data dashboard |
+| mall-portal | 3001 | Vue 3 + Element Plus | Customer storefront: browsing, cart, checkout, AI customer service |
+| mall-server | 8080 | Spring Boot | Authentication, business logic, AI customer service, analytics result forwarding |
+| mall-analytics | 8000 | FastAPI | Sales statistics, customer value, product recommendations |
+
+There are three concrete reasons to split this into two projects rather than one project with two routes, none of which is that it "looks more professional":
+
+- **Different audiences.** The admin frontend stays open for eight hours a day, so it needs information density, dense tables, and batch operations. The customer frontend is used for only a few minutes per visit, so it needs large images, whitespace, and a short checkout path. One homepage component library cannot serve both groups.
+- **Different design languages.** Each frontend has its own design tokens (`styles/tokens.css`), with separate sets of colors, corner radii, and shadows. Keeping them in one project would mean either sharing one set and making the customer storefront look like an admin dashboard, or writing layers of scoped overrides and letting the CSS become increasingly messy.
+- **Dependencies are not shared.** ECharts is absent from the customer frontend's `package.json`. Only the admin frontend has a dashboard, and chart libraries are not small; there is no reason to make every shopper download one.
+
+The two projects share conventions but not code: `api/` contains only request functions, `views/` contains only pages, `components/` contains reusable components, and `styles/` contains tokens and global styles; `@` always points to `src`.
+
+```context
+mall-frontend/
+├── mall-admin/                  # Admin frontend (:3000)
+│   └── src/
+│       ├── api/                 # auth / product / category / order / user / upload / dashboard / analytics
+│       ├── views/               # products, categories, orders, users, dashboard, analytics
+│       ├── router/ store/ layout/
+│       └── styles/
+└── mall-portal/                 # Customer storefront (:3001)
+    └── src/
+        ├── api/                 # auth / product / cart / order / ai
+        ├── components/          # AiChatPanel, QuantityDialog, RecommendCarousel, ProductSuggest
+        ├── views/               # home, product/detail, cart, checkout, order/list, ai
+        ├── store/               # user, cart
+        └── router/ layout/ utils/
+```
+
+## Engineering: the lines that must be explicit in `vite.config.js`
+
+Vite's defaults are convenient, but none of the following defaults works here:
+
+```js
+// mall-admin/vite.config.js (excerpt)
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: { '@': resolve(__dirname, 'src') }   // Make @ consistently point to src
+  },
+  server: {
+    port: 3000,                                  // Use a fixed port instead of 5173
+    proxy: {
+      '/api': { target: 'http://localhost:8080', changeOrigin: true }
+    }
+  }
+})
+```
+
+Each of these four decisions has a reason:
+
+1. **Hard-code the ports.** The README, backend CORS allowlist, integration documentation, and demo scripts all use 3000 and 3001. If the default 5173 is occupied, Vite automatically switches to another port, and every place with a hard-coded address stops working at once, making troubleshooting a waste of time.
+2. **Point `@` to `src`.** As component nesting grows deeper, paths such as `../../../components/X` become unmanageable; `@` makes imports independent of nesting depth.
+3. **Proxy `/api` to 8080 and enable `changeOrigin`.** During development, the frontend and backend have different origins. The proxy forwards requests and changes the Origin to the target address, removing one source of cross-origin issues.
+4. **Put only environment-specific values in `.env.development`.** The request wrapper reads the API address from `import.meta.env` as its baseURL, so switching environments requires changing only this file, not the code:
+
+```bash
+# mall-admin/.env.development
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+`npm scripts` has only three commands: `dev`, `build`, and `preview`. There are no custom plugins and no extra transpilation configuration: Vue 3 single-file components and modern syntax are handled by `@vitejs/plugin-vue` and Vite's built-in pipeline. The shorter the engineering configuration, the faster someone else can take over.
+
+## Admin frontend: the three-part structure of Element Plus table pages
+
+The four admin tables (products, categories, orders, and users) look almost identical. Instead of writing a separate implementation for each page, define a structure first: filters at the top, a table in the middle, pagination at the bottom, and a detail dialog opened from the action column.
+
+```vue
+<el-card>
+  <div class="filter-bar">
+    <el-input v-model="query.orderNo" placeholder="订单号" clearable />
+    <el-select v-model="query.payStatus" placeholder="支付状态" clearable @change="loadData">
+      <el-option label="待支付" :value="0" />
+      <el-option label="已支付" :value="1" />
+    </el-select>
+    <el-button type="primary" @click="loadData">搜索</el-button>
+  </div>
+
+  <el-table :data="tableData" v-loading="loading" stripe>
+    <el-table-column prop="orderNo" label="订单号" width="220" />
+    <el-table-column label="状态" width="100">
+      <template #default="{ row }">
+        <el-tag :type="statusType(row.payStatus)">{{ statusText(row.payStatus) }}</el-tag>
+      </template>
+    </el-table-column>
+  </el-table>
+
+  <el-pagination
+    v-model:current-page="query.page"
+    v-model:page-size="query.size"
+    :total="total"
+    :page-sizes="[10, 20, 50]"
+    layout="total, sizes, prev, pager, next"
+    @change="loadData"
+  />
+</el-card>
+```
+
+These three conventions were established after running into problems:
+
+- **Use `page` / `size` for pagination parameters and `records` / `total` for responses.** All four pages share the same wrapper, so page changes only need to care about "which page to open."
+- **Hard-code column widths.** The order number is 220, the amount is 120, and the time is 180. If the browser distributes widths automatically, columns start crowding one another as their number grows, and Chinese headers are squeezed into vertical text.
+- **Do not render numbers in status columns.** The database stores 0 / 1 / 2, while the template maps them to labels and colors with `el-tag`. The mapping function and `type` live together, so changing copy requires changing only one function.
+
+Another easily overlooked detail: attach `v-loading` to `el-table`, not the entire page. While data loads, only the table area shows a spinner and the filter bar remains interactive: a user changing conditions should not be locked out by a spinner.
+
+Details use `el-dialog` with `el-descriptions`, and the line items of an order are nested in a smaller table. The dialog has a fixed width of 600px and does not change with the screen, because it is always a desktop scenario in the admin frontend.
+
+## Customer storefront: reuse across three components
+
+The customer frontend does not have many components, but each one must use the same code in two locations; otherwise one change has to be made twice:
+
+| Component | Where it is used | How reuse works |
+| --- | --- | --- |
+| QuantityDialog | "Add to cart" and "Buy now" on the product detail page | `mode` distinguishes the flow, and both ultimately converge on the same inventory validation |
+| AiChatPanel | Floating panel in the lower-right corner + full-page `/ai` view | `compact` switches density, and the full page adds a conversation sidebar |
+| RecommendCarousel / ProductSuggest | Best sellers on the homepage + "You may also like" on product details | The same recommendation data with list and card layouts |
+
+`AiChatPanel` has only two props, `{ sessionId, compact }`, plus one `replied` event. The floating panel and the full page share the same conversation state, so context is not lost when switching pages.
+
+Define tokens before writing pages. `tokens.css` contains only four groups of CSS variables: colors, spacing, corner radii, and shadows. Each project has its own copy and they are not shared; sharing different design languages only leads to a screen full of overrides.
+
+Product covers are always 1:1: every display slot uses `aspect-ratio: 1/1` with `object-fit: cover`, and the 21 covers generated in a batch from the data side also use this ratio. A cover that is not 1:1 will not distort the layout; it is simply cropped within its frame.
+
+## State and requests: two Pinia stores, one Axios interceptor layer
+
+The customer frontend has only two stores: `user` manages login state, and `cart` manages selection, quantities, and totals. Both use the setup style, with `ref` for state and `computed` for derived values:
+
+```js
+export const useUserStore = defineStore('user', () => {
+  const token = ref(localStorage.getItem(TOKEN_KEY) || '')
+  const userInfo = ref(JSON.parse(localStorage.getItem(USER_KEY) || '{}'))
+  const isLoggedIn = computed(() => Boolean(token.value))
+
+  function logout() {
+    const currentToken = token.value
+    clearLocal()                       // Clear local state first so the caller can redirect immediately
+    if (currentToken) logoutApi(currentToken).catch(() => {})   // Do not wait for the request
+  }
+
+  return { token, userInfo, isLoggedIn, login, logout }
+})
+```
+
+The logout sequence clears local state first, then sends a request without awaiting it: the request must carry the original token so the backend can revoke it; local state must be cleared immediately so the page can redirect to login right away; and a failed request should not leave the user stuck in a "logging out" state.
+
+All requests are consolidated into one wrapper layer in `utils/request.js`:
+
+| Location | Responsibility |
+| --- | --- |
+| baseURL | Read `VITE_API_BASE_URL`; do not hard-code it |
+| Request interceptor | Add `Authorization` when a token exists |
+| Response interceptor | Remove the `{ code, message, data }` envelope so pages receive `data` directly |
+| 401 | Clear login state and redirect to the login page |
+
+Every backend endpoint returns the same shape, so the frontend does not need to check `code` on every page. Pages receive business data directly, while the interceptor handles error messages consistently through `ElMessage`.
+
+Routing uses `createWebHistory`. The customer frontend has nine routes in total, with cart, checkout, orders, and AI conversation marked as `meta.requiresAuth`. The global guard redirects unauthenticated users to `/login?redirect=original-path`; after successful login they return to the original location rather than always going to the homepage.
+
+All filters are written into the address bar: category, keyword, and sort order remain after a refresh. Sending someone the link opens the same view. This is easier to maintain than "remember the last filter" because there is only one source of state.
+
+## Streaming rendering: why AI customer service bypasses Axios
+
+The conversation endpoint uses SSE and the server pushes data in chunks. Axios's response interceptor must wait for the entire response body before unwrapping it, so it cannot be used for a streaming endpoint. This path therefore uses native `fetch` separately:
+
+```js
+// api/ai.js
+// Conversations return as an SSE stream and cannot be unwrapped all at once by Axios's response interceptor,
+// so this path uses native fetch + ReadableStream to parse the event stream manually.
+// The conversation list and message history are ordinary JSON endpoints and still use the shared Axios wrapper.
+```
+
+The protocol is intentionally simple, with only two event types:
+
+```
+data: {"type": "content", "text": "……"}   // A segment of message content
+data: {"type": "done"}                     // This turn has ended
+```
+
+After receiving `response.body`, the frontend decodes it with `TextDecoder`, splits events on `\n\n`, and appends each segment to the message content. Component state is a small state machine: idle → sending → streaming → ended. During streaming, the input is disabled and a stop button appears.
+
+The session identifier is stored in `sessionStorage` rather than `localStorage`: conversations survive page refreshes and in-site navigation, and only closing the tab counts as "this visitor has left." The conversation sidebar on the full `/ai` page can create, switch, delete, and clear conversations, while still using the same panel component.
+
+When the model fails, the backend does not expose the exception to the frontend. It converts the failure into fallback copy and still persists it, and the event stream still ends with `done`. The frontend therefore does not need a second UI for "the conversation broke halfway through" because the stream always has an endpoint.
+
+## Dashboard and responsive design
+
+The admin dashboard has only one page: four KPI cards at the top (`el-row` + `el-col :span="6"`) and a dual-Y-axis chart below, with a line for sales and bars for order counts.
+
+```js
+onMounted(async () => {
+  data.value = await getDashboard()
+  initChart()
+})
+
+function initChart() {
+  const chart = echarts.init(chartRef.value)
+  chart.setOption({ /* xAxis: number of days; series: line + bars */ })
+  window.addEventListener('resize', () => chart.resize())
+}
+```
+
+The chart container must have a definite height (400px here). If it is given `height: 100%` while its parent has no height, ECharts initializes at zero height, with no console error and nothing visible on the page.
+
+Responsive design uses only two breakpoints: single column below 900px and a full-width floating panel below 520px. The intermediate range has no corresponding real user behavior: the storefront only has "browse on desktop" and "order on mobile" scenarios, and every extra layout adds a set of styles to maintain and retest.
+
+The order list is deliberately designed as "one order, one card": each order is a card that directly lists what was purchased (thumbnail, name, unit price, quantity), while payment and cancellation remain inside the card. Horizontally scrolling tables are the hardest pattern to use on mobile, while cards adapt naturally to narrow screens.
+
+## Division of work: README first, small patches
+
+Every module has a README before code: the directory structure, endpoint list, and component conventions are fixed in the document first, and Agent implements them according to the README. In the middle and later stages, Agent audits the README against the code and produces two difference lists: "documented but missing in code" and "present in code but not documented," then brings each item back into alignment. This step does not write code, but it saves more rework than coding does.
+
+Small changes also follow the plan-first approach. Even a single-file change such as adding a copy button to an order number first requires a plan: primary-color bold monospaced digits, 12px of space on the right, a "Copy order number" tooltip on hover, a keyboard-focus style, and a fallback message asking the user to copy manually on failure. Implement the patch only after confirmation. If a patch fails because of line wraps or context matching, split it into smaller precise patches and continue rather than rewriting the whole file.
+
+Acceptance always has two steps: `npm run build` passes, and both frontends are walked through their key paths: login, filtering, add to cart, checkout, cancellation, and AI conversation. A successful build only proves there are no syntax errors; a successful path proves the feature still works.
+
+The work best suited for batch delegation to Agent was the 21 product covers: export formatted text for each "name / introduction / details," validate record and field counts, generate images one by one, retry failures, save them all with a consistent 1:1 ratio, and finally verify file count and dimensions.
+
+## Retrospective
+
+Three conclusions:
+
+1. **The frontend is not just "drawing the API."** The frontend owns the other half of the API contract: what the pagination fields are called, how errors are presented, what empty states look like, and where to redirect when the login state expires. If these are not settled, even a complete backend API will leave the pages fragmented.
+2. **Component reuse requires defining its "shape" first.** `QuantityDialog` can serve both add-to-cart and buy-now because its shape was defined from the start as "quantity + confirmation callback," rather than writing two pages first and extracting the common part afterward.
+3. **A streaming endpoint should not be forced into the general request wrapper.** Axios interceptors handle "one request, one response," while SSE pushes data continuously. Forcing it in would grow a pile of `if (stream)` branches in the interceptor; keeping a separate `fetch` path keeps both sides clean.
+
+One area remains unresolved: the `echarts` instance and `resize` listener in the dashboard are created in `onMounted`, but `onUnmounted` does not call `dispose` or remove the listener. This is not obvious when few pages are switched, but it accumulates as the number of pages grows. It is recorded as a to-do and has not been addressed yet.
+
+On the division of work: I defined the directory structure, API contracts, component conventions, and acceptance criteria; Agent did most of the implementation, troubleshooting, and batch generation, and deliverables were accepted item by item against the checklist. The repository is on GitHub: <ExtLink href="https://github.com/Y-King666/smart-mall">Y-King666/smart-mall</ExtLink>.

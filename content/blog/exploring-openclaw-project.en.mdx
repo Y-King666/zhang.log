@@ -1,22 +1,124 @@
 ---
-title: "OpenClaw for Beginners: Build Your AI Agent Gateway from Scratch"
+title: "OpenClaw from Scratch: Running Your Own AI Agent Gateway"
 ---
 
-As a university developer, how can I manage and deploy my own AI agents efficiently? OpenClaw offers a complete self-hosted solution. It supports multiple channels (WhatsApp, Telegram, Discord) and has strong multi-agent routing.
+At first, I understood OpenClaw as "a ChatGPT client that can connect to chat apps." That was only half right. It does let you talk to the same AI in Feishu, Telegram, and WhatsApp, but the layer in between is not a plugin or a backend bot for any one platform. It is a gateway that runs continuously on your own machine. Once that clicked, the roles of the `gateway`, `dashboard`, and `onboard` commands finally made sense.
 
-## 1. What is OpenClaw?
+This is the complete path I followed on Windows, from installation to a working setup and then to connecting Feishu. The commands match the official <ExtLink href="https://docs.openclaw.ai">docs.openclaw.ai</ExtLink> documentation. If you only want a quick look at what it does, skip the installation and go straight to "Try It with One Command."
 
-OpenClaw is a self-hosted AI agent gateway. Its core advantages are local execution (data security), multi-channel support (one backend for several social platforms), and agent-native design (built-in tool calling and session management).
+## What It Actually Is
 
-## 2. Quick Start
+The official definition is a self-hosted gateway that connects chat apps such as Discord, Google Chat, iMessage, Matrix, Microsoft Teams, Signal, Slack, Telegram, WhatsApp, and Zalo to your own AI coding agent.
 
-You can start it in three steps: install with `npm install -g openclaw@latest`, run `openclaw onboard` for guided setup, then start the service with `openclaw gateway`. The control panel is available at `http://127.0.0.1:18789/`.
+It has three layers:
+
+| Layer | What it is | What you can see directly |
+| --- | --- | --- |
+| Messaging surface | Connectors for each channel, such as Baileys for WhatsApp and grammY for Telegram | You mention it in a group |
+| Gateway | A long-running process that owns all sessions, channel connections, and the agent runtime | Listens on 127.0.0.1:18789 by default |
+| Control surface | The macOS app, CLI, web console, and scheduled jobs | The `openclaw` command and Control UI |
+
+Two constraints are worth remembering up front: there is only one Gateway per host, and the WhatsApp session is also held by that one process. It is not "one bot deployment per channel"; it is one process with multiple entry points.
+
+## Check Node Before Installing
+
+The hard requirement is Node 24.16.0 or later on the 24.x line, or 26.1.0 or later; the official recommendation is Node 26. The installer reports an error immediately if the version is too old. Do not force your way past it—every later step will fail in strange ways.
+
+## Try It with One Command
+
+If you only want to see what it looks like:
 
 ```bash
-# Start a local OpenClaw node
-npm i -g openclaw@latest
-openclaw onboard
-openclaw gateway
+npx openclaw@latest
 ```
 
-For more details, see the official documentation, which also covers multi-agent configuration and custom routing.
+The first run asks a few questions. For a fresh installation, choose Quick start. The Gateway runs in the foreground, and Ctrl+C stops it. Your configuration has already been saved, so you do not have to start over next time.
+
+## Proper Installation: Don't Rush to npm
+
+For a real installation, the official recommendation is the installation script rather than npm:
+
+```bash
+# macOS / Linux / WSL2
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Windows PowerShell
+iwr -useb https://openclaw.ai/install.ps1 | iex
+```
+
+The script also handles Node version checks and service registration, which saves a good deal of manual work later. If you do not want it to run onboarding at this stage, add `--no-onboard` (`-NoOnboard` on Windows).
+
+npm can install it too, but starting with npm 12 and 11.16, lifecycle scripts are blocked by default and must be explicitly allowed:
+
+```bash
+npm install -g openclaw@latest --allow-scripts=openclaw
+```
+
+Do not add this flag on npm 11.15 or earlier; those versions do not recognize it. This flag is easy to miss: omitting it produces no error, but the gateway simply will not start because the package's installation script never ran.
+
+## Onboarding: Remember --install-daemon
+
+```bash
+openclaw onboard --install-daemon
+```
+
+`--install-daemon` also registers the Gateway as a system service. Many older tutorials skip this step: if you only run `openclaw onboard`, the service disappears when you close the terminal, and the next day you discover that "the AI has stopped replying."
+
+Quick start looks for an existing local Claude Code or Codex CLI login, or uses the provider API key you supply. It then runs a real completion to verify that the configuration works, and only saves it after the check passes. If none of those options is available, it falls back to manual configuration. Use `openclaw onboard --classic` if you want to walk through every step.
+
+## After It Starts, Check status Before Running gateway
+
+`openclaw gateway` is the old way. Service management now uses these commands:
+
+```bash
+openclaw gateway install    # Register as a service (macOS LaunchAgent / systemd user unit / Windows scheduled task)
+openclaw gateway status     # Check whether it is listening on 18789
+openclaw gateway restart    # Restart after changing the configuration
+```
+
+There is one test for success: `status` must show that it is listening on 18789.
+
+To open the console, use `openclaw dashboard`; it opens Control UI and handles authentication for you. Typing `http://127.0.0.1:18789/` directly will probably leave you stuck on an authentication page—that port is the Gateway's WebSocket port, not a web page address. To watch live logs in the foreground, run `openclaw` to enter the TUI.
+
+## Connecting a Channel: I Used Feishu
+
+I mainly use it to chat in Feishu, so Feishu was the first channel I connected. Channel settings live under `channels` in `~/.openclaw/openclaw.json`; the Feishu entry is roughly an application credential plus a DM and group-chat policy.
+
+Connecting the channel is not the hard part. These three things are:
+
+- Event delivery. If application permissions or event subscriptions are incomplete, the bot simply says nothing, with no error at all.
+- Group response thresholds. Should it speak only when mentioned, or review every message?
+- Ownership. With multiple accounts and multiple agents, which message belongs to which agent?
+
+That third point is already the entry point to multi-agent systems: once you have more than one agent, routing becomes a configuration problem rather than a prompt problem.
+
+## Where Configuration and State Live
+
+| Path | Purpose |
+| --- | --- |
+| `~/.openclaw/openclaw.json` | Main configuration; the `OPENCLAW_CONFIG_PATH` environment variable can override it |
+| `~/.openclaw/` | State directory for sessions, logs, and credentials; `OPENCLAW_STATE_DIR` can override it |
+| `~/.openclaw/workspace` | Default agent workspace |
+
+The workspace holds the agent's persona and memory files, such as AGENTS.md, SOUL.md, USER.md, and MEMORY.md. Note carefully that this is only the default working directory, not a sandbox. Absolute paths can still reach outside it; real isolation requires separate sandboxing.
+
+## Troubleshooting: Triage First, Then Search
+
+```bash
+openclaw doctor    # Check the configuration and installation
+openclaw triage    # Read-only health check
+```
+
+`triage` is one of the unusually thoughtful parts of this toolkit: it changes nothing, organizes the health-check results into a redacted report, and hands that report to the locally detected Claude Code, Codex CLI, or built-in agent for analysis. It is much faster than digging through issues in a search box.
+
+## What I Use It For
+
+What runs on my machine is a small team made up of a manager and three employees. The manager, Jarvis, works with me and breaks down tasks; one employee writes code, one looks for problems, and one writes documentation. In Feishu, I talk only to the manager, and it decides whether to open child sessions and assign work.
+
+Whether this is worth it depends on whether you have something that must be done every day with the same steps each time. If you do, it saves time. If you do not, it is merely a more expensive recurring reminder.
+
+## How It Differs from "Installing a ChatGPT Client"
+
+Finally, let us make the boundary clear. OpenClaw does not provide a model; it provides the wiring and the outlets. You supply the model key and the channel accounts, and you are responsible for security on the machine. What it sells is the fact that the same agent is online in all your chat windows.
+
+How to write that agent so it behaves like a colleague rather than a customer-service bot is a separate question. The answer lives in SOUL.md and AGENTS.md, not in model parameters.

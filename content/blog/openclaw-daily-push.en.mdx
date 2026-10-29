@@ -1,0 +1,131 @@
+---
+title: "A Feishu Message at 07:00: Automating My Morning with a Cron Job"
+---
+
+Every morning I used to do four things: check the weather, check my class schedule, see whether the repositories I follow had released anything, and scan the news. None of them was difficult. The problem was that they always happened in the same order, with the same actions, and added up to twenty minutes. Twenty minutes is not much, but it is the least informative twenty minutes of every day.
+
+Now, at exactly 07:00, a Feishu message appears with all of those things arranged in order. All I have to do is read it.
+
+There is no romantic "AI writes my copy" part of this pipeline. The agent does one thing: wake up on schedule, run a script, and deliver the result. The real work is done by `daily_push_cron.py`.
+
+## What It Sends Every Day
+
+The order is fixed from top to bottom: date and calendar, weather (open-meteo), new releases from followed repositories (only when there is a new version), today's study tasks, homework, seven news items, and one random line of encouragement.
+
+The order is deliberate. The first line is the date because the first thing I need to confirm in the morning is the day of the month and the day of the week; the weather and class schedule determine what I wear and when I leave; the news comes last because it is the longest and most likely to be skipped.
+
+## Trigger: One Cron Job
+
+The job lives in the Gateway's scheduled-task store, with a configuration like this:
+
+```json
+{
+  "agentId": "main",
+  "name": "每日推送",
+  "enabled": true,
+  "schedule": {
+    "kind": "cron",
+    "expr": "0 7 * * *",
+    "tz": "Asia/Shanghai"
+  },
+  "sessionTarget": "isolated",
+  "payload": {
+    "kind": "agentTurn",
+    "thinking": "medium",
+    "message": "跑脚本：daily_push_cron.py"
+  },
+  "delivery": {
+    "mode": "announce",
+    "channel": "feishu",
+    "to": "oc_[已脱敏]",
+    "bestEffort": false
+  }
+}
+```
+
+A few fields deserve individual attention:
+
+- `tz` is mandatory. A cron expression without a time zone is interpreted in the Gateway host's time zone, and the host time zone is one of the easiest things to forget during deployment.
+- `sessionTarget: isolated` puts this run in a dedicated session, `cron:<jobId>`, without touching the main session's context. Each day gets an independent record, so the long 07:00 text does not intrude on the conversation I am having, and I can inspect that one run's history when something goes wrong.
+- `payload.kind: agentTurn` is a model-driven turn: the agent receives the message, calls tools, and finishes. Its value is not that the model is especially intelligent, but that it can explain the error clearly when the script fails.
+- `delivery.mode: announce` sends the result and records delivery confirmation at the target; `bestEffort: false` keeps failure alerts. A delivery or execution problem triggers a notification instead of being quietly treated as a successful run.
+
+The corresponding commands are `openclaw automations list`, `openclaw automations runs <job-id>`, and `openclaw automations show <job-id>`. The old `openclaw cron` command still works. Field behavior is defined by the <ExtLink href="https://docs.openclaw.ai/automation/cron-jobs">official Automations documentation</ExtLink>.
+
+## What the Script Does
+
+The agent prompt points only to one file; the script generates all the content:
+
+```python
+def main():
+    plan = get_today_plan()          # Excel class schedule
+    weather = get_weather()          # open-meteo
+    repos = get_github_updates()     # New releases from followed repositories
+    news = get_news_articles()       # Seven sources in priority order
+
+    parts = [plan['calendar'], '', weather, '']
+    if repos:                        # Skip when there are no new versions
+        parts += [repos, '']
+    parts += ['【学习任务】']
+    parts += [f'   {t}' for t in plan['tasks']]
+    parts += ['', '【做题任务】', plan['homework']]
+
+    message = '\n'.join(parts)
+    send_to_feishu(message, news,
+                   random.choice(ENCOURAGEMENT))
+```
+
+Two details matter. First, empty sections are omitted entirely rather than leaving in a line saying "no updates today." If a message says "no updates" three times, people stop reading it. Second, news is collected from seven sources in priority order and then deduplicated against history. The same headline appearing three days in a row is worse than no news at all.
+
+## Delivery: Feishu Rich Text
+
+Feishu rich-text messages use hand-built JSON: the body is split into paragraphs by line, and news headlines become text nodes with links. That is why the links in this message are clickable in Feishu instead of appearing as one block of plain text.
+
+```python
+post = {'zh_cn': {'title': '', 'content': []}}
+for line in message.split('\n'):
+    post['zh_cn']['content'].append(
+        [{'tag': 'text', 'text': line}])
+for a in news:                      # Turn headlines into links
+    post['zh_cn']['content'].append([{
+        'tag': 'a', 'href': a['url'],
+        'text': a['title'][:50]}])
+```
+
+Truncating headlines to 50 characters is a practical choice. News sites use inconsistent headline lengths; without truncation, one long headline can stretch the message across two or three screens.
+
+## Three Pitfalls
+
+**First**: the application ID and chat ID are two separate constants, and both must change when the delivery target changes. If you change only the chat ID, messages are silently sent somewhere visible to the old application, while the logs are full of 200 responses.
+
+**Second**: if the script fails, nobody knows. This kind of job fails by "nothing happened today," not with an error popup. That is why I kept failure alerts and developed a habit: if no message arrives at 07:00, the first thing to run is `openclaw automations runs <job-id>`, not a Gateway restart.
+
+**Third**: do not add steps that require human judgment to this job. It runs unattended before dawn, and any decision about "whether to send" eventually becomes an arbitrary rule. Anything requiring judgment should wait until I am awake.
+
+## How I Troubleshoot a Missing Message
+
+The order is fixed. Do not skip steps:
+
+1. Run `openclaw automations list` to check whether the job is still `enabled`. Restarting the Gateway before this step is a mistake I have made; that time, the job had disabled itself after failing.
+2. Run `openclaw automations runs <job-id>` to see the latest run's status and output. This distinguishes "never triggered" from "triggered but failed," and those two situations require completely different fixes.
+3. If the run is healthy but the message did not arrive, check delivery: channel, chat ID, and application permissions, one at a time. Feishu failures often appear only in response codes, not exceptions.
+
+I do not use this pipeline to verify whether the script itself runs. Running the script manually is faster than waiting until 07:00 the next day. A scheduled job should verify scheduling and delivery, not be used to debug content logic.
+
+## When Not to Use Cron
+
+Scheduled jobs suit work where the time is fixed, the action is fixed, and the result can go unconfirmed: reports, backups, pushes, and monitoring.
+
+If something requires back-and-forth conversation or depends on "what I said yesterday," it belongs in the main session, not in cron. One distinction is worth making explicit: the manager agent also has a six-hour heartbeat for low-priority inspections, and those checks can drift or be batched together. The 07:00 job must be on time, so it uses cron rather than a heartbeat.
+
+## Cost
+
+It uses one model turn and one script run per day. The model only runs the script, reads the result, and delivers it; it does not generate content, so the cost is essentially negligible. The real time is spent on network requests inside the script, which have nothing to do with the model.
+
+That is also my test for automation: if a script can complete the task deterministically, do not let the model improvise. The model's unpredictability should be spent where it is needed.
+
+## Closing
+
+After this push had been running for a while, the biggest change was not that I stopped doing four things. It was that I began moving other "same every day" actions out of my routine. Move one, and it becomes easier to move the next.
+
+Writing it down made me realize that the real barrier to scheduling is not the cron expression. It is "who catches the failure?" The only difference between a push nobody reads and no push at all is that the former makes you think you have read it.

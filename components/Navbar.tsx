@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
 import { Menu, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import type { Dictionary } from '@/lib/i18n';
-import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '@/lib/utils';
 
 const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   const t = (key: keyof Dictionary) => dict[key];
@@ -14,12 +14,12 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
-      if (currentScrollY <= 60) {
+      if (currentScrollY <= 48) {
         setIsVisible(true);
       } else if (currentScrollY > lastScrollY) {
         setIsVisible(false);
@@ -33,11 +33,9 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // 点击菜单外部时收起
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      if (menuOpen && mobileMenuRef.current && !mobileMenuRef.current.contains(target)) {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuOpen && navRef.current && !navRef.current.contains(event.target as Node)) {
         setMenuOpen(false);
       }
     };
@@ -45,7 +43,22 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [menuOpen]);
 
-  // 路由切换时收起移动端菜单
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMenuOpen(false);
+    };
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
+
   useEffect(() => {
     setMenuOpen(false);
   }, [pathname]);
@@ -58,9 +71,9 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   ];
 
   const switchPath = (target: string) => {
-    const seg = pathname.split('/');
-    if (seg[1] === 'cn' || seg[1] === 'en') {
-      const rest = seg.slice(2).join('/');
+    const segments = pathname.split('/');
+    if (segments[1] === 'cn' || segments[1] === 'en') {
+      const rest = segments.slice(2).join('/');
       return `/${target}${rest ? `/${rest}` : ''}`;
     }
     return `/${target}${pathname === '/' ? '' : pathname}`;
@@ -69,25 +82,28 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   const isActive = (href: string) =>
     pathname === href || (href !== `/${lang}` && pathname.startsWith(href));
 
-  // 菜单打开时保持导航可见，不被滚动隐藏
   const navHidden = !isVisible && !menuOpen;
 
-  const langSwitch = (
-    <div className="flex items-center gap-1 bg-white/5 rounded-full p-1 border border-white/10 backdrop-blur-md">
+  const languageSwitch = (
+    <div className="flex items-center gap-1 font-mono text-[10px] tracking-[0.12em]">
       <Link
         href={switchPath('cn')}
+        aria-label={t('nav.switchToCn')}
+        aria-current={lang === 'cn' ? 'page' : undefined}
         className={cn(
-          "w-7 py-0.5 text-center rounded-full text-[10px] font-bold cursor-pointer transition-all",
-          lang === 'cn' ? "bg-lobster text-white" : "text-slate-500 hover:text-white"
+          'rounded-full px-2 py-1 transition-colors',
+          lang === 'cn' ? 'bg-paper font-semibold text-ink' : 'text-fog hover:text-paper'
         )}
       >
         中
       </Link>
       <Link
         href={switchPath('en')}
+        aria-label={t('nav.switchToEn')}
+        aria-current={lang === 'en' ? 'page' : undefined}
         className={cn(
-          "w-7 py-0.5 text-center rounded-full text-[10px] font-bold cursor-pointer transition-all",
-          lang === 'en' ? "bg-lobster text-white" : "text-slate-500 hover:text-white"
+          'rounded-full px-2 py-1 transition-colors',
+          lang === 'en' ? 'bg-paper font-semibold text-ink' : 'text-fog hover:text-paper'
         )}
       >
         EN
@@ -96,119 +112,107 @@ const Navbar = ({ lang, dict }: { lang: string; dict: Dictionary }) => {
   );
 
   return (
-    <nav
+    <header
+      ref={navRef}
       className={cn(
-        'fixed top-3 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[92%] sm:w-[90%] max-w-4xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
-        navHidden && '-translate-y-[150%]'
+        'fixed inset-x-0 top-0 z-50 border-b border-rule bg-ink/88 backdrop-blur-xl transition-transform duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
+        navHidden && '-translate-y-full'
       )}
     >
-      <div className="glass-glow rounded-full px-3 sm:px-6 py-2 sm:py-3 flex items-center justify-between relative overflow-hidden">
-        <Link href="/" className="flex items-center gap-1.5 sm:gap-2 relative z-10 shrink-0">
-            <div className="relative flex items-center justify-center">
-            <img
-              src="/images/icons/site-logo.png"
-              alt="ZHANG.LOG"
-              className="relative size-8 sm:size-10 rounded-lg sm:rounded-xl object-cover border border-white/15"
-            />
-          </div>
-          <span className="text-sm sm:text-base font-bold tracking-tighter text-white">ZHANG.LOG</span>
+      <div className="mx-auto flex h-16 max-w-[1120px] items-center justify-between px-5 sm:h-20 sm:px-6">
+        <Link href={`/${lang}`} className="flex shrink-0 items-center gap-2.5" aria-label="ZHANG.LOG">
+          <img
+            src="/images/icons/site-logo.png"
+            alt=""
+            className="size-8 rounded-md object-cover sm:size-9"
+          />
+          <span className="text-[15px] font-semibold tracking-[-0.03em] text-paper sm:text-base">
+            ZHANG.LOG
+          </span>
         </Link>
 
-        {/* 桌面导航（lg 及以上保持完整横排） */}
-        <div className="hidden lg:flex items-center gap-1 xl:gap-2 text-sm font-medium relative z-10">
+        <nav aria-label={t('nav.primaryLabel')} className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex">
           {navLinks.map((link) => (
             <Link
-              key={link.name}
+              key={link.href}
               href={link.href}
               className={cn(
-                'transition-all duration-300 px-4 py-2 rounded-full relative group/link',
-                isActive(link.href) ? 'text-white' : 'text-slate-400 hover:text-white'
+                'relative py-2 text-sm transition-colors',
+                isActive(link.href) ? 'text-paper' : 'text-fog hover:text-paper'
               )}
             >
+              {link.name}
               {isActive(link.href) && (
-                <>
-                  <motion.div
-                    layoutId="nav-active-pill"
-                    className="absolute inset-0 bg-white/10 border border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] rounded-full"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                  />
-                  <motion.span
-                    layoutId="nav-active-dot"
-                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-lobster rounded-full"
-                    transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                  />
-                </>
+                <span className="absolute inset-x-0 -bottom-1 mx-auto size-1 rounded-full bg-signal" />
               )}
-              <span className="relative z-10">{link.name}</span>
             </Link>
           ))}
+        </nav>
+
+        <div className="hidden items-center gap-6 lg:flex">
+          {languageSwitch}
           <Link
-            href={`/${lang}/agents`}
-            className="bg-lobster hover:bg-orange-600 text-white px-4 py-1.5 rounded-full text-xs font-bold transition-colors flex items-center gap-1"
+            href={`/${lang}/openclaw`}
+            aria-current={pathname === `/${lang}/openclaw` ? 'page' : undefined}
+            className="rounded-full bg-paper px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:bg-white"
           >
-            {t('nav.agents')}
+            {t('nav.myOpenClaw')}
           </Link>
-          {langSwitch}
         </div>
 
-        {/* 移动端汉堡按钮 */}
         <button
           type="button"
-          onClick={() => setMenuOpen((o) => !o)}
+          onClick={() => setMenuOpen((open) => !open)}
           aria-label={menuOpen ? t('nav.menu.close') : t('nav.menu.open')}
           aria-expanded={menuOpen}
-          className="lg:hidden relative z-10 size-8 sm:size-9 flex items-center justify-center rounded-full border border-white/10 bg-white/5 text-white hover:bg-white/10 hover:border-lobster/40 transition-colors"
+          aria-controls="mobile-navigation"
+          className="flex size-9 items-center justify-center text-paper lg:hidden"
         >
-          {menuOpen ? <X className="size-4" /> : <Menu className="size-4" />}
+          {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
         </button>
       </div>
 
-      {/* 移动端下拉菜单（放在玻璃容器外，避免被 overflow-hidden 裁剪） */}
       <AnimatePresence>
         {menuOpen && (
           <motion.div
-            initial={{ opacity: 0, y: -10, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.97 }}
+            id="mobile-navigation"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            ref={mobileMenuRef}
-            className="lg:hidden absolute top-full mt-2 sm:mt-3 left-0 right-0 bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden shadow-2xl"
+            className="absolute inset-x-0 top-full border-b border-rule bg-ink lg:hidden"
           >
-            <div className="p-1.5">
-              {/* 两列排列，4 个入口压缩到 2 行 */}
-              <div className="grid grid-cols-2 gap-1">
+            <nav aria-label={t('nav.mobileLabel')} className="mx-auto max-w-[1120px] px-5 py-4 sm:px-6">
+              <div className="border-t border-rule">
                 {navLinks.map((link) => (
                   <Link
-                    key={link.name}
+                    key={link.href}
                     href={link.href}
                     className={cn(
-                      'flex min-w-0 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors',
-                      isActive(link.href)
-                        ? 'bg-lobster/10 text-white'
-                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                      'flex items-center justify-between border-b border-rule py-4 text-base',
+                      isActive(link.href) ? 'text-paper' : 'text-fog'
                     )}
                   >
-                    <span className="truncate">{link.name}</span>
-                    {isActive(link.href) && (
-                      <span className="size-1.5 shrink-0 rounded-full bg-lobster" />
-                    )}
+                    <span>{link.name}</span>
+                    {isActive(link.href) && <span className="size-1.5 rounded-full bg-signal" />}
                   </Link>
                 ))}
               </div>
-              <div className="mt-1.5 flex items-center justify-between gap-2 border-t border-white/5 px-1 pt-2">
+              <div className="flex items-center justify-between gap-5 pt-5">
+                {languageSwitch}
                 <Link
-                  href={`/${lang}/agents`}
-                  className="flex flex-1 items-center justify-center gap-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-3 py-1.5 text-xs font-bold text-white shadow-[0_0_15px_rgba(255,69,0,0.3)]"
+                  href={`/${lang}/openclaw`}
+                  aria-current={pathname === `/${lang}/openclaw` ? 'page' : undefined}
+                  className="rounded-full bg-paper px-5 py-2.5 text-sm font-medium text-ink"
                 >
-                  {t('nav.agents')}
+                  {t('nav.myOpenClaw')}
                 </Link>
-                {langSwitch}
               </div>
-            </div>
+            </nav>
           </motion.div>
         )}
       </AnimatePresence>
-    </nav>
+    </header>
   );
 };
 

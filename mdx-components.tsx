@@ -1,4 +1,4 @@
-import type { ReactNode, AnchorHTMLAttributes, TableHTMLAttributes, HTMLAttributes } from 'react';
+import { isValidElement, type ReactNode, type AnchorHTMLAttributes, type TableHTMLAttributes, type HTMLAttributes } from 'react';
 import type { MDXComponents } from 'mdx/types';
 import { ArrowUpRight } from 'lucide-react';
 import CodeBlock from '@/components/CodeBlock';
@@ -6,6 +6,10 @@ import CodeBlock from '@/components/CodeBlock';
 function textContent(value: ReactNode): string {
   if (typeof value === 'string' || typeof value === 'number') return String(value);
   if (Array.isArray(value)) return value.map(textContent).join('');
+  if (isValidElement(value)) {
+    const props = value.props as { children?: ReactNode };
+    return textContent(props.children);
+  }
   return '';
 }
 
@@ -62,10 +66,10 @@ function Heading3(props: HTMLAttributes<HTMLHeadingElement>) {
 function ExtLink({ children, ...props }: AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (
     <a
+      {...props}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-baseline gap-0.5 font-medium text-lobster underline decoration-lobster/40 underline-offset-4 transition-colors hover:text-orange-300 hover:decoration-orange-300"
-      {...props}
+      className="inline-flex items-baseline gap-0.5 font-medium text-signal underline decoration-signal/40 underline-offset-4 transition-colors hover:text-orange-300 hover:decoration-orange-300"
     >
       <span>{children}</span>
       <ArrowUpRight className="size-4 shrink-0 self-center" />

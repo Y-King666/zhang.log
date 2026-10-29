@@ -1,0 +1,140 @@
+---
+title: "Jarvis and Three AI Employees: Running a Multi-Agent Team in OpenClaw"
+---
+
+When one agent is doing the work, you only need one agent. Once it starts handling your design discussions, code changes, and documentation at the same time, you will find that it begins to split apart. The context grows longer, its voice starts to drift, and it becomes obsequious precisely where it should be strict.
+
+My eventual solution was not a larger model. It was to divide the work among four people: one manager (Jarvis) and three subordinates. Coder writes code, Tester specializes in finding flaws, and Editor manages documents. All four agents run in the same Gateway process and connect to the same Feishu platform, but each has its own workspace, conversation history, and model configuration. On Feishu, I speak only to the manager.
+
+## Configuration First: How the Four Are Arranged
+
+Configuration is more honest than description. This is an excerpt from my `openclaw.json`, with secrets and account IDs redacted:
+
+```json
+{
+  "agents": {
+    "list": [
+      { "id": "main",
+        "identity": { "name": "贾维斯" },
+        "heartbeat": { "every": "6h" } },
+      { "id": "coder",
+        "identity": { "name": "无敌码农" },
+        "model": {
+          "primary": "glm5",
+          "fallbacks": ["m2.5", "qwen3.5", "k2.5"] } },
+      { "id": "tester",
+        "identity": { "name": "无敌测试" },
+        "model": {
+          "primary": "glm5",
+          "fallbacks": ["m2.5", "qwen3.5", "k2.5"] } },
+      { "id": "editor",
+        "identity": { "name": "超级编辑" },
+        "model": {
+          "primary": "k2.5",
+          "fallbacks": ["qwen3.5", "m2.5", "glm5"] } }
+    ]
+  },
+  "bindings": [
+    { "agentId": "main",
+      "match": { "channel": "feishu",
+                 "accountId": "default" } },
+    { "agentId": "coder",
+      "match": { "channel": "feishu",
+                 "accountId": "coder" } },
+    { "agentId": "tester",
+      "match": { "channel": "feishu",
+                 "accountId": "tester" } },
+    { "agentId": "editor",
+      "match": { "channel": "feishu",
+                 "accountId": "editor" } }
+  ]
+}
+```
+
+Three things stand out immediately: **models are not distributed evenly**, **routing is based on accounts**, and **the manager has a scheduled heartbeat**.
+
+## What It Looks Like on Disk
+
+The four agents are not four virtual directories. They are four real workspaces:
+
+```text
+workspace/              # main Jarvis: persona + memory + team coordination
+|-- AGENTS.md
+|-- IDENTITY.md
+|-- MEMORY.md
+|-- ERRORS.md
+|-- HEARTBEAT.md        # inspection checklist
+|-- memory/YYYY-MM-DD.md
+|-- skills/
+|-- workspace-coder/    # Coder
+|-- workspace-tester/   # Tester
++-- workspace-editor/   # Editor
+```
+
+Each child workspace has its own `IDENTITY.md` and `memory/` directory. This means it is possible to determine who remembered what. A conclusion such as "this project uses pnpm, not npm" should appear in Coder's memory, not Editor's.
+
+## Routing Ignores Content and Looks Only at the Source
+
+In the official model, an agent is a complete scope of identity: its workspace, state directory (authentication, model registry, and conversation history), and the channel accounts it can use. A binding is a mapping from a channel account to an agent.
+
+The key point is that it **does not judge content**. There is no keyword matching and no reasoning such as "this looks like code, so send it to Coder." If the message arrives through the `feishu/coder` account, it belongs to Coder. That is all.
+
+So I made the design as conservative as possible: four Feishu accounts, four entrances, a one-to-one mapping. Direct messages use pairing, while group chats require both an allowlist and an explicit mention. Strangers cannot enter without pairing, and messages in groups do not trigger an agent unless they mention it.
+
+The easiest trap with this setup is this: **a channel showing online does not mean routing is correct**. The account is connected and messages are arriving, but if the binding points to the wrong agent, you will see "the documentation agent answering a coding question" and start blaming the model. Diagnosis takes only one command:
+
+```bash
+openclaw config get bindings
+```
+
+Check the account IDs and agent IDs one by one. I learned this the hard way: I added a new account but forgot to add its binding. The messages went to the default agent, and everything looked normal.
+
+## How a Task Moves Through the Team
+
+Take "fix a bug" as an example. The flow is now fixed:
+
+1. **The manager breaks it down.** It decides whether the task involves changing code, adding tests, or updating documentation. Work that can run in parallel is split apart, while tightly coupled work stays with the manager. Every assignment must state three things clearly: the goal, the constraints, and the acceptance criteria.
+2. **Coder implements.** It makes changes in its own `workspace-coder`, then returns only three things: which files changed, why they changed that way, and how to reproduce the result.
+3. **Tester verifies independently.** The important word is *independent*. Tester reruns the reproduction steps in its own `workspace-tester` and does not accept "Coder says it passes." It returns evidence of failure or success, not an opinion.
+4. **Editor closes the loop.** It writes the change notes using only the conclusions from the first two steps and does not participate in technical judgment.
+5. **The manager accepts the result.** It checks that the evidence is complete and decides whether to release it.
+
+The most expensive discipline in this chain is step 5: **the manager does not write business code itself**. At first, it jumped in to move faster. As a result, it became both judge and athlete, and the tester role collapsed. Tester was reviewing code written by the manager and naturally did not dare to be harsh.
+
+## Why Not Use One Model
+
+Coder and Tester both use `glm5` as their primary model, while Editor uses `k2.5`, and the three fallback chains are ordered differently. The reasoning is simple: writing code and writing tests requires reliable tool use and long-context recall of details, while writing documentation requires a feel for Chinese. A single primary model will always be wasteful on one side of that split.
+
+Fallback chains keep a single rate limit from stalling the entire task. If the primary model returns a failure, the next model takes over and work continues. The cost is that different model styles may collide within the same task, so `AGENTS.md` requires: **unify the voice once before delivery**. One document may not switch between two different tones.
+
+## Skills Are Trimmed by Role and Replace Rather Than Merge
+
+The skill lists differ greatly in length: the manager has 18, and each of the three subordinates has 8. The manager's extras are design and coordination skills (`brainstorming`, `writing-plans`, and `project-manager`), while the subordinates receive tools for their own domains.
+
+There is a semantic detail in the documentation that is easy to miss: `agents.defaults.skills` is a shared baseline, and `agents.entries.*.skills` **replaces** the list for an individual agent rather than merging with it. When you write eight entries for an agent, you may think you are adding eight to the baseline; in reality, those eight are all that remain. The symptom is not an error. One day, the agent simply stops knowing how to use a tool.
+
+## Three Real Pitfalls
+
+**Agents cannot share `agentDir`.** Each agent's state directory contains authentication, the model registry, and conversation history. Sharing it does not prevent startup, but authentication sessions begin to leak between agents, or one agent continues a conversation from another agent's history. This kind of bug is extremely difficult to trace because every component appears normal.
+
+**A workspace is not a sandbox.** The documentation says this plainly: a workspace is only the default working directory. Relative paths land inside it, but absolute paths can still go outside. If you want Tester to "look but not modify," you need a sandbox and tool policy. Asking it not to act through a prompt does not count.
+
+**Agents talk over each other in group chats.** With four agents in one group, you need a mention threshold and rules for silence: stay quiet when not mentioned, and never send the same message three times in a row. These rules are written into `SOUL.md` and `AGENTS.md`; they do not depend on the agent choosing to follow them.
+
+## Costs Really Do Multiply
+
+Four agents mean four conversation histories, four contexts, and four rounds of inference. The more finely you divide a task, the more round trips you create, and the worse the token bill looks. Giving the manager a six-hour heartbeat means four self-checks a day, and that costs money too.
+
+So use parallelism only when it is real: research, batch edits, and independent verification benefit from it. Debugging that requires frequent back-and-forth should stay with one person. The cost-control philosophy behind the official sub-agent design is similar: allocate models according to task value, and do not use the strongest model for every odd job.
+
+## When Not to Split the Team
+
+The test is not scale; it is boundaries. If I cannot state what an agent explicitly *refuses* to do, it has no reason to exist. It is merely a copy of the same agent that also consumes another context.
+
+When a task is narrow and one context is enough, a single agent with a well-written `AGENTS.md` is much easier than a team. My setup works because implementation and acceptance must be performed by two different people. That is true for agents just as it is for human teams.
+
+## Final Thoughts
+
+The value of a multi-agent system is not the number of agents. It is the ability to draw a checkable line around each responsibility: who breaks down the task, who builds it, who verifies it, and who delivers it.
+
+A team of four is not necessarily more productive than one agent. But when a task requires both writing and criticism, it has to be two people.

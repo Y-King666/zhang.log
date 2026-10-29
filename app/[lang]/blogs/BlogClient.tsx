@@ -2,20 +2,18 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import type { Dictionary } from '@/lib/i18n';
 import type { BlogMeta } from '@/lib/content';
+import { getDisplayTag } from '@/lib/tag-display';
 import ListFilters from '@/components/ListFilters';
 import Pagination from '@/components/Pagination';
-import ParallaxSection from '@/components/ParallaxSection';
-import { motion } from 'motion/react';
 
-// Maps the 4 UI filter tabs to the blog frontmatter `category` values.
 const CATEGORY_FILTERS: Record<string, (category: string) => boolean> = {
   all: () => true,
-  tech: (c) => ['tutorial', 'explainer', 'architecture', 'frontend'].includes(c),
-  community: (c) => c === 'ecosystem',
-  latest: (c) => c === 'trends',
+  tech: (category) => ['tutorial', 'explainer', 'architecture', 'frontend'].includes(category),
+  community: (category) => category === 'ecosystem',
+  latest: (category) => category === 'trends',
 };
 
 const PAGE_SIZE = 6;
@@ -48,7 +46,12 @@ export default function BlogClient({
       .filter((article) => CATEGORY_FILTERS[active]?.(article.category) ?? true)
       .filter((article) => {
         if (!query) return true;
-        return [article.title, article.slug, dict[`blog.category.${article.category}`], ...article.tags]
+        return [
+          article.title,
+          article.slug,
+          dict[`blog.category.${article.category}`],
+          ...article.tags.flatMap((tag) => [tag, getDisplayTag(tag, lang)]),
+        ]
           .join(' ')
           .toLowerCase()
           .includes(query);
@@ -58,7 +61,7 @@ export default function BlogClient({
         if (sort === 'title') return a.title.localeCompare(b.title);
         return b.date.localeCompare(a.date);
       });
-  }, [active, articles, dict, search, sort]);
+  }, [active, articles, dict, lang, search, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -67,26 +70,23 @@ export default function BlogClient({
     setPage(1);
   }, [active, search, sort]);
 
-  const reveal = {
-    hidden: { opacity: 0, y: 24 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const } },
-  };
-
   return (
-    <main className="blog-page mx-auto w-full max-w-[1200px] px-6 pb-16 pt-24 sm:px-8 md:pb-24 lg:px-10 lg:pt-32">
-      <motion.nav initial="hidden" animate="visible" variants={reveal} className="t-meta mb-10 flex items-center gap-2">
-        <Link href={`/${lang}`} className="transition-colors hover:text-lobster">
+    <main className="cocoon-home mx-auto w-full max-w-[1120px] px-5 pb-16 pt-28 sm:px-6 sm:pt-36 md:pb-24 lg:pt-40">
+      <nav className="mb-10 flex items-center gap-3 font-mono text-[10px] tracking-[0.12em] text-fog sm:mb-14">
+        <Link href={`/${lang}`} className="transition-colors hover:text-paper">
           {t('blog.detail.home')}
         </Link>
-        <span className="size-1 rounded-full bg-lobster" />
-        <span className="text-slate-300">{t('nav.blog')}</span>
-      </motion.nav>
+        <span className="text-rule">/</span>
+        <span className="text-paper">{t('nav.blog')}</span>
+      </nav>
 
-      <motion.header initial="hidden" animate="visible" variants={reveal} transition={{ delay: 0.08 }} className="blog-page-header">
-        <h1 className="t-page">{t('blog.page.title')}</h1>
-      </motion.header>
+      <header>
+        <h1 className="text-[clamp(3.2rem,7vw,6rem)] font-medium leading-[0.95] tracking-[-0.065em] text-paper">
+          {t('blog.page.title')}
+        </h1>
+      </header>
 
-      <motion.div initial="hidden" animate="visible" variants={reveal} transition={{ delay: 0.16 }} className="blog-filters">
+      <div className="mt-12 md:mt-16">
         <ListFilters
           search={search}
           onSearchChange={setSearch}
@@ -104,44 +104,46 @@ export default function BlogClient({
           filterOptions={categories}
           clearLabel={t('list.clear')}
         />
-      </motion.div>
+      </div>
 
-      <ParallaxSection>
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={{ visible: { transition: { staggerChildren: 0.06, delayChildren: 0.2 } } }}
-          className="blog-index-list"
-        >
-          {paged.map((article) => (
-            <motion.div key={article.slug} variants={reveal}>
-              <Link href={`/${lang}/blogs/${article.slug}`} className="blog-index-row group">
-                <div className="blog-index-date">
-                  <time dateTime={article.date}>{article.date}</time>
-                  <span>{t(`blog.category.${article.category}` as keyof Dictionary)}</span>
-                </div>
-                <div className="blog-index-copy">
-                  <h2>{article.title}</h2>
-                  {article.tags.length > 0 && (
-                    <div className="blog-index-tags">
-                      {article.tags.slice(0, 3).map((tag) => <span key={tag}>#{tag}</span>)}
-                    </div>
-                  )}
-                </div>
-                <div className="blog-index-meta">
-                  <span>{t('blog.readTime.format').replace('{n}', article.readTime || '—')}</span>
-                  <ArrowRight aria-hidden="true" />
-                </div>
-              </Link>
-            </motion.div>
-          ))}
-          {filtered.length === 0 && (
-            <div className="flex items-center justify-center py-20 text-slate-500">
-              {t('blog.noArticles')}
+      <div>
+        {paged.map((article) => (
+          <Link
+            key={article.slug}
+            href={`/${lang}/blogs/${article.slug}`}
+            prefetch={false}
+            className="group grid gap-4 border-t border-rule py-7 md:grid-cols-12 md:items-start md:gap-6"
+          >
+            <div className="flex items-center justify-between gap-4 font-mono text-[10px] text-fog md:col-span-2 md:block">
+              <time dateTime={article.date}>{article.date}</time>
+              <span className="md:mt-2 md:block">
+                {t(`blog.category.${article.category}` as keyof Dictionary)}
+              </span>
             </div>
-          )}
-        </motion.div>
-      </ParallaxSection>
+            <div className="md:col-span-7">
+              <h2 className="text-xl font-medium leading-snug tracking-[-0.025em] text-paper transition-colors group-hover:text-signal md:text-2xl">
+                {article.title}
+              </h2>
+              {article.tags.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-fog">
+                  {article.tags.slice(0, 3).map((tag) => (
+                    <span key={tag}>#{getDisplayTag(tag, lang)}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-fog md:col-span-2 md:pt-1">
+              {t('blog.readTime.format').replace('{n}', article.readTime || '—')}
+            </p>
+            <div className="flex justify-end md:col-span-1">
+              <ArrowUpRight className="size-4 text-fog transition-all group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-paper" />
+            </div>
+          </Link>
+        ))}
+        {filtered.length === 0 && (
+          <p className="border-t border-rule py-16 text-sm text-fog">{t('blog.noArticles')}</p>
+        )}
+      </div>
 
       <Pagination page={page} totalPages={totalPages} onChange={setPage} />
     </main>

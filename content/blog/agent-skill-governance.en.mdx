@@ -1,0 +1,143 @@
+---
+title: "Three Questions Before Installing a Skill: Tool Governance for Agents"
+---
+
+Installing a skill for an agent is like giving it another pair of hands. The problem is that those hands do not necessarily belong to your body.
+
+The good thing about a skill marketplace is its ecosystem. The bad thing is also its ecosystem: a script written by any stranger can become an action your agent performs on your machine. My configuration contains 22 skill packs. Once they are distributed across four agents, each role has only 8 to 18. It is not that I cannot afford to install more; it is that I do not dare.
+
+## Start with the Inventory: Who Has What
+
+Skills are not distributed evenly. The configuration states this plainly (excerpt):
+
+```json
+{
+  "agents": {
+    "list": [
+      { "id": "main", "skills": [
+          "feishu-doc", "feishu-drive", "feishu-perm",
+          "feishu-wiki", "clawhub", "github",
+          "skill-creator", "weather", "brainstorming",
+          "canvas-design", "writing-plans",
+          "systematic-debugging",
+          "using-superpowers", "webapp-testing",
+          "docx", "pdf", "pptx", "xlsx"
+      ]},
+      { "id": "coder", "skills": [
+          "feishu-doc", "feishu-drive", "feishu-perm",
+          "feishu-wiki", "clawhub", "github",
+          "skill-creator", "weather"
+      ]}
+    ]
+  }
+}
+```
+
+The manager has additional design and coordination skills: `brainstorming` narrows the objective into a design that can be confirmed before work begins, `writing-plans` breaks it into steps, and `systematic-debugging` follows a process when investigating problems. The three subordinates share an execution foundation: the four Feishu skills, `github`, `clawhub`, `skill-creator`, and `weather`.
+
+There is a semantic detail in the documentation that is easy to miss: `agents.entries.*.skills` **replaces** the list for an individual agent; it does not merge with a default. If you write eight entries for an agent, you are not adding eight to a baseline. You are leaving it with *only* those eight. The symptom is not an error. One day, the agent simply stops knowing how to use a tool.
+
+## Three Questions
+
+Before installing anything, I ask three questions. If any one has no answer, I do not install it yet.
+
+**What does it need?** Network access, credentials, and which directories it can write to. If a skill that "only checks the weather" wants to read your home directory, that fact is the answer.
+
+**Who can invoke it?** Is it available only when I explicitly ask, or can any sentence in a chat trigger it? In the latter case, text that someone else sends to the agent can become a tool call.
+
+**How do I back out if something goes wrong?** Can it be removed cleanly with one command, or will it leave behind background processes, new configuration files, or new credentials?
+
+## Before Installing: Read the Code, Not the Description
+
+A name and a star count provide no guarantee. I inspect these in order:
+
+1. The capabilities and permissions declared in `SKILL.md`
+2. The actual scripts, especially the commands they assemble
+3. The source and maintenance status, along with whether any third-party audit conclusions exist
+
+Third-party skill marketplaces issue their own reminder: repositories are not audited, so review the source and permissions before use. That sentence should not be read as a mere disclaimer.
+
+Another risk is easy to overlook: **prompt injection**. An agent acts on what it reads, and what it reads may come from an email, a webpage, or a document supplied by someone else. Skills widen that attack surface again by making the agent better able to "follow instructions."
+
+## After Installing: Configure It and Test It
+
+My `MEMORY.md` contains two hard rules, among the first entries in long-term memory:
+
+```markdown
+#### Pre-installation
+- Must perform risk assessments and scan skill files.
+  Installation is only permitted if the risk is low
+  and no malicious scripts are present.
+
+#### Post-installation
+- Skills must be configured and tested.
+  They are only retained if testing passes;
+  otherwise, they must be removed.
+```
+
+There is a corresponding preference in `USER.md`: after installing a new skill, **always check what configuration it requires** (API keys, environment dependencies).
+
+This is not fastidiousness. It corresponds to a concrete failure mode. The Feishu skills need an App ID and App Secret, and the corresponding permissions must be enabled in the developer console. If one piece is missing, the call returns a permission or credential error, not "I don't know how." What you see is the agent saying "the operation failed," and it is easy to blame the model when the real problem is that the tool was never connected.
+
+So acceptance must be **running it on a real task**, not "installation succeeded." If it does not work, remove it. Do not leave it around with a "we'll deal with it later." A lingering skill will fail silently some day, and by then you will have forgotten it exists.
+
+## A Standard Skill Rollout
+
+Turning the three questions into a repeatable process results in five steps:
+
+1. **Scan.** Read `SKILL.md` and the scripts first. Confirm what the skill needs and whether anything looks like suspicious command assembly. If this step fails, there is no reason to continue.
+2. **Install.** Use `openclaw skills` to install it (or pull it from the marketplace with `npx clawhub install`). Do not assign work to it immediately after installation.
+3. **Configure.** Supply the required API keys, environment dependencies, and permission scopes. This is the step most likely to be skipped, and the one most likely to become "why is it broken again?" two weeks later.
+4. **Run.** Verify it with a real task, not a successful `echo`.
+5. **Keep or remove.** If it works, write a usage rule into `TOOLS.md`. If it does not, remove it cleanly and note why in `ERRORS.md`.
+
+Only steps 3 and 4 together mean "installed." Doing only step 2 gives you a switch that fails at the moment it matters most.
+
+## More Skills Do Not Necessarily Mean More Capability
+
+Of the 22 packs in the inventory, only three to five are normally called each day after they are divided by role. The rest sit in the list until a specific task reminds me they exist.
+
+The cost comes in two forms. One is context: every skill name and description must go into the prompt, and 18 descriptions create a fixed overhead on every conversation. The other is conflict: when two skills overlap, the agent may choose the wrong one, and it will not tell you, "I picked the wrong tool."
+
+So my current test is: **how many times will I encounter this problem in a month?** If the answer is less than once, install the skill when I need it.
+
+## Where a Skill Is Installed Matters More Than How Many
+
+The same skill can have different consequences depending on who receives it. I use three rules:
+
+- **Do not give file-writing skills to roles that should only observe.** The testing agent's job is verification. Its value lies in not "helpfully fixing" things along the way, so its skill list contains no tools that directly modify deliverables.
+- **Give only the manager the ability to speak externally.** If all four agents can send messages, send email, or publish publicly, you create four exits, and you cannot remember who said what in which context.
+- **Put paid capabilities where they can be observed.** Skills that call paid APIs live with the manager because its session contains the full task context, so it can judge whether a call is worth the cost.
+
+`clawhub`, `skill-creator`, `github`, `weather`, and the four Feishu skills are the shared foundation for all four agents. They are either necessary for collaboration or low risk.
+
+## Permission Boundaries: Allowlists and Sandboxes
+
+Skills are loaded from three layers: the agent's own workspace, the shared root `~/.openclaw/skills`, and marketplaces such as ClawHub. After loading, they must also pass an allowlist before they are actually available. The command-line interface uses `openclaw skills` to search, install, update, and verify them.
+
+But an allowlist governs *whether* a skill can be used, not *what it can do*. True isolation requires a separate sandbox, usually defined by three things: access mode (read, write, or no access), network policy, and image selection.
+
+When something is blocked, do not rush to blame the model. Check three layers first: whether the sandbox blocked it, whether the tool policy blocked it, or whether privilege escalation is disabled. Many answers to "why can't it use this tool?" live at this layer.
+
+## Guardrails Look Like Politeness but Reduce Collateral Damage
+
+- Delete through recoverable means instead of erasing things outright.
+- Ask before external actions such as email or public publishing.
+- Stay silent in group chats when appropriate. Allow at most one reaction per message and never send a run of messages.
+
+The cost is occasionally asking one extra time, "May I do this?" The benefit is avoiding incidents such as "Why did it send this to the group?" I consider that a very good trade.
+
+## Scheduled Tasks Are Part of Governance Too
+
+- Heartbeats are suited to checks that can be batched and whose timing can drift: the inbox, the calendar, and whether there are new messages.
+- Scheduled jobs are suited to work that must happen on time, requires an independent session, and should execute only once.
+
+Do not use a pile of heartbeats for work that should run on a precise schedule, and do not create a dedicated job for a single check.
+
+This area is still evolving. The official implementation has already migrated the old heartbeat monitor to ordinary automation jobs. Following a tutorial from six months ago is an easy way to step into a gap that no longer exists.
+
+## Closing
+
+Capability is borrowed. Responsibility is your own.
+
+Installing ten skills does not make an agent stronger. It may simply give you ten more switches whose alarms you cannot predict.

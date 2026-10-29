@@ -1,0 +1,240 @@
+SpringAiMall 是一套「2 个 Vue 3 前端 + 1 个 Spring Boot 后端 + 1 个 Python 分析服务」的智能商品管理系统。管理端是四张管理表加一块数据看板，用户端是严选风格的商城，中间住着一位能查商品、报热销、查订单、用户明确要求时还能代取消订单的 AI 客服。两个前端工程的目录结构、请求封装、路由、组件规范由我定稿，实现由 Agent 分批落，产出回到清单逐条验收。
+
+这篇文章只写前端这一侧：两个工程为什么拆、`vite.config.js` 里哪几行必须显式写、Element Plus 的表格页怎么组织、三个组件怎么复用、状态和请求收在哪一层、流式回答怎么渲染、响应式为什么只留两档断点。
+
+## 两个前端，为什么拆成两个工程
+
+系统一共四个进程：
+
+| 服务 | 端口 | 技术 | 职责 |
+| --- | --- | --- | --- |
+| mall-admin | 3000 | Vue 3 + Element Plus + ECharts | 管理后台：商品、分类、订单、用户、数据看板 |
+| mall-portal | 3001 | Vue 3 + Element Plus | 用户商城：浏览、购物车、下单、AI 客服 |
+| mall-server | 8080 | Spring Boot | 认证、业务、AI 客服、分析结果转发 |
+| mall-analytics | 8000 | FastAPI | 销售统计、用户价值、商品推荐 |
+
+拆成两个工程而不是一个工程两个路由，是三条具体理由，不是「看起来专业」：
+
+- **受众不同。** 管理端一天开八小时，要的是信息密度、表格密度、可批量操作；用户端一次停留几分钟，要的是大图、留白和下单路径短。同一个首页组件库服务不了这两拨人。
+- **设计语言不同。** 两端各有一份设计令牌（`styles/tokens.css`），颜色、圆角、阴影各走一套。放在一个工程里，要么共用一套（用户端变成后台风），要么写一堆作用域覆盖（CSS 越写越脏）。
+- **依赖不共享。** 用户端的 `package.json` 里没有 ECharts。看板只有管理端有，图表库本身并不小，没必要让每个买家一起下载。
+
+两个工程共用约定，不共用代码：`api/` 只放请求函数，`views/` 只放页面，`components/` 放可复用组件，`styles/` 放令牌与全局样式；`@` 一律指向 `src`。
+
+```context
+mall-frontend/
+├── mall-admin/                  # 管理端（:3000）
+│   └── src/
+│       ├── api/                 # auth / product / category / order / user / upload / dashboard / analytics
+│       ├── views/               # 商品、分类、订单、用户、看板、数据分析
+│       ├── router/ store/ layout/
+│       └── styles/
+└── mall-portal/                 # 用户商城（:3001）
+    └── src/
+        ├── api/                 # auth / product / cart / order / ai
+        ├── components/          # AiChatPanel、QuantityDialog、RecommendCarousel、ProductSuggest
+        ├── views/               # home、product/detail、cart、checkout、order/list、ai
+        ├── store/               # user、cart
+        └── router/ layout/ utils/
+```
+
+## 工程化：`vite.config.js` 里必须显式写下的几行
+
+Vite 的默认约定很省事，但下面这几项默认值全都不能用：
+
+```js
+// mall-admin/vite.config.js（节选）
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: { '@': resolve(__dirname, 'src') }   // 统一 @ 指向 src
+  },
+  server: {
+    port: 3000,                                  // 固定端口，不用 5173
+    proxy: {
+      '/api': { target: 'http://localhost:8080', changeOrigin: true }
+    }
+  }
+})
+```
+
+四件事各有原因：
+
+1. **端口写死。** README、后端 CORS 白名单、联调文档、演示脚本全按 3000 / 3001 写。默认的 5173 一旦被占用，Vite 会自动换一个，所有写死地址的地方同时失效，排查起来很浪费时间。
+2. **`@` 指向 `src`。** 组件层级一深，`../../../components/X` 这种路径就会失控；`@` 让引用与层级无关。
+3. **`/api` 代理到 8080 并开 `changeOrigin`。** 开发期前端和后端不同源，代理把请求转过去，顺便把 Origin 改成目标地址，少一层跨域问题。
+4. **`.env.development` 里只放环境相关的值。** 请求封装从 `import.meta.env` 读接口地址做 baseURL，换环境只改这个文件，不动代码：
+
+```bash
+# mall-admin/.env.development
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+`npm scripts` 只有三条：`dev`、`build`、`preview`。没有自定义插件、没有额外转译配置——Vue 3 单文件组件和现代语法交给 `@vitejs/plugin-vue` 与 Vite 自带管线，工程化配置越短，团队里换人接手越快。
+
+## 管理端：Element Plus 表格页的三段式骨架
+
+四张管理表（商品、分类、订单、用户）长得几乎一样。与其每页各写一套，不如先定一个骨架：上面筛选栏，中间表格，下面分页，操作列点开详情弹窗。
+
+```vue
+<el-card>
+  <div class="filter-bar">
+    <el-input v-model="query.orderNo" placeholder="订单号" clearable />
+    <el-select v-model="query.payStatus" placeholder="支付状态" clearable @change="loadData">
+      <el-option label="待支付" :value="0" />
+      <el-option label="已支付" :value="1" />
+    </el-select>
+    <el-button type="primary" @click="loadData">搜索</el-button>
+  </div>
+
+  <el-table :data="tableData" v-loading="loading" stripe>
+    <el-table-column prop="orderNo" label="订单号" width="220" />
+    <el-table-column label="状态" width="100">
+      <template #default="{ row }">
+        <el-tag :type="statusType(row.payStatus)">{{ statusText(row.payStatus) }}</el-tag>
+      </template>
+    </el-table-column>
+  </el-table>
+
+  <el-pagination
+    v-model:current-page="query.page"
+    v-model:page-size="query.size"
+    :total="total"
+    :page-sizes="[10, 20, 50]"
+    layout="total, sizes, prev, pager, next"
+    @change="loadData"
+  />
+</el-card>
+```
+
+三条约定是踩过才定下来的：
+
+- **分页参数统一 `page` / `size`，响应统一 `records` / `total`。** 四个页面共用同一个封装，换页时只关心「翻到第几页」。
+- **列宽写死。** 订单号 220、金额 120、时间 180。交给浏览器自动分配，列一多就开始互相挤，中文表头还会被压成竖排。
+- **状态列不渲染数字。** 数据库里 0 / 1 / 2 三个值，模板里用 `el-tag` 映射成文案和颜色，映射函数与 `type` 放在同一处，改文案只改一个函数。
+
+还有个容易忽略的细节：`v-loading` 挂在 `el-table` 上，不挂整页。加载时只有表格区域转圈，筛选栏还能继续操作——用户改条件，不该被一个转圈锁住。
+
+详情用 `el-dialog` 加 `el-descriptions`，一笔订单的明细再嵌一张小表。弹窗宽度 600px 固定，不随屏幕变，因为在管理端它永远是桌面场景。
+
+## 用户端：三个组件的三处复用
+
+用户端组件不多，但每个都必须在两个位置用同一份代码，否则改一次要改两遍：
+
+| 组件 | 用在哪 | 靠什么复用 |
+| --- | --- | --- |
+| QuantityDialog | 商品详情页「加购」与「立即购买」 | `mode` 区分走向，最终汇到同一套库存校验 |
+| AiChatPanel | 右下角悬浮窗 + 整页 `/ai` | `compact` 切换密度，整页多一个会话侧栏 |
+| RecommendCarousel / ProductSuggest | 首页热销 + 商品详情「猜你喜欢」 | 同一份推荐数据，列表与卡片两种版式 |
+
+`AiChatPanel` 的接口就两个 prop：`{ sessionId, compact }`，加一个 `replied` 事件。悬浮窗和整页共用同一个对话状态，切页面不丢上下文。
+
+样式先定令牌，再写页面。`tokens.css` 里只有颜色、间距、圆角、阴影四组 CSS 变量，两个工程各一份，不共享——设计语言不同，共享只会换来满屏覆盖。
+
+商品封面统一 1:1：所有展示位用 `aspect-ratio: 1/1` 加 `object-fit: cover`，从数据侧批量生成的 21 张封面也按这个比例出图。图没到 1:1 也不会把布局撑歪，只会在框里裁一刀。
+
+## 状态与请求：Pinia 两个 store，Axios 一层拦截器
+
+用户端只有两个 store：`user` 管登录态，`cart` 管勾选、数量和合计。都写成 setup 风格，状态用 `ref`，派生用 `computed`：
+
+```js
+export const useUserStore = defineStore('user', () => {
+  const token = ref(localStorage.getItem(TOKEN_KEY) || '')
+  const userInfo = ref(JSON.parse(localStorage.getItem(USER_KEY) || '{}'))
+  const isLoggedIn = computed(() => Boolean(token.value))
+
+  function logout() {
+    const currentToken = token.value
+    clearLocal()                       // 先清本地，调用方能立刻跳转
+    if (currentToken) logoutApi(currentToken).catch(() => {})   // 请求不等待
+  }
+
+  return { token, userInfo, isLoggedIn, login, logout }
+})
+```
+
+登出这段的顺序是先清本地、再发请求、且不 await：请求要带着原令牌走，后端才能把它拉黑；本地状态必须立刻清掉，页面才能马上跳登录；请求失败也不该把用户卡在「登出中」。
+
+请求全部收在 `utils/request.js` 一层封装里：
+
+| 位置 | 做什么 |
+| --- | --- |
+| baseURL | 取 `VITE_API_BASE_URL`，不硬编码 |
+| 请求拦截器 | 有令牌就带 `Authorization` |
+| 响应拦截器 | 剥掉 `{ code, message, data }` 外壳，页面直接拿 data |
+| 401 | 清登录态，跳登录页 |
+
+后端所有接口都回同一个外形，前端就不用在每个页面里判断 code。页面拿到的就是业务数据，错误提示由拦截器统一走 `ElMessage`。
+
+路由用 `createWebHistory`，用户端一共 9 条路由，其中购物车、结算、订单、AI 对话标了 `meta.requiresAuth`。全局守卫里未登录就跳 `/login?redirect=原路径`，登录成功后回到原处，而不是一律回首页。
+
+筛选条件全部写进地址栏：分类、关键字、排序刷新后都在。把链接发给别人，打开是同一个视图——这比「记住上次筛选」更好维护，状态只有一个来源。
+
+## 流式渲染：AI 客服为什么绕开 Axios
+
+对话接口是 SSE，服务端逐段推送。Axios 的响应拦截器要等整个响应体回来才能解包，流式接口在这里用不了，所以单独走原生 `fetch`：
+
+```js
+// api/ai.js
+// 对话是 SSE 流式返回，无法用 axios 的响应拦截器一次性解包，
+// 因此这里用原生 fetch + ReadableStream 手工解析事件流；
+// 会话列表与历史消息是普通 JSON 接口，仍走统一的 axios 封装。
+```
+
+协议刻意简单，只有两种事件：
+
+```
+data: {"type": "content", "text": "……"}   // 一段正文
+data: {"type": "done"}                     // 本轮结束
+```
+
+前端拿到 `response.body` 后用 `TextDecoder` 解码，按 `\n\n` 切事件，逐段追加到消息内容里。组件状态是一个小状态机：空闲 → 发送中 → 流式中 → 结束，流式期间输入框禁用、停止按钮出现。
+
+会话标识存 `sessionStorage` 而不是 `localStorage`：刷新页面、站内跳转聊天记录都在，关掉标签页才算「这位客人走了」。整页 `/ai` 的会话侧栏可以新建、切换、删除、清空，用的还是同一个面板组件。
+
+模型异常时后端不把异常抛给前端，转成兜底文案并照常落库，事件流仍然以 `done` 收尾。前端因此不需要为「聊到一半断了」写第二套 UI——流一定会有终点。
+
+## 看板与响应式
+
+管理端看板只有一个页面：上面四张 KPI 卡（`el-row` + `el-col :span="6"`），下面一张双 Y 轴图，折线是销售额、柱状是订单数。
+
+```js
+onMounted(async () => {
+  data.value = await getDashboard()
+  initChart()
+})
+
+function initChart() {
+  const chart = echarts.init(chartRef.value)
+  chart.setOption({ /* xAxis 天数，series 折线 + 柱状 */ })
+  window.addEventListener('resize', () => chart.resize())
+}
+```
+
+图表容器必须给确定高度（这里是 400px）。给 `height: 100%` 而父级没高度，ECharts 初始化出来就是 0 高，控制台不报错，页面上什么都没有。
+
+响应式只留两档断点：900px 以下单列，520px 以下悬浮窗铺满。中间那堆过渡档位没有对应的真实使用行为——商城只有「桌面浏览」和「手机下单」两种场景，多写一套布局就多一套要维护、要回归的样式。
+
+订单列表刻意做成「一单一卡」：一笔订单一张卡片，卡内直接列出这笔买了什么（缩略图、名称、单价、数量），支付和取消也收在卡内。移动端上表格横向滚动是最难用的形态，卡片天然适配窄屏。
+
+## 分工：README 先行，补丁拆小
+
+每个模块先有 README 再写代码：目录结构、接口清单、组件规范先在文档里定死，Agent 按 README 落位。中后期再让 Agent 对着代码审计 README，输出两张差异清单——「文档写了但代码没有」和「代码有了但文档没写」，逐项拉回一致。这一步不写代码，但省下的返工比写代码多。
+
+小改动同样走方案先行。给订单号数字加一个复制按钮这种单文件改动，也先要一份方案：数字主色加粗等宽、右侧留 12px、悬停提示「复制订单号」、键盘焦点样式、失败时提示手动复制。确认之后再落补丁；补丁因为换行或上下文匹配失败时，拆成更小的精确补丁继续，而不是重写整个文件。
+
+验收固定两步：`npm run build` 通过，两个端各走一遍关键路径——登录、筛选、加购、下单、取消、AI 对话。构建能过只说明语法没错，路径能走通才说明功能还在。
+
+最适合批量交给 Agent 的活是那 21 张商品封面：先按「名称 / 简介 / 详情」导出定格式文本，校验条数与字段数，再逐件生成、失败重试、统一 1:1 落盘，最后按文件数和尺寸复验一遍。
+
+## 复盘
+
+三条判断：
+
+1. **前端不是「把接口画出来」。** 接口契约的另一半在前端：分页字段叫什么、错误怎么呈现、空态长什么样、登录态过期往哪跳。这些定不下来，后端接口再全，页面上也是散的。
+2. **组件复用要先定「形状」。** `QuantityDialog` 之所以能同时服务加购和立即购买，是因为一开始就把「数量 + 确认回调」定成它的形状，而不是先写两个页面再抽公共部分。
+3. **流式接口不该塞进通用请求封装。** Axios 拦截器处理的是「一请求一响应」，SSE 是持续推送。硬塞进去，拦截器里会长出一堆 `if (stream)` 分支；单独一条 `fetch` 路径，两边都干净。
+
+还有一处没补的：看板里的 `echarts` 实例和 `resize` 监听在 `onMounted` 建立，但没有在 `onUnmounted` 里 `dispose` 与解绑。单页切换少的时候不显眼，页面多起来就会积。这条记在待办里，还没动手。
+
+分工上：目录结构、接口契约、组件规范、验收标准由我定；实现、排查、批量生成由 Agent 主力完成，产出逐条回到清单验收。仓库在 GitHub：<ExtLink href="https://github.com/Y-King666/smart-mall">Y-King666/smart-mall</ExtLink>。

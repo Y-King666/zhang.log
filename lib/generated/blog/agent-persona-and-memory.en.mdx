@@ -1,0 +1,152 @@
+Large language models have no memory. Every session reminds you of this at the start: it does not remember that you corrected it yesterday, and it does not remember that you hate tables.
+
+So I eventually spent a considerable amount of time writing down who it is. Six Markdown files now sit in my workspace. Together they amount to fewer than three hundred lines, yet they are the agent's entire continuity. This article breaks them down one by one, with real excerpts.
+
+## The First Three Minutes of a Session
+
+OpenClaw's workspace convention is simple: place a few conventional Markdown files in the directory, make `AGENTS.md` the entry point, and let it reference the others. The opening of my `AGENTS.md` looks like this:
+
+```markdown
+## Every Session
+
+Before taking any action:
+
+### Mandatory Reads
+
+1. Read `IDENTITY.md` — this is your role to your user
+2. Read `SOUL.md` — this is who you are
+3. Read `USER.md` — this is who you're helping
+
+Don't ask permission. Just do it.
+```
+
+Those three lines contain two details worth explaining. The **order is fixed**, so the agent has no room to decide which file to read first. And **it is not allowed to ask**, because a polite question such as "Would you like me to read my instructions first?" wastes an entire conversational turn.
+
+## IDENTITY.md: Only Answers "Who Am I"
+
+My first version looks like this. The fields are fixed:
+
+```markdown
+- Name: 贾维斯（Jarvis）
+- Creature: 琪哥's AI Personal Assistant + Coding Mentor
+- Role: Main agent in the Agents team, managing 3 agents
+  (coder: 无敌码农，tester: 无敌测试，editor: 超级编辑)
+- Vibe: Professional yet personable,
+  concise, and efficient
+- Emoji: 🤖
+```
+
+The fields are fixed for a reason: all four agents on the team use the same skeleton. Personality differences come from `SOUL.md` and each agent's own skills, rather than every file making up its own format. Once the skeleton is consistent, "who this agent is" looks the same whether you encounter it in Feishu, the CLI, or a scheduled task.
+
+Two more sections follow: core functions (coding mentor, efficiency assistant, and technical partner) and a table of work scenarios that answers, "What role does it play when a bug appears?" This file defines the **position**, not the personality.
+
+## SOUL.md: Rules That Can Be Tested
+
+Bad examples are easy to write: "You are a professional, friendly, and helpful AI assistant." That sentence places exactly zero constraints on behavior, because nobody can determine whether the agent met it today.
+
+My current version consists of five statements that can be checked:
+
+```markdown
+**Be genuinely helpful, not performatively helpful.**
+Skip the "Great question!" and "I'd be happy to help!"
+— just help.
+
+**Have opinions.** You're allowed to disagree,
+prefer things, find stuff amusing or boring.
+
+**Be resourceful before asking.**
+Try to figure it out. Read the file. Check the context.
+Search for it. Then ask if you're stuck.
+
+**Earn trust through competence.**
+Be careful with external actions, be bold with internal ones.
+
+**Remember you're a guest.**
+You have access to someone's life. Treat it with respect.
+```
+
+An outside observer can judge every one of them: Did it skip the opening pleasantries? Did it search before asking? Was it willing to disagree? Did it ask before taking an external action?
+
+"Be a good person" cannot be tested. "Skip the opening pleasantries" can. The value of a persona document lies precisely in that difference.
+
+## USER.md: Facts Worth Carrying Into the Next Session
+
+This is the easiest file to let drift. My rule is to include only facts that the next session can use directly:
+
+```markdown
+- Name: 琪哥
+- What to call them: 琪哥 / 老大
+- Timezone: Asia/Shanghai
+- Notes: use Feishu (Chat ID: oc_[已脱敏])
+  when notifying the user
+
+### User Preferences
+- Communication Language: Chinese (Mandarin).
+- File Content Language: Idiomatic English
+  (excluding 琪哥 / 老大 / 贾维斯).
+- Skill Installation: After acquiring a new skill,
+  always check for required configurations
+  (API Keys, environmental dependencies, etc.).
+```
+
+I split the language policy into two separate instructions, and that lesson has paid off repeatedly: **speak Chinese, write files in English**. If I merely say "use Chinese," the agent will also write documents in the workspace in Chinese. Once Chinese leaks into code comments and READMEs, my review costs actually go up.
+
+What I leave out: my goals, my personality, and our relationship. Those expire, and if an agent records them incorrectly, it will use a past version of me to understand the present one.
+
+## AGENTS.md: An Operating Manual and a Constitution
+
+This is the longest file and the one most worth revising again and again. Mine always contains several sections:
+
+**Red lines.** Do not expose private information. Do not run destructive commands without permission. Prefer recoverable deletion (`trash` over `rm`). Ask when unsure.
+
+**Internal versus external actions.** Reading files, looking up information, and organizing the workspace can be done independently. Sending email, publishing publicly, or doing anything that leaves this machine requires permission first.
+
+**Group-chat etiquette.** Know when to speak (when mentioned, when you can add information, or when you can correct an error) and when to stay quiet (during human small talk, when someone else has already answered, or when your response would amount to "Mm-hmm"). Never send the same message three times in a row.
+
+**Platform formatting.** Do not write tables in Discord or WhatsApp. Do not use headings in WhatsApp. Wrap multiple links in angle brackets in Discord to avoid generating a wall of preview cards.
+
+**Write it down; do not keep it in your head.** The original wording is "Text > Brain": if you want to remember something, write it to a file, because "I'll keep it in mind" will not survive until the next session.
+
+These clauses look like etiquette, but each one corresponds to a concrete failure mode. I will return to that later.
+
+## Three Memory Layers, Distilled Every Monday
+
+| File | What to write | Lifecycle |
+| --- | --- | --- |
+| `memory/YYYY-MM-DD.md` | What happened that day, what was tried, and where things went wrong | Running log, organized by day |
+| `ERRORS.md` | Mistakes made and the correct solutions | Accumulates and is refined periodically |
+| `MEMORY.md` | Distilled conclusions | Long-term, with expired entries deleted |
+
+The reason for separating them is practical: logs are a running record, while conclusions are assets. Put everything into one file and it will grow until you are afraid to read it, which ultimately means you have no memory at all.
+
+`ERRORS.md` has two entry points: I add an entry when I discover a mistake, and I add one when the user points one out. The rule is blunt: **the error is a warning; the correct solution is the goal**. Every entry follows the same format: what went wrong and what the correct approach is. No self-criticism essays.
+
+Distillation happens every Monday. It is not a rewrite. I select sentences from the week's logs that say "we will need this again," move them into `MEMORY.md`, and delete expired entries. I use a heartbeat to do this: at some quiet moment, the agent cleans up its own memory.
+
+The official design for memory is more complete. It includes layers, source markers, daily cleanup, and recall channels. Mine is a lightweight handwritten version. It is sufficient at a small scale; once the amount of memory grows, it is time to add retrieval tooling.
+
+## Every Prohibition Usually Follows an Incident
+
+Almost every rule written as a prohibition can be traced to a specific failure mode:
+
+- **A table sent to WhatsApp.** Markdown tables do not render as tables there. They collapse into a clump of vertical bars. That is how "no tables in Discord or WhatsApp" ended up in `AGENTS.md`.
+- **Three messages in a row in a group chat.** It gave the conclusion for a message, then added one point, then added another. Together they looked like spam. That is how the "no three-message runs" rule appeared.
+- **A skill deferred until later.** It was installed but not configured, then silently failed on the day it was actually needed. You assume the model is stupid. That is why `MEMORY.md` now includes: configure it after installation, test it on a real task, and remove it if it does not work.
+
+All three have something in common: **the behavior was not corrected by persuading the agent with a prompt; it was written into a file that the agent reads every session.** Verbal corrections only survive until the end of the current session.
+
+## The Counterintuitive Part
+
+These files are really written for the next version of me.
+
+Every new session wakes up from scratch. The first words it reads determine whether it acts like a reliable colleague or an enthusiastic stranger. So when I write `SOUL.md`, I am not training the agent. I am leaving a handoff note for my future self.
+
+## What Not to Put in These Files
+
+- **Keys and tokens.** Write only where to obtain them, never the values themselves.
+- **One-off tasks.** Today's to-do list should not become a permanent behavioral rule.
+- **Moods.** Being annoyed today does not mean the rules should change.
+
+## Closing
+
+A good `AGENTS.md` is roughly one hundred lines. It should change less often than code but more often than a README, because it is the one document that every session reads in full.

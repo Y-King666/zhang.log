@@ -1,0 +1,78 @@
+---
+title: "Stop an Agent From Coding on Contact: A Seven-Step Workflow"
+---
+
+Without a workflow, an agent's output has a distinctive quality: fast, tidy, and thoroughly wrong.
+
+You say, "Add tag filtering to the blog." Ten minutes later, it gives you 400 lines of code, a working branch, and a polished explanation. Three days later, you discover it did not build what you wanted. It turned filtering into a search box because it never asked which kind you wanted.
+
+The problem is not capability. The agent skipped the **confirmation** step. Superpowers is what I use to restore that step: a set of composable skills plus one entry rule designed to constrain the agent to "follow the process first, then act."
+
+## What It Does Is Simple
+
+It is not another agent framework, and it does not change the model. Once installed, the agent first decides which process a task belongs to, then follows that process: clarify, design, plan, implement, and finally verify and close out.
+
+That sounds obvious. The difference is that these rules are written down, rather than depending on you to remind the agent every time.
+
+## The Entry Rule
+
+The opening paragraph of the entire package says more about its character than anything else:
+
+> If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.
+
+It then states explicitly that the skill check must happen before asking questions, before reading code, and before inspecting files. This closes off one of the agent's most common excuses: learning the context first.
+
+## It Guards Against Rationalization, Not Lack of Ability
+
+My favorite part of the package is a table called Red Flags. It lists things you say when you are actually looking for a reason to skip the process. The original entries, translated roughly, are:
+
+- "This is just a simple question." A question is still a task. Check the skills first.
+- "I need to look at the code before I can decide." How to read the code is also covered by a skill.
+- "This skill is too heavy." Simple tasks are the easiest ones to make complicated.
+- "I remember this skill." Skills change. Read the current version.
+
+I have seen these in my own behavior too. They are not lies; they are the urge to take the easy path dressed up as reason. Once that costume is written down, it becomes much harder for an agent to put it on.
+
+## Seven Steps, Each With an Artifact
+
+The complete workflow has seven steps. The number is not the point; the point is that every step leaves behind something that can be checked:
+
+| Step | Artifact left behind |
+| --- | --- |
+| Clarify the requirements | A design document that states boundaries and alternatives |
+| Isolate the workspace | A separate branch and workspace with a passing test baseline |
+| Write the plan | File-level task cards, each with a verification method |
+| Execute the plan | Implementations that can each be reviewed independently |
+| Test first | Evidence of the transition from RED to GREEN |
+| Review the code | An independent review, not a self-review |
+| Close out the branch | An explicit decision to merge, clean up, or abandon |
+
+The most practical part of this table is that a missing artifact at any step proves that the step was not done. Agents are very good at "completing" work verbally, but artifacts do not accept verbal claims.
+
+## Two Principles Worth Ten Prompts
+
+**Evidence beats declarations.** Saying "it's done" does not count. Command output, screenshots, and test results do. My acceptance habit now is to inspect what the agent ran before considering what it said.
+
+**Process beats guesswork.** When you are unsure, do not guess. Run it. This matters especially for agents because guessing costs them nothing. They do not pay for being wrong with their time; you do.
+
+## The Cost of Skipping the Workflow
+
+The cost of skipping the first two steps usually appears at acceptance time, not while the code is being written.
+
+The agent gives you an implementation that "looks right": the names are right, the layers are right, and the boundaries are unhandled. During acceptance, you discover the direction is wrong, so you go back to discussing requirements, a step that should have taken place before the first line of code was written.
+
+I eventually called this kind of rework a delayed requirements bill. It is not wasted spending; it is time borrowed in advance, and it comes back later with interest.
+
+## When to Shorten the Process
+
+The seven steps are not a religion. Fixing a typo, adjusting some copy, or organizing a set of assets makes the full workflow a waste. The rules also contain a more important point: direct instructions from the user take precedence over skills.
+
+My lightweight mode keeps only two steps: write down which file to change and how it will be verified, then inspect the output when the work is done. The first prevents drift; the second prevents self-congratulation. The design and planning stages in between can be skipped when the change is smaller than a single function.
+
+The test is simple: if this change is wrong, will I notice immediately, or only three days later? If immediately, use the lightweight mode. If it would take three days, follow the complete workflow.
+
+## Closing
+
+The value of a workflow is not that it makes an agent slower. It moves the cost of rework earlier. In the requirements-discussion stage, one conversation can fix a mistake. In the coding stage, it becomes a rewrite. After release, it becomes an incident.
+
+My current approach is this: use the lightweight mode for small changes, and use the full workflow for anything involving an interface, a data structure, or collaboration among multiple people. The extra half hour almost always pays for itself later.

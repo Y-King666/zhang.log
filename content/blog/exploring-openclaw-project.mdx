@@ -1,29 +1,130 @@
 ---
 slug: exploring-openclaw-project
 title: OpenClaw 入门：从零构建你的 AI 智能体网关
-date: 2026-03-13
-readTime: 8
+date: 2026-01-24
+readTime: 9
 category: tutorial
-image: https://lh3.googleusercontent.com/aida-public/AB6AXuDO75Z8TgBmZg0MXUmI1WMXQmT7JRRirBEExMMrPbTLYdGhIpm1_2JOjZifW84Ypem7oRvdvg3o5j8zDYlfDLWwTJCLf2ftQew6EKjk5Uer-0Myw2lAsTrfqrmelk3HUGOSMBJxEmuroquxyc9mcOT5TCU98cfd_3ztpDD-rjJEOZ-F_oI1bDZUzAcQajGUkv2oYXtScZ35645Vy0W0UGAoVmnvm-v_ipB5QURTfZmalkm5h1rKCpk4HVfFqfxGjiDkFo5XhX0cs_xB
+image: /images/blogs/exploring-openclaw-project.png
 tags: ["LLM", "OpenClaw", "效率"]
-featured: true
 ---
 
-作为一名大学生开发者，如何高效地管理和部署自己的 AI 智能体？OpenClaw 🦞 提供了一个完美的自托管解决方案。它不仅支持多渠道接入（WhatsApp, Telegram, Discord），还具备强大的多智能体路由能力。
+我最初把 OpenClaw 当成「一个能接进聊天软件的 ChatGPT」来理解。这个理解错了一半：它确实能让你在飞书、Telegram、WhatsApp 里跟同一个 AI 说话，但中间那层东西不是插件，也不是某个平台的后端机器人，而是一个常驻在你机器上的网关。弄明白这一点之后，`gateway`、`dashboard`、`onboard` 这几条命令才各自归位。
 
-## 1. 什么是 OpenClaw？
+这篇是我在 Windows 上从装到跑通、再把飞书接进来的完整路径，命令都对齐了官方文档 <ExtLink href="https://docs.openclaw.ai">docs.openclaw.ai</ExtLink>。如果你只想先看一眼效果，可以跳过安装，直接看「一条命令试用」那一段。
 
-OpenClaw 是 an 自托管的 AI 智能体网关。它的核心优势在于：本地运行（数据安全）、多渠道支持（一个后台服务多个社交平台）以及智能体原生设计（内置工具调用和会话管理）。
+## 它到底是什么
 
-## 2. 快速上手指南
+官方的一句话定义是：把 Discord、Google Chat、iMessage、Matrix、Microsoft Teams、Signal、Slack、Telegram、WhatsApp、Zalo 这些聊天软件，接到你自己的 AI 编码 agent 上的自托管网关。
 
-只需三步即可启动：首先通过 `npm install -g openclaw@latest` 安装；接着运行 `openclaw onboard` 进行引导配置；最后执行 `openclaw gateway` 启动服务。你可以在 `http://127.0.0.1:18789/` 访问控制面板。
+拆开看是三层：
+
+| 层 | 是什么 | 你能直接看到的东西 |
+| --- | --- | --- |
+| 消息面 | 各渠道的连接器，比如 WhatsApp 走 Baileys、Telegram 走 grammY | 你在群里 @ 它 |
+| Gateway | 一个常驻进程，持有全部会话、渠道连接与 agent 运行时 | 默认监听 127.0.0.1:18789 |
+| 控制面 | macOS 应用、CLI、Web 控制台、定时任务 | `openclaw` 命令与 Control UI |
+
+有两条约束值得先记住：一台主机只有一个 Gateway；WhatsApp 的会话也只有它一个进程在持有。所以它不是「每个渠道部署一个机器人」，而是「一个进程，多个入口」。
+
+## 装之前先确认 Node
+
+硬性要求是 Node 24.16.0 以上（24.x 线）或 26.1.0 以上，官方推荐 26。版本不够时安装器会直接报错，别硬扛着往下装——后面每一步都会以奇怪的方式失败。
+
+## 一条命令试用
+
+只想看看它长什么样：
 
 ```bash
-# 快速启动本地 OpenClaw 节点
-npm i -g openclaw@latest
-openclaw onboard
-openclaw gateway
+npx openclaw@latest
 ```
 
-更多细节可以参考官方文档，里面还有关于多智能体配置和自定义路由的深入说明。
+首次运行会问你几个问题，全新安装选 Quick start 就行。Gateway 会在前台跑起来，Ctrl+C 停止，配置已经保存，下次不用重来。
+
+## 正式安装：别急着 npm
+
+真正装到机器上，官方推荐的是安装脚本，不是 npm：
+
+```bash
+# macOS / Linux / WSL2
+curl -fsSL https://openclaw.ai/install.sh | bash
+
+# Windows PowerShell
+iwr -useb https://openclaw.ai/install.ps1 | iex
+```
+
+脚本会顺带处理 Node 版本检测和服务注册，省掉后面不少手工活。不想在这一步就跑引导，可以加 `--no-onboard`（Windows 上是 `-NoOnboard`）。
+
+npm 也能装，但从 npm 12 和 11.16 起，生命周期脚本默认被拦下来了，必须显式放行：
+
+```bash
+npm install -g openclaw@latest --allow-scripts=openclaw
+```
+
+npm 11.15 及更早的版本不要加这个参数——加了反而不认。这个参数很容易漏：漏了不会报错，只会表现成 gateway 起不来，因为包的安装脚本压根没执行。
+
+## 引导：记得带 --install-daemon
+
+```bash
+openclaw onboard --install-daemon
+```
+
+`--install-daemon` 的意思是顺手把 Gateway 注册成系统服务。这是很多旧教程漏掉的一步：只跑 `openclaw onboard` 的话，关掉终端服务就没了，第二天回来发现「AI 不回消息」。
+
+Quick start 会去找本机已有的 Claude Code 或 Codex CLI 登录态，或者用你填的 provider API key，然后跑一次真实的 completion 验证配置能不能通，验证通过才落盘。都不可用，它才会退回手动配置。想一步步看着来，用 `openclaw onboard --classic`。
+
+## 起来之后，先看 status 而不是敲 gateway
+
+`openclaw gateway` 是老写法，现在的服务管理是这样一组命令：
+
+```bash
+openclaw gateway install    # 注册成服务（macOS LaunchAgent / systemd user unit / Windows 计划任务）
+openclaw gateway status     # 看是否监听在 18789
+openclaw gateway restart    # 改完配置重启
+```
+
+判断成败只有一个标准：`status` 里能看到监听 18789。
+
+想进控制台用 `openclaw dashboard`，它会帮你打开 Control UI 并处理好认证。直接手敲 `http://127.0.0.1:18789/` 大概率会卡在鉴权页——那个端口是 Gateway 的 WebSocket 端口，不是「网页地址」。想在前台看实时日志，直接敲 `openclaw` 进 TUI。
+
+## 接一个渠道：我用了飞书
+
+我用它主要是在飞书里对话，所以第一个接的是飞书。渠道配置写在 `~/.openclaw/openclaw.json` 的 `channels` 下，飞书这一条大致是应用凭据加一份 DM / 群聊策略。
+
+接渠道本身不难，难的是三件事：
+
+- 事件投递。应用权限或事件订阅没配全，表现就是「机器人一个字都不说」，而且没有任何报错。
+- 群的响应门槛。要不要只在被 @ 时说话，还是所有消息都过一遍。
+- 归属。多个账号、多个 agent 时，哪条消息该归谁。
+
+第三点其实已经是多智能体的入口了：一旦你有一个以上的 agent，路由就变成了配置问题，而不是提示词问题。
+
+## 配置和状态放在哪
+
+| 路径 | 作用 |
+| --- | --- |
+| `~/.openclaw/openclaw.json` | 主配置，环境变量 `OPENCLAW_CONFIG_PATH` 可覆盖 |
+| `~/.openclaw/` | 状态目录，放会话、日志、凭据，`OPENCLAW_STATE_DIR` 可覆盖 |
+| `~/.openclaw/workspace` | 默认 agent 的工作区 |
+
+工作区里放的是 agent 的人格与记忆文件（AGENTS.md、SOUL.md、USER.md、MEMORY.md 这些）。要特别注意：它只是默认工作目录，不是沙箱，绝对路径照样能走出去，真要隔离得单独开 sandboxing。
+
+## 出问题：先 triage，再搜
+
+```bash
+openclaw doctor    # 配置与安装的自检
+openclaw triage    # 只读体检
+```
+
+`triage` 是我觉得这套工具里少见的贴心设计：它不改你的任何东西，只把体检结果整理成一段脱敏的报告，再交给本机检测到的 Claude Code、Codex CLI 或内置 agent 去分析。比在搜索框里翻半天 issue 快得多。
+
+## 我拿它干什么
+
+跑在我机器上的是一个「主管 + 三个下属」的小团队：主管贾维斯负责跟我对接、拆任务，下面一个写代码、一个专门挑毛病、一个写文档。我在飞书里只跟主管说话，它再决定要不要开子会话派活。
+
+这套东西值不值，取决于你有没有一件「每天都要做、每次步骤都一样」的事。有，它省时间；没有，它就只是一个更贵的定时提醒器。
+
+## 和「装个 ChatGPT 客户端」的区别
+
+最后把边界说清楚。OpenClaw 不提供模型，它提供的是电线和插座：模型的 key 你自己给，渠道的账号你自己接，机器上的安全你自己负责。它卖的是「同一个 agent 在你所有聊天窗口里都在线」这件事本身。
+
+至于怎么把这个 agent 写得像个同事而不是客服，那是另一个问题——答案藏在 SOUL.md 和 AGENTS.md 里，不在模型参数里。

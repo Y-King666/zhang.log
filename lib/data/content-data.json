@@ -1,10 +1,40 @@
 {
   "blogs": [
     {
+      "slug": "agent-persona-and-memory",
+      "title": "四个文件养一个 Agent：AGENTS.md、SOUL.md、USER.md 与记忆分层",
+      "date": "2026-02-23",
+      "readTime": "11",
+      "category": "explainer",
+      "image": "/images/blogs/agent-persona-and-memory.png",
+      "tags": [
+        "Agent",
+        "记忆",
+        "工作流"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAABQBACdASoYAA4APt0+s1SooiWjmAEQG4ljAJ0ygAo+1vY5zQCQNBBBgqYAAP78VUUQW0mGsS/5pCBrBjsaPmVeGer6OL0zS5engAAA",
+      "titleEn": "Four Files, One Agent: AGENTS.md, SOUL.md, USER.md and Layered Memory"
+    },
+    {
+      "slug": "agent-skill-governance",
+      "title": "装技能之前先问三个问题：Agent 的工具治理",
+      "date": "2026-02-05",
+      "readTime": "11",
+      "category": "ecosystem",
+      "image": "/images/blogs/agent-skill-governance.png",
+      "tags": [
+        "Agent",
+        "技能",
+        "安全"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAADwAwCdASoYAA4APt1gp00opaOiMAgBEBuJZgCw7BuyOm14gG1W7YiAAP70Mtt4MChbrsRwQ8UU+Bnm+TOaSClMliuLNbSj2qoAAA==",
+      "titleEn": "Three Questions Before Installing a Skill: Tool Governance for Agents"
+    },
+    {
       "slug": "exploring-openclaw-project",
       "title": "OpenClaw 入门：从零构建你的 AI 智能体网关",
-      "date": "2026-03-13",
-      "readTime": "8",
+      "date": "2026-01-24",
+      "readTime": "9",
       "category": "tutorial",
       "image": "/images/blogs/exploring-openclaw-project.png",
       "tags": [
@@ -12,11 +42,113 @@
         "OpenClaw",
         "效率"
       ],
-      "featured": "true",
-      "titleEn": "OpenClaw for Beginners: Build Your AI Agent Gateway from Scratch"
+      "imageBlur": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAADQAwCdASoYAA4APt1iqUyopiQiMAgBEBuJZwAASoSZm8sEiAb7HgAA/vQy23b7+0gRNMk48gfCNQm466SQAA==",
+      "titleEn": "OpenClaw from Scratch: Running Your Own AI Agent Gateway"
+    },
+    {
+      "slug": "gitnexus-code-map",
+      "title": "改代码之前先看地图：用 GitNexus 给 Agent 一份代码知识图谱",
+      "date": "2026-02-14",
+      "readTime": "10",
+      "category": "explainer",
+      "image": "/images/blogs/gitnexus-code-map.png",
+      "tags": [
+        "GitNexus",
+        "Agent",
+        "代码图谱"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAADwAwCdASoYAA4APt1ep00opSOiMAgBEBuJZwC7ACHf49+tA/ow3nugAP71dG0RknpZLrIpjSDS1IsAAAA=",
+      "titleEn": "Read the Map First: Giving an Agent a Code Knowledge Graph with GitNexus"
+    },
+    {
+      "slug": "openclaw-daily-push",
+      "title": "每天 07:00，一条飞书消息把我的一天排好",
+      "date": "2026-03-02",
+      "readTime": "10",
+      "category": "tutorial",
+      "image": "/images/blogs/openclaw-daily-push.png",
+      "tags": [
+        "OpenClaw",
+        "自动化",
+        "效率"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAABQAwCdASoYAA4APt1apkyopSOiMAgBEBuJZQDCgCHEzSkRUAD+6UHvgANdBmhjZSGOQMT9c8fFzppgAAA=",
+      "titleEn": "A Feishu Message at 07:00: Automating My Morning with a Cron Job"
+    },
+    {
+      "slug": "openclaw-multi-agent-team",
+      "title": "贾维斯与三个 AI 员工：OpenClaw 里的多智能体团队",
+      "date": "2026-03-12",
+      "readTime": "12",
+      "category": "architecture",
+      "image": "/images/blogs/openclaw-multi-agent-team.png",
+      "tags": [
+        "OpenClaw",
+        "Agent",
+        "多智能体"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAADwAwCdASoYAA4APt0+s1SooiWjmAEQG4lAFh2EPDv7ZrWfLmSJdFPAAP7zMuYvxor7iazHTz8E5yqMUSumXjczilvAaAAA",
+      "titleEn": "Jarvis and Three AI Employees: Running a Multi-Agent Team in OpenClaw"
+    },
+    {
+      "slug": "superpowers-seven-steps",
+      "title": "Agent 一看需求就开写？我用七步流程把它按住",
+      "date": "2026-01-12",
+      "readTime": "8",
+      "category": "tutorial",
+      "image": "/images/blogs/superpowers-seven-steps.png",
+      "tags": [
+        "Agent",
+        "工作流",
+        "Superpowers"
+      ],
+      "imageBlur": "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABwAwCdASoYAA4APt1apky9JSOiMAgDoBuJZQCdAC0H1HOqS9AA/vCzr7Vlr2s/IUTAZxd/CxR9IYAA",
+      "titleEn": "Stop an Agent From Coding on Contact: A Seven-Step Workflow"
     }
   ],
   "projects": [
+    {
+      "slug": "bigdata-social-network",
+      "title": "四千万条微博：情感、转发图与实时回放",
+      "date": "2026-10-29",
+      "readTime": "10 分钟",
+      "image": "/images/practice/bigdata-social-network.png",
+      "icon": "network",
+      "tags": [
+        "PySpark",
+        "Python",
+        "大数据",
+        "数据可视化",
+        "coding"
+      ],
+      "scenario": "编程",
+      "featured": "false",
+      "imageBlur": "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAgCdASoYAA4APt1cpkyopSOiMAgBEBuJZwDKADBsAAD+8OWe5LzCPsyhX32FGxfHoAAA",
+      "titleEn": "Forty Million Weibo Posts: Sentiment, Repost Graphs, and Replay",
+      "readTimeEn": "10 min",
+      "scenarioEn": "Coding"
+    },
+    {
+      "slug": "springai-mall",
+      "title": "SpringAiMall：双前端工程化与 AI 客服",
+      "date": "2026-09-18",
+      "readTime": "9 分钟",
+      "image": "/images/practice/springai-mall.png",
+      "icon": "bot",
+      "tags": [
+        "Vue 3",
+        "Element Plus",
+        "Vite",
+        "JavaScript",
+        "coding"
+      ],
+      "scenario": "编程",
+      "featured": "true",
+      "imageBlur": "data:image/webp;base64,UklGRkoAAABXRUJQVlA4ID4AAACQAwCdASoYAA0APt1ep00opSOiMAgBEBuJZwAAUqm4hUEoky/gAP7zgrRt1cx2zorU3Le5cZxJ53OAYqAAAA==",
+      "titleEn": "SpringAiMall: Dual-Frontend Engineering and AI Customer Service",
+      "readTimeEn": "9 min",
+      "scenarioEn": "Coding"
+    },
     {
       "slug": "zhang.log",
       "title": "张的个人网站",
@@ -30,11 +162,12 @@
         "MDX",
         "coding"
       ],
-      "scenario": "编程 / 信息整理",
+      "scenario": "编程",
       "featured": "true",
+      "imageBlur": "data:image/webp;base64,UklGRjgAAABXRUJQVlA4ICwAAACwAgCdASoYAAwAPt1cp0yrpSOiMAgBcBuJaQAAeyAA/vD/+XrQx3ByR6zgAA==",
       "titleEn": "Zhang's Personal Site",
       "readTimeEn": "15 min",
-      "scenarioEn": "Coding / Information organization"
+      "scenarioEn": "Coding"
     }
   ]
 }

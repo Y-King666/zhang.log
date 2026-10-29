@@ -1,20 +1,21 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Geist, Geist_Mono } from 'next/font/google';
 import '../globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import SmoothScroll from '@/components/SmoothScroll';
+import AutoHideScrollbar from '@/components/AutoHideScrollbar';
 import { I18nProvider } from '@/lib/i18n-context';
 import { getDictionary } from '@/lib/i18n';
 import type { Language } from '@/lib/i18n';
 
-const inter = Inter({
+const geist = Geist({
   subsets: ['latin'],
   variable: '--font-sans',
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const geistMono = Geist_Mono({
   subsets: ['latin'],
   variable: '--font-mono',
 });
@@ -52,10 +53,11 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${jetbrainsMono.variable} bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen antialiased selection:bg-lobster/30`}
+        className={`${geist.variable} ${geistMono.variable} bg-ink text-paper font-sans min-h-screen antialiased selection:bg-signal/25`}
         suppressHydrationWarning
       >
         <SmoothScroll />
+        <AutoHideScrollbar />
         <I18nProvider lang={lang} dict={dict}>
           <Navbar lang={lang} dict={dict} />
           {children}

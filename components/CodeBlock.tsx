@@ -47,7 +47,8 @@ function getCodeData(children: React.ReactNode): { text: string; language: strin
   return { text: text.replace(/\n$/, ''), language };
 }
 
-export default function CodeBlock({ children }: { children: React.ReactNode }) {
+/* label 可选：显式给出头部标签（如首页的 Global Prompt），否则回退到语言名 */
+export default function CodeBlock({ children, label }: { children: React.ReactNode; label?: string }) {
   const { dict } = useI18n();
   const preRef = useRef<HTMLPreElement>(null);
   const initial = getCodeData(children);
@@ -72,12 +73,12 @@ export default function CodeBlock({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="group relative my-8 overflow-hidden rounded-2xl border border-white/10 bg-[#0b0d12] shadow-2xl">
-      <div className="flex items-center justify-between border-b border-white/10 bg-white/[0.03] px-4 py-2.5">
+    <div className="group relative my-8 overflow-hidden rounded-xl border border-rule bg-[#080808]">
+      <div className="flex items-center justify-between border-b border-rule bg-white/[0.025] px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <span className="size-2 rounded-full bg-lobster/80"></span>
-          <span className="text-[11px] font-bold tracking-widest text-slate-400">
-            {LANGUAGE_MAP[language] || language || 'code'}
+          <span className="size-1.5 rounded-full bg-fog"></span>
+          <span className="text-[11px] text-fog">
+            {label || LANGUAGE_MAP[language] || language || 'code'}
           </span>
         </div>
         {/* 复制按钮：支持 hover 的设备上跟随卡片 hover 显隐；小屏与触屏常亮。

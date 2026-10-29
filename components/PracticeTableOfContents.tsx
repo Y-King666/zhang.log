@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { X } from 'lucide-react';
 import { getLenis } from './SmoothScroll';
 import { useSectionScrollSpy } from './useSectionScrollSpy';
+import { useI18n } from '@/lib/i18n-context';
 
 interface TocItem {
   id: string;
@@ -31,9 +32,9 @@ export default function PracticeTableOfContents({
   desktopOnly?: boolean;
 }) {
   const [discoveredItems, setDiscoveredItems] = useState<TocItem[]>([]);
-  const [hoveredGroup, setHoveredGroup] = useState<number | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const { dict } = useI18n();
   const drawerCloseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const items = providedItems ?? discoveredItems;
   const { activeId, setActiveId } = useSectionScrollSpy(items.map((item) => item.id));
@@ -97,9 +98,7 @@ export default function PracticeTableOfContents({
     if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
   }, []);
 
-  // 触屏：点刻度 = 跳到该章节 + 打开可点选的完整目录抽屉
-  const handleTickClick = (group: TocGroup) => {
-    scrollToHeading({ id: group.id, label: group.title, level: 2 });
+  const openDrawer = () => {
     if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
     setDrawerOpen(true);
   };
@@ -111,7 +110,6 @@ export default function PracticeTableOfContents({
   };
 
   const closeDrawer = () => {
-    setHoveredGroup(null);
     if (drawerCloseTimer.current) clearTimeout(drawerCloseTimer.current);
     drawerCloseTimer.current = setTimeout(() => setDrawerOpen(false), 240);
   };
@@ -141,56 +139,29 @@ export default function PracticeTableOfContents({
 
   return (
     <>
-      {/* 小屏：右侧波形刻度（hover 放大预览 / 轻点跳转并拉起完整目录抽屉）。
+      {/* 小屏：右侧章节刻度作为单一目录入口，点击任意一根线都拉起完整目录抽屉。
           同样走 portal 挂到 body：openclaw 页的 motion / parallax 祖先带 transform，
           会成为 fixed 元素的包含块，把刻度钉在文档中段而永远进不了视口。 */}
       {!desktopOnly && mounted && createPortal(
-      <div
-        className="fixed right-1 top-1/2 z-50 flex -translate-y-1/2 flex-col items-end gap-0.5 lg:hidden"
-        onMouseLeave={() => setHoveredGroup(null)}
+      <button
+        type="button"
+        onClick={openDrawer}
+        aria-label={title}
+        aria-haspopup="dialog"
+        aria-expanded={drawerOpen}
+        className="toc-rail group fixed right-1 top-1/2 z-50 flex -translate-y-1/2 flex-col items-end gap-2 p-2 lg:hidden"
       >
         {groups.map((group, index) => (
-          <div key={group.id} className="relative flex justify-end" onMouseEnter={() => setHoveredGroup(index)}>
-            <button
-              type="button"
-              onClick={() => handleTickClick(group)}
-              aria-label={group.title}
-              aria-expanded={drawerOpen}
-              className="group relative z-20 flex h-8 items-center justify-end px-1.5"
-            >
-              <span
-                className={`block rounded-full transition-all duration-300 ease-out ${
-                  index === activeGroupIndex
-                    ? 'bg-lobster h-0.5 w-7 shadow-[0_0_8px_rgba(255,69,0,0.65)]'
-                    : 'bg-white/25 h-px w-4 group-hover:bg-white/65'
-                }`}
-                style={hoveredGroup === null ? undefined : {
-                  width: `${Math.max(16, 30 - Math.min(3, Math.abs(index - hoveredGroup)) * 4)}px`,
-                  height: index === hoveredGroup ? '3px' : '2px',
-                  backgroundColor: index === hoveredGroup ? 'rgb(255 69 0)' : undefined,
-                  boxShadow: index === hoveredGroup ? '0 0 9px rgba(255, 69, 0, 0.7)' : undefined,
-                }}
-              />
-            </button>
-            {/* 桌面 hover 预览；触屏没有 hover，改由下面的底部抽屉接管 */}
-            {hoveredGroup === index && (
-              <div className="pointer-events-none absolute right-[calc(100%+0.75rem)] top-1/2 z-10 w-max max-w-[16rem] -translate-y-1/2 rounded-2xl border border-white/15 bg-zinc-800/95 p-4 shadow-2xl backdrop-blur-md">
-              <h4 className="text-white font-bold text-sm mb-2.5">{group.title}</h4>
-              {group.children.length > 0 && (
-                <ul className="space-y-1.5">
-                  {group.children.map((child) => (
-                    <li key={child.id} className="flex items-start gap-2 text-slate-200 text-[11px] leading-snug">
-                      <span className="mt-0.5 size-1.5 rounded-full bg-lobster/90"></span>
-                      {child.label}
-                    </li>
-                  ))}
-                </ul>
-              )}
-              </div>
-            )}
-          </div>
+          <span
+            key={group.id}
+            className={`block h-px w-5 rounded-full transition-colors duration-300 ${
+              index === activeGroupIndex
+                ? 'bg-signal/70 group-hover:bg-signal/85'
+                : 'bg-paper/25 group-hover:bg-paper/40'
+            }`}
+          />
         ))}
-      </div>, document.body)}
+      </button>, document.body)}
 
       {/* 小屏：点刻度后从底部拉起的完整目录，可连续跳转。
           走 portal 挂到 body：祖先元素一旦带 transform（openclaw 页的 motion 容器、
@@ -202,7 +173,7 @@ export default function PracticeTableOfContents({
             <motion.button
               type="button"
               key="toc-backdrop"
-              aria-label="关闭目录"
+              aria-label={dict['ui.closeNavigation']}
               onClick={closeDrawer}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -219,16 +190,16 @@ export default function PracticeTableOfContents({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', bounce: 0.15, duration: 0.4 }}
-              className="fixed inset-x-0 bottom-0 z-50 max-h-[75vh] overflow-y-auto overscroll-contain rounded-t-3xl border-t border-white/15 bg-zinc-900/95 px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-3 shadow-2xl backdrop-blur-xl lg:hidden"
+              className="fixed inset-x-0 bottom-0 z-50 max-h-[75vh] overflow-y-auto overscroll-contain rounded-t-2xl border-t border-rule bg-surface/98 px-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)] pt-3 backdrop-blur-xl lg:hidden"
             >
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" aria-hidden="true" />
               <div className="mb-3 flex items-center justify-between">
-                <span className="text-sm font-bold text-white">{title}</span>
+                <span className="text-sm text-paper">{title}</span>
                 <button
                   type="button"
                   onClick={closeDrawer}
-                  aria-label="关闭"
-                  className="flex size-8 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition-colors hover:bg-white/10"
+                  aria-label={dict['ui.close']}
+                  className="flex size-8 items-center justify-center text-fog transition-colors hover:text-paper"
                 >
                   <X className="size-4" />
                 </button>
@@ -239,10 +210,10 @@ export default function PracticeTableOfContents({
                     <button
                       type="button"
                       onClick={() => selectInDrawer({ id: group.id, label: group.title, level: 2 })}
-                      className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-semibold transition-colors ${
+                      className={`flex w-full items-center gap-3 border-t border-rule px-1 py-3 text-left text-sm transition-colors ${
                         groupIndex === activeGroupIndex
-                          ? 'bg-lobster/10 text-lobster'
-                          : 'text-slate-300 active:bg-white/5'
+                          ? 'text-paper'
+                          : 'text-fog'
                       }`}
                     >
                       <span className="min-w-5 font-mono text-[10px] opacity-60">
@@ -257,11 +228,11 @@ export default function PracticeTableOfContents({
                             <button
                               type="button"
                               onClick={() => selectInDrawer(child)}
-                              className={`flex w-full items-start gap-2.5 rounded-lg px-3 py-2.5 text-left text-xs leading-snug transition-colors ${
-                                activeId === child.id ? 'text-lobster' : 'text-slate-400 active:bg-white/5'
+                              className={`flex w-full items-start gap-2.5 px-1 py-2.5 text-left text-xs leading-snug transition-colors ${
+                                activeId === child.id ? 'text-paper' : 'text-fog'
                               }`}
                             >
-                              <span className="mt-[5px] size-1.5 shrink-0 rounded-full bg-lobster/75" aria-hidden="true" />
+                              <span className="mt-[5px] size-1.5 shrink-0 rounded-full bg-signal/75" aria-hidden="true" />
                               <span>{child.label}</span>
                             </button>
                           </li>
@@ -281,9 +252,9 @@ export default function PracticeTableOfContents({
           小屏刻度/抽屉只在非 desktopOnly 实例里渲染：openclaw 页同时挂了移动专用实例和
           侧栏实例，两个实例都会 portal 出刻度条，挂在 body 上就会完全重叠成两份 DOM。 */}
       {!mobileOnly && (
-        <section className="hidden lg:block edge-lit-card rounded-3xl p-6 backdrop-blur-md">
-        <span className="text-white font-bold">{title}</span>
-        <nav className="mt-5 space-y-1" aria-label={title}>
+        <section className="hidden border-t border-rule pt-5 lg:block">
+        <span className="text-xs text-fog">{title}</span>
+        <nav className="mt-3" aria-label={title}>
           {numberedItems.map((item) => (
             <a
               key={item.id}
@@ -292,16 +263,42 @@ export default function PracticeTableOfContents({
                 event.preventDefault();
                 scrollToHeading(item);
               }}
-              className={`group flex items-start gap-3 rounded-lg px-3 py-2 transition-colors ${
-                activeId === item.id ? 'bg-lobster/10 text-lobster' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200'
+              aria-current={activeId === item.id ? 'location' : undefined}
+              className={`group relative -mx-2 flex items-start gap-3 rounded-md px-2 py-2 transition-colors ${
+                activeId === item.id
+                  ? 'bg-paper/[0.035] text-paper'
+                  : 'text-fog hover:bg-paper/[0.025] hover:text-paper'
               } ${item.level === 3 ? 'ml-4' : ''}`}
             >
+              <span
+                className={`absolute inset-y-2 left-0 w-0.5 rounded-full transition-colors ${
+                  activeId === item.id ? 'bg-signal' : 'bg-transparent'
+                }`}
+                aria-hidden="true"
+              />
               {item.level === 2 ? (
-                <span className="mt-0.5 min-w-5 font-mono text-[10px] opacity-60">{String(item.number).padStart(2, '0')}</span>
+                <span
+                  className={`mt-0.5 min-w-5 font-mono text-[10px] ${
+                    activeId === item.id ? 'text-signal opacity-100' : 'opacity-60'
+                  }`}
+                >
+                  {String(item.number).padStart(2, '0')}
+                </span>
               ) : (
-                <span className="mt-[5px] size-1.5 shrink-0 rounded-full bg-lobster/75" aria-hidden="true"></span>
+                <span
+                  className={`mt-[5px] size-1.5 shrink-0 rounded-full ${
+                    activeId === item.id ? 'bg-signal' : 'bg-fog/40'
+                  }`}
+                  aria-hidden="true"
+                ></span>
               )}
-              <span className={`${item.level === 3 ? 'text-xs text-slate-400' : 'text-sm'} font-medium leading-snug`}>
+              <span
+                className={`${item.level === 3 ? 'text-xs' : 'text-sm'} leading-snug ${
+                  activeId === item.id
+                    ? 'font-semibold'
+                    : `font-medium ${item.level === 3 ? 'text-slate-400' : ''}`
+                }`}
+              >
                 {item.label}
               </span>
             </a>

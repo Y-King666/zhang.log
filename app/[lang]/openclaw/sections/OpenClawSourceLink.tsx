@@ -12,7 +12,7 @@ export default function OpenClawSourceLink({ href, children }: OpenClawSourceLin
       href={href}
       target="_blank"
       rel="noreferrer"
-      className="inline-flex items-center gap-1.5 text-lobster/80 transition-colors hover:text-lobster"
+      className="inline-flex items-center gap-1.5 text-fog transition-colors hover:text-paper"
     >
       <span>{children}</span>
       <ExternalLink className="size-3.5" aria-hidden="true" />

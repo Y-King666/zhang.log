@@ -22,7 +22,7 @@ import ParallaxSection from '@/components/ParallaxSection';
 function SectionTitle({ children, action }: { children: ReactNode; action?: ReactNode }) {
   return (
     <div className="flex items-center gap-4 mb-6 md:mb-10">
-      <div className="h-px w-12 bg-lobster"></div>
+      <div className="h-px w-12 bg-signal"></div>
       <h2 className="t-section">{children}</h2>
       <div className="h-px flex-1 bg-white/10"></div>
       {action}
@@ -84,13 +84,13 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
 
   return (
     <MotionConfig reducedMotion="user">
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pb-12 md:pb-20 pt-20 sm:pt-28 lg:pt-40 flex flex-col items-center">
+      <main className="about-reskin cocoon-home max-w-6xl mx-auto px-4 sm:px-6 pb-12 md:pb-20 pt-20 sm:pt-28 lg:pt-40 flex flex-col items-center">
         <div className="w-full max-w-[960px]">
           <nav className="t-meta flex items-center gap-2 mb-6 sm:mb-8 lg:mb-12">
-            <Link href={`/${lang}`} className="hover:text-lobster transition-colors">
+            <Link href={`/${lang}`} className="hover:text-signal transition-colors">
               {t('blog.detail.home')}
             </Link>
-            <span className="size-1 rounded-full bg-lobster"></span>
+            <span className="size-1 rounded-full bg-signal"></span>
             <span className="text-slate-300">{t('nav.about')}</span>
           </nav>
         </div>
@@ -144,17 +144,17 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                   <h1 className="t-display mb-2">
                     {t('about.name')}
                   </h1>
-                  <p className="t-item text-lobster mb-3">{t('about.title')}</p>
+                  <p className="t-item text-signal mb-3">{t('about.title')}</p>
                   <p className="t-prose max-w-xl mb-4">
                     {t('about.tagline')}
                   </p>
                   <div className="t-meta flex flex-wrap items-center justify-center md:justify-start gap-x-5 gap-y-2">
                     <span className="inline-flex items-center gap-2">
-                      <MapPin className="size-5 text-lobster" />
+                      <MapPin className="size-5 text-signal" />
                       {t('about.location')}
                     </span>
                     <span className="inline-flex items-center gap-2">
-                      <span className="size-1.5 rounded-full bg-lobster"></span>
+                      <span className="size-1.5 rounded-full bg-signal"></span>
                       {t('about.current')}
                     </span>
                   </div>
@@ -205,7 +205,7 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
             <SectionTitle>{t('about.timeline.title')}</SectionTitle>
             <div className="relative">
               <div className="absolute left-0 top-2 bottom-2 w-9 md:w-11 flex justify-center pointer-events-none">
-                <div className="w-px bg-gradient-to-b from-lobster via-white/15 to-transparent"></div>
+                <div className="w-px bg-gradient-to-b from-signal via-white/15 to-transparent"></div>
               </div>
               <div className="space-y-4 md:space-y-6">
                 {timeline.map((item, i) => (
@@ -217,15 +217,15 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                     transition={{ duration: 0.5, delay: i * 0.05, ease: [0.22, 1, 0.36, 1] }}
                     className="relative flex items-start gap-4 md:gap-6"
                   >
-                    <div className="relative z-10 mt-1 size-9 md:size-11 shrink-0 rounded-full border border-lobster/40 bg-[#0a0a0a] flex items-center justify-center">
-                      <span className="size-2 rounded-full bg-lobster"></span>
+                    <div className="relative z-10 mt-1 size-9 md:size-11 shrink-0 rounded-full border border-signal/40 bg-[#0a0a0a] flex items-center justify-center">
+                      <span className="size-2 rounded-full bg-signal"></span>
                     </div>
                     <div className="about-display-card about-display-card--timeline rounded-3xl p-4 md:p-6 flex-1">
                       <div className="t-meta mb-2">{item.year}</div>
                       <h3 className="t-item mb-2">{item.title}</h3>
                       <p className="t-card">{item.desc}</p>
                       <div className="mt-4 flex items-start gap-2 border-t border-white/5 pt-4">
-                        <span className="mt-2 size-1.5 shrink-0 rounded-full bg-lobster"></span>
+                        <span className="mt-2 size-1.5 shrink-0 rounded-full bg-signal"></span>
                         <p className="t-card text-slate-300">{item.takeaway}</p>
                       </div>
                     </div>
@@ -237,7 +237,7 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
 
           <section className="mb-12 md:mb-20">
             <SectionTitle>{t('about.workflow.title')}</SectionTitle>
-            <p className="t-prose text-slate-400 -mt-6 mb-8">{t('about.workflow.subtitle')}</p>
+            <p className="t-prose text-slate-400 md:-mt-6 mb-8">{t('about.workflow.subtitle')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               {workflow.map((item, i) => (
                 <motion.div
@@ -254,14 +254,14 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                 </motion.div>
               ))}
             </div>
-            <Link href={`/${lang}/agents`} className="about-agent-entry">
-              <span className="about-agent-entry-mark" aria-hidden="true">A/01</span>
+            <Link href={`/${lang}/openclaw`} className="about-agent-entry">
+              <span className="about-agent-entry-mark" aria-hidden="true">O/01</span>
               <span className="about-agent-entry-copy">
-                <span className="about-agent-entry-title">{t('nav.agents')}</span>
-                <span className="about-agent-entry-desc">{t('about.agent.desc')}</span>
+                <span className="about-agent-entry-title">{t('agents.page.openclaw.title')}</span>
+                <span className="about-agent-entry-desc">{t('agents.page.openclaw.desc')}</span>
               </span>
               <span className="about-agent-entry-action">
-                {t('about.agent.cta')}
+                {t('agents.page.openclaw.cta')}
                 <ArrowRight className="size-4" />
               </span>
             </Link>
@@ -283,15 +283,15 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                   className="about-display-card about-display-card--capabilities p-4 md:p-8 rounded-[32px] flex items-start gap-4 md:block"
                 >
                   {/* 小屏（<md）：图标在左、文字在右的横向卡片，比竖排省近一半高度；md 起恢复原来的竖排三列卡片 */}
-                  <div className="about-capability-icon-shell size-12 md:size-14 shrink-0 rounded-2xl bg-lobster/10 flex items-center justify-center md:mb-6">
-                    <skill.icon className="size-6 md:size-7 text-lobster" />
+                  <div className="about-capability-icon-shell size-12 md:size-14 shrink-0 rounded-2xl bg-signal/10 flex items-center justify-center md:mb-6">
+                    <skill.icon className="size-6 md:size-7 text-signal" />
                   </div>
                   <div className="min-w-0">
                     <h3 className="t-item mb-3 md:mb-4">{skill.title}</h3>
                     <ul className="space-y-2.5 md:space-y-3">
                       {skill.items.map((item, i) => (
                         <li key={i} className="t-card flex items-start md:items-center gap-3">
-                          <span className="mt-1.5 md:mt-0 size-1.5 bg-lobster/40 rounded-full shrink-0"></span> {item}
+                          <span className="mt-1.5 md:mt-0 size-1.5 bg-signal/40 rounded-full shrink-0"></span> {item}
                         </li>
                       ))}
                     </ul>
@@ -334,11 +334,11 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
               action={
                 <Link
                   href={`/${lang}/practice`}
-                  className="t-action group flex shrink-0 items-center gap-2 transition-all duration-300 hover:text-lobster"
+                  className="t-action group flex shrink-0 items-center gap-2 transition-all duration-300 hover:text-signal"
                 >
                   <span className="relative">
                     {t('about.practice.viewAll')}
-                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-lobster transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute -bottom-1 left-0 h-0.5 w-0 bg-signal transition-all duration-300 group-hover:w-full"></span>
                   </span>
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
                 </Link>
@@ -358,18 +358,36 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                 >
                   <Link
                     href={`/${lang}/practice/${project.slug}`}
-                    className="group grid grid-cols-1 gap-1 py-5 md:grid-cols-[6rem_1fr_auto] md:items-center md:gap-6 md:py-6"
+                    prefetch={false}
+                    className="about-practice-row group flex items-center gap-3 py-5 md:grid md:grid-cols-[6rem_1fr_auto_auto] md:items-center md:gap-6 md:py-6"
+                    onPointerDown={(event) => {
+                      event.currentTarget.dataset.pressed = 'true';
+                    }}
+                    onPointerUp={(event) => {
+                      const row = event.currentTarget;
+                      window.setTimeout(() => {
+                        delete row.dataset.pressed;
+                      }, 260);
+                    }}
+                    onPointerCancel={(event) => {
+                      delete event.currentTarget.dataset.pressed;
+                    }}
+                    onPointerLeave={(event) => {
+                      delete event.currentTarget.dataset.pressed;
+                    }}
                   >
-                    <span className="t-meta">
-                      {project.date.slice(0, 7).replace('-', '.')}
+                    <span className="grid min-w-0 flex-1 grid-cols-1 gap-1 md:contents">
+                      <span className="t-meta">
+                        {project.date.slice(0, 7).replace('-', '.')}
+                      </span>
+                      <span className="t-item about-practice-title transition-colors group-hover:text-signal">
+                        {project.title}
+                      </span>
+                      <span className="t-meta">
+                        {project.scenario ?? project.tags.slice(0, 2).join(' · ')}
+                      </span>
                     </span>
-                    <span className="t-item transition-colors group-hover:text-lobster">
-                      {project.title}
-                    </span>
-                    <span className="t-meta flex items-center gap-3">
-                      {project.scenario ?? project.tags.slice(0, 2).join(' · ')}
-                      <ArrowRight className="size-4 text-slate-600 transition-all group-hover:translate-x-1 group-hover:text-lobster" />
-                    </span>
+                    <ArrowRight className="about-practice-arrow size-4 shrink-0 text-slate-600 transition-all group-hover:translate-x-1 group-hover:text-signal" />
                   </Link>
                 </motion.div>
               ))}

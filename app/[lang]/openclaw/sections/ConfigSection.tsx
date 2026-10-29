@@ -3,9 +3,11 @@ import OpenClawCodeBlock from './OpenClawCodeBlock';
 import OpenClawSourceLink from './OpenClawSourceLink';
 import OpenClawSectionHeading from './OpenClawSectionHeading';
 import OpenClawSpecBoard from './OpenClawSpecBoard';
+import WorkspaceFileMap from '@/components/WorkspaceFileMap';
 
 interface ConfigSectionProps {
   lang: string;
+  workspaceFileContents: Record<string, string>;
 }
 
 const REDACTED_CONFIG = `{
@@ -153,16 +155,24 @@ const MAIN_IDENTITY = `# IDENTITY.md - Who Am I?
 
 const BENEFIT_ICONS = ['account_tree', 'call_split', 'verified'] as const;
 
-export default function ConfigSection({ lang }: ConfigSectionProps) {
+export default function ConfigSection({ lang, workspaceFileContents }: ConfigSectionProps) {
   const content = getOpenClawContent(lang).config;
+  const agentTableLabels =
+    lang === 'en'
+      ? ['Agent', 'Role', 'Responsibility', 'Configuration']
+      : ['Agent', '角色', '职责', '配置'];
+  const skillTableLabels =
+    lang === 'en'
+      ? ['Agent / Category', 'Skill', 'Description', 'Best for']
+      : ['Agent / 分类', '技能', '说明', '适用场景'];
 
   return (
     <section id="config" className="scroll-mt-36">
       <OpenClawSectionHeading index={4} label="Configuration" title={content.title} subtitle={content.subtitle} />
 
-      <div className="mb-8 flex flex-col gap-3 rounded-xl border border-white/10 bg-white/[0.025] p-4 text-xs leading-relaxed text-slate-400 md:flex-row md:items-center md:justify-between">
+      <div className="mb-8 flex flex-col gap-3 text-xs leading-6 text-fog md:flex-row md:items-center md:justify-between">
         <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined !text-lg text-lobster">package_2</span>
+          <span className="material-symbols-outlined !text-lg text-signal">package_2</span>
           <p className="max-w-3xl">{content.repoDesc}</p>
         </div>
         <OpenClawSourceLink href="https://github.com/Y-King666/openclaw-config">
@@ -181,20 +191,20 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
 
       <div className="mt-10 grid min-w-0 gap-5 md:gap-8 xl:grid-cols-[1.15fr_0.85fr]">
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.teamTitle}</h3>
-          <p className="mt-3 max-w-3xl text-xs leading-relaxed text-slate-400">{content.teamDesc}</p>
-          <div className="display-card mt-5 rounded-xl p-4 sm:p-5">
+          <h3 className="text-lg font-medium text-paper">{content.teamTitle}</h3>
+          <p className="mt-3 max-w-3xl text-xs leading-6 text-fog">{content.teamDesc}</p>
+          <div className="mt-5 space-y-6">
             {content.teamDesign.map(([title, description], index) => (
               <div
                 key={title}
-                className="grid gap-3 border-t border-white/8 py-5 first:border-t-0 first:pt-0 last:pb-0 md:grid-cols-[2.5rem_1fr]"
+                className="grid gap-3 md:grid-cols-[2.5rem_1fr]"
               >
-                <span className="font-mono text-[11px] font-black tracking-[0.16em] text-lobster">
+                <span className="font-mono text-[11px] tracking-[0.14em] text-signal">
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <div className="min-w-0">
-                  <h4 className="text-sm font-black text-white">{title}</h4>
-                  <p className="mt-2 text-xs leading-relaxed text-slate-400">{description}</p>
+                  <h4 className="text-sm font-medium text-paper">{title}</h4>
+                  <p className="mt-2 text-xs leading-6 text-fog">{description}</p>
                 </div>
               </div>
             ))}
@@ -202,18 +212,18 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
         </div>
 
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.benefitsTitle}</h3>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">{content.benefitsDesc}</p>
-          <div className="mt-5 space-y-3">
+          <h3 className="text-lg font-medium text-paper">{content.benefitsTitle}</h3>
+          <p className="mt-3 text-xs leading-6 text-fog">{content.benefitsDesc}</p>
+          <div className="mt-5 space-y-5">
             {content.benefits.map(([title, description], index) => (
               <div
                 key={title}
-                className="flex items-start gap-4 rounded-xl border border-white/10 bg-white/[0.02] p-4"
+                className="flex items-start gap-4"
               >
-                <span className="material-symbols-outlined !text-xl text-lobster">{BENEFIT_ICONS[index]}</span>
+                <span className="material-symbols-outlined !text-xl text-signal">{BENEFIT_ICONS[index]}</span>
                 <div className="min-w-0">
-                  <h4 className="text-sm font-black text-white">{title}</h4>
-                  <p className="mt-1.5 text-xs leading-relaxed text-slate-400">{description}</p>
+                  <h4 className="text-sm font-medium text-paper">{title}</h4>
+                  <p className="mt-1.5 text-xs leading-6 text-fog">{description}</p>
                 </div>
               </div>
             ))}
@@ -222,49 +232,76 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
       </div>
 
       <div className="mt-10">
-        <h3 className="mb-4 text-lg font-black text-white">{content.agentTitle}</h3>
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {content.agents.map(([id, name, role, description, stack]) => (
-            <article key={id} className="display-card rounded-2xl p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-mono text-[10px] tracking-[0.16em] text-lobster">{id}</p>
-                  <h4 className="mt-2 text-base font-black text-white">{name}</h4>
-                </div>
-                <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-bold text-slate-400">{role}</span>
-              </div>
-              <p className="mt-3 text-xs leading-relaxed text-slate-400">{description}</p>
-              <p className="mt-4 border-t border-white/10 pt-3 font-mono text-[10px] leading-relaxed text-slate-500">{stack}</p>
-            </article>
-          ))}
+        <h3 className="mb-4 text-lg font-medium text-paper">{content.agentTitle}</h3>
+        <div className="overflow-x-auto" tabIndex={0} aria-label={content.agentTitle}>
+          <table className="w-full min-w-[720px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-rule">
+                {agentTableLabels.map((label) => (
+                  <th key={label} scope="col" className="py-3 pr-6 text-[10px] font-normal text-fog">
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {content.agents.map(([id, name, role, description, stack]) => (
+                <tr key={id} className="border-b border-rule align-top last:border-b-0">
+                  <td className="w-[20%] py-5 pr-6">
+                    <p className="font-mono text-[10px] tracking-[0.14em] text-signal">{id}</p>
+                    <p className="mt-1 text-sm font-medium text-paper">{name}</p>
+                  </td>
+                  <td className="w-[15%] py-5 pr-6 text-xs leading-6 text-fog">{role}</td>
+                  <td className="w-[44%] py-5 pr-6 text-xs leading-6 text-fog">{description}</td>
+                  <td className="w-[21%] py-5 font-mono text-[10px] leading-5 text-fog">{stack}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
       <div className="mt-12">
-        <h3 className="text-lg font-black text-white">{content.skillsTitle}</h3>
-        <p className="mt-3 max-w-3xl text-xs leading-relaxed text-slate-400">{content.skillsDesc}</p>
-        <p className="mt-2 font-mono text-[10px] tracking-[0.16em] text-slate-600">{content.skillsCount}</p>
-        <div className="mt-5 grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
-          {content.skills.map(([agentId, agentName, skill, category, description, scenario]) => (
-            <article key={`${agentId}-${skill}`} className="display-card flex flex-col rounded-2xl p-4 sm:p-5 md:min-h-[18rem]">
-              <p className="font-mono text-[10px] tracking-[0.14em] text-lobster">
-                {agentId} / {agentName}
-              </p>
-              <span className="mt-2 inline-flex w-fit rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-bold text-slate-400">
-                {category}
-              </span>
-              <h4 className="mt-3 break-words text-base font-black text-white">{skill}</h4>
-              <p className="mt-4 text-xs leading-relaxed text-slate-400">{description}</p>
-              <p className="mt-4 border-t border-white/10 pt-3 text-[11px] leading-relaxed text-slate-500 md:mt-auto md:pt-4">{scenario}</p>
-            </article>
-          ))}
+        <h3 className="text-lg font-medium text-paper">{content.skillsTitle}</h3>
+        <p className="mt-3 max-w-3xl text-xs leading-6 text-fog">{content.skillsDesc}</p>
+        <p className="mt-2 font-mono text-[10px] tracking-[0.14em] text-fog">{content.skillsCount}</p>
+        <div className="mt-5 overflow-x-auto" tabIndex={0} aria-label={content.skillsTitle}>
+          <table className="w-full min-w-[760px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-rule">
+                {skillTableLabels.map((label) => (
+                  <th key={label} scope="col" className="py-3 pr-6 text-[10px] font-normal text-fog">
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {content.skills.map(([agentId, agentName, skill, category, description, scenario]) => (
+                <tr
+                  key={`${agentId}-${skill}`}
+                  className="border-b border-rule align-top last:border-b-0"
+                >
+                  <td className="w-[21%] py-5 pr-6">
+                    <p className="font-mono text-[10px] tracking-[0.14em] text-signal">
+                      {agentId} / {agentName}
+                    </p>
+                    <p className="mt-1 text-[10px] text-fog">{category}</p>
+                  </td>
+                  <td className="w-[22%] py-5 pr-6 text-base font-medium text-paper">{skill}</td>
+                  <td className="w-[34%] py-5 pr-6 text-xs leading-6 text-fog">{description}</td>
+                  <td className="w-[23%] py-5 text-[11px] leading-5 text-fog">{scenario}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div className="mt-12 grid min-w-0 gap-5 md:gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="mt-12 grid min-w-0 gap-5 md:gap-8 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.workspaceTitle}</h3>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">{content.workspaceDesc}</p>
+          <h3 className="text-lg font-medium text-paper">{content.workspaceTitle}</h3>
+          <p className="mt-3 text-xs leading-6 text-fog">{content.workspaceDesc}</p>
           <div className="mt-5 min-w-0">
             <OpenClawCodeBlock
               title={content.workspaceTreeTitle}
@@ -275,34 +312,27 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
           </div>
         </div>
 
-        <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.workspaceFilesTitle}</h3>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">{content.workspaceFilesDesc}</p>
-          <div className="display-card mt-5 rounded-xl p-4 sm:p-5">
-            {content.workspaceFiles.map(([file, role, description]) => (
-              <div
-                key={file}
-                className="border-t border-white/8 py-4 first:border-t-0 first:pt-0 last:pb-0"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <code className="font-mono text-xs font-bold text-lobster">{file}</code>
-                  <span className="text-[10px] font-bold text-slate-500">{role}</span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-slate-400">{description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        <WorkspaceFileMap
+          items={content.workspaceFiles.map(([file, role, description]) => ({
+            file,
+            role,
+            description,
+          }))}
+          lang={lang}
+          title={content.workspaceFilesTitle}
+          description={content.workspaceFilesDesc}
+          contents={workspaceFileContents}
+        />
       </div>
 
       <div className="mt-12">
-        <h3 className="text-lg font-black text-white">{content.identityTitle}</h3>
-        <p className="mt-3 max-w-4xl text-xs leading-relaxed text-slate-400">{content.identityDesc}</p>
-        <div className="mt-5 flex flex-wrap gap-2">
+        <h3 className="text-lg font-medium text-paper">{content.identityTitle}</h3>
+        <p className="mt-3 max-w-4xl text-xs leading-6 text-fog">{content.identityDesc}</p>
+        <div className="mt-5 flex flex-wrap gap-x-4 gap-y-2">
           {['IDENTITY.md', 'SOUL.md', 'AGENTS.md', 'USER.md', 'MEMORY.md'].map((file) => (
             <span
               key={file}
-              className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1.5 font-mono text-[10px] text-slate-400"
+              className="font-mono text-[10px] text-fog"
             >
               {file}
             </span>
@@ -310,8 +340,8 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
         </div>
 
         <div className="mt-10">
-          <h3 className="text-lg font-black text-white">{content.identityTemplateTitle}</h3>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">{content.identityTemplateDesc}</p>
+          <h3 className="text-lg font-medium text-paper">{content.identityTemplateTitle}</h3>
+          <p className="mt-3 text-xs leading-6 text-fog">{content.identityTemplateDesc}</p>
           <div className="mt-5 grid min-w-0 gap-4 md:gap-6 xl:grid-cols-2">
             <OpenClawCodeBlock title={content.identitySkeletonLabel} language="markdown" variant="config" code={IDENTITY_TEMPLATE} />
             <OpenClawCodeBlock title={content.identityMainLabel} language="markdown" variant="config" code={MAIN_IDENTITY} />
@@ -319,14 +349,14 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
         </div>
 
         <div className="mt-10 min-w-0">
-          <h3 className="mb-4 text-lg font-black text-white">{content.identityProfilesTitle}</h3>
-          <div className="display-card overflow-hidden rounded-xl">
+          <h3 className="mb-4 text-lg font-medium text-paper">{content.identityProfilesTitle}</h3>
+          <div className="border-y border-rule">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[52rem] border-collapse text-left text-xs">
                 <thead>
-                  <tr className="border-b border-white/10 bg-white/[0.025]">
+                  <tr className="border-b border-rule">
                     {content.identityTableLabels.map((label) => (
-                      <th key={label} className="px-5 py-3 font-mono text-[10px] tracking-[0.16em] text-slate-500">
+                      <th key={label} className="px-5 py-3 font-mono text-[10px] tracking-[0.12em] text-fog">
                         {label}
                       </th>
                     ))}
@@ -334,13 +364,13 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
                 </thead>
                 <tbody>
                   {content.identityProfiles.map(([id, identity, anchor, constraint]) => (
-                    <tr key={id} className="border-t border-white/8 first:border-t-0">
-                      <td className="px-5 py-4 font-mono text-[11px] font-bold text-lobster">{id}</td>
+                    <tr key={id} className="border-t border-rule first:border-t-0">
+                      <td className="px-5 py-4 font-mono text-[11px] text-signal">{id}</td>
                       <td className="px-5 py-4">
-                        <p className="font-black text-white">{identity}</p>
-                        <p className="mt-1.5 leading-relaxed text-slate-400">{anchor}</p>
+                        <p className="font-medium text-paper">{identity}</p>
+                        <p className="mt-1.5 leading-6 text-fog">{anchor}</p>
                       </td>
-                      <td className="px-5 py-4 leading-relaxed text-slate-400">{constraint}</td>
+                      <td className="px-5 py-4 leading-6 text-fog">{constraint}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -350,13 +380,13 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
         </div>
       </div>
 
-      <div className="mt-12 grid min-w-0 gap-5 md:gap-8 xl:grid-cols-[0.68fr_1.32fr]">
+      <div className="mt-12 space-y-12">
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.principlesTitle}</h3>
-          <p className="mt-3 text-xs leading-relaxed text-slate-400">{content.principlesDesc}</p>
+          <h3 className="text-lg font-medium text-paper">{content.principlesTitle}</h3>
+          <p className="mt-3 text-xs leading-6 text-fog">{content.principlesDesc}</p>
           <div className="mt-6">
             <OpenClawSpecBoard
-              columns={1}
+              columns={4}
               items={content.principles.map(([title, description], index) => ({
                 id: title,
                 index: String(index + 1).padStart(2, '0'),
@@ -368,13 +398,19 @@ export default function ConfigSection({ lang }: ConfigSectionProps) {
         </div>
 
         <div className="min-w-0">
-          <h3 className="mb-3 text-lg font-black text-white">{content.codeTitle}</h3>
-          <p className="mb-4 text-xs leading-relaxed text-slate-500 md:mb-6">{content.codeDesc}</p>
-          <OpenClawCodeBlock title="~/.openclaw/openclaw.json" language="json5" variant="config" code={REDACTED_CONFIG} />
+          <h3 className="mb-3 text-lg font-medium text-paper">{content.codeTitle}</h3>
+          <p className="mb-4 text-xs leading-6 text-fog md:mb-6">{content.codeDesc}</p>
+          <OpenClawCodeBlock
+            title="~/.openclaw/openclaw.json"
+            language="json5"
+            variant="config"
+            code={REDACTED_CONFIG}
+            frameClassName="h-[360px] md:h-auto md:aspect-video"
+          />
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-slate-600 md:mt-5">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-fog md:mt-5">
         <span>{content.source}</span>
         <OpenClawSourceLink href="https://github.com/Y-King666/openclaw-config">openclaw-config</OpenClawSourceLink>
         <OpenClawSourceLink href="https://docs.openclaw.ai/gateway/configuration">Configuration</OpenClawSourceLink>

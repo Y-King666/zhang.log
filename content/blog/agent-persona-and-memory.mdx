@@ -1,0 +1,162 @@
+---
+slug: agent-persona-and-memory
+title: 四个文件养一个 Agent：AGENTS.md、SOUL.md、USER.md 与记忆分层
+date: 2026-02-23
+readTime: 11
+category: explainer
+image: /images/blogs/agent-persona-and-memory.png
+tags: ["Agent", "记忆", "工作流"]
+---
+
+大模型没有记忆。这件事在每个会话开头都会提醒你一次：它不记得昨天你纠正过它，也不记得你讨厌表格。
+
+所以我后来花了不少时间，把"它是谁"写进文件。现在我的工作区里躺着六份 markdown，加起来不到三百行，却是这个 agent 全部的连续性。这篇把它们逐个拆开，附真实片段。
+
+## 一个会话的头三分钟
+
+OpenClaw 对工作区的约定很简单：目录里放几个约定俗成的 markdown，`AGENTS.md` 是入口，其余由它引用。我的 `AGENTS.md` 开头是这样：
+
+```markdown
+## Every Session
+
+Before taking any action:
+
+### Mandatory Reads
+
+1. Read `IDENTITY.md` — this is your role to your user
+2. Read `SOUL.md` — this is who you are
+3. Read `USER.md` — this is who you're helping
+
+Don't ask permission. Just do it.
+```
+
+三行字，两个细节值得说：**顺序写死**，不留给它判断先读谁；**不许问**，因为"要我先读一下设定吗"这种礼貌提问本身就是浪费一轮对话。
+
+## IDENTITY.md：只回答"我是谁"
+
+我的第一份长这样，字段是固定的：
+
+```markdown
+- Name: 贾维斯（Jarvis）
+- Creature: 琪哥's AI Personal Assistant + Coding Mentor
+- Role: Main agent in the Agents team, managing 3 agents
+  (coder: 无敌码农，tester: 无敌测试，editor: 超级编辑)
+- Vibe: Professional yet personable,
+  concise, and efficient
+- Emoji: 🤖
+```
+
+字段固定是有原因的：团队里四个 agent 用同一套骨架，人格差异靠 SOUL.md 和各自的技能去体现，不靠每份文件自由发挥。骨架统一之后，"这个 agent 是谁"在飞书、CLI、定时任务里看到的样子是一致的。
+
+下面还有两块：核心职能（编码导师、效率助手、技术伙伴）和工作场景表——"遇到 bug 时它扮演什么角色"。这份文件回答的是**岗位**，不是性格。
+
+## SOUL.md：写成能被判定的规则
+
+反例很好写："你是一个专业、友好、乐于助人的 AI 助手。" 这句话对行为的约束力是零，因为你没法判定它今天到底做到没做到。
+
+我现在的版本由五条能被检验的话组成：
+
+```markdown
+**Be genuinely helpful, not performatively helpful.**
+Skip the "Great question!" and "I'd be happy to help!"
+— just help.
+
+**Have opinions.** You're allowed to disagree,
+prefer things, find stuff amusing or boring.
+
+**Be resourceful before asking.**
+Try to figure it out. Read the file. Check the context.
+Search for it. Then ask if you're stuck.
+
+**Earn trust through competence.**
+Be careful with external actions, be bold with internal ones.
+
+**Remember you're a guest.**
+You have access to someone's life. Treat it with respect.
+```
+
+每条都能被一个旁观者判断出来：开场白有没有？提问前查过没有？敢不敢说不同意？对外动作有没有先问？
+
+"做个好人"不能判定，"跳过开场白"能判定。人格文档的价值就在这个差别里。
+
+## USER.md：只写下次用得上的事实
+
+这一份最容易写飘。我的原则是只写下次会话能直接用上的：
+
+```markdown
+- Name: 琪哥
+- What to call them: 琪哥 / 老大
+- Timezone: Asia/Shanghai
+- Notes: use Feishu (Chat ID: oc_[已脱敏])
+  when notifying the user
+
+### User Preferences
+- Communication Language: Chinese (Mandarin).
+- File Content Language: Idiomatic English
+  (excluding 琪哥 / 老大 / 贾维斯).
+- Skill Installation: After acquiring a new skill,
+  always check for required configurations
+  (API Keys, environmental dependencies, etc.).
+```
+
+语言策略那行是拆成两条写的，这条经验很值钱：**对话用中文，文件用英文**。如果只写"用中文"，它会把工作区里的文档也写成中文，而代码注释、README 混进中文之后，我review 的成本反而更高。
+
+不写的是：我的目标、我的性格、我们之间的关系。这些会过期，而且一旦写错，agent 会拿着一个过去的你来理解现在的你。
+
+## AGENTS.md：操作手册，顺便当宪法
+
+这一份最长，也最值得反复改。我的版本里固定有几块：
+
+**红线。** 不外泄隐私；不擅自跑破坏性命令；删除优先用可恢复的方式（`trash` 优于 `rm`）；拿不准就问。
+
+**内外之分。** 读文件、查资料、整理工作区可以自己动手；发邮件、公开发布、任何离开这台机器的动作必须先问。
+
+**群聊分寸。** 什么时候该说话（被点名、能补充信息、能纠正错误），什么时候该闭嘴（人类闲聊、别人已经答了、你的回答只是"嗯"）。同一条消息禁止连发三次。
+
+**平台格式。** Discord 和 WhatsApp 不写表格；WhatsApp 不用标题；Discord 里多个链接用尖括号包住，避免刷出一堆预览卡片。
+
+**写下来，别记在脑子里。** 原话是 "Text > Brain"：想记住什么就写进文件，因为"心里记一下"过不了下一次会话。
+
+这些条款看着像礼貌，其实每一条都对应一种具体的翻车形态——后面单独说。
+
+## 记忆分三层，每周一蒸馏一次
+
+| 文件 | 写什么 | 生命周期 |
+| --- | --- | --- |
+| `memory/YYYY-MM-DD.md` | 当天发生了什么、试过什么、错在哪 | 流水，按天 |
+| `ERRORS.md` | 踩过的错和正确解法 | 积累，定期提炼 |
+| `MEMORY.md` | 蒸馏后的结论 | 长期，会删 |
+
+分层的理由很实际：日志是流水，结论才是资产。全塞进一个文件，它会膨胀到你不敢读，最后等于没有记忆。
+
+`ERRORS.md` 有两个入口：我自己发现错误时记一条，用户指出错误时也记一条。规矩写得很直白——**错误是警告，正确解法才是目标**。记录的格式永远是"错在哪、正确做法是什么"，不写检讨。
+
+蒸馏安排在每周一。做法不是重写，是把一周日志里"以后还会用到"的句子挑进 MEMORY.md，然后删掉过期条目。这件事我用心跳（heartbeat）来做：某个安静的时间点，agent 自己去清一遍记忆。
+
+官方在记忆上有更完整的设计：分层、来源标记、日间整理、召回通道都有。我这份是手写的轻量版，规模小的时候够用；记忆量一大，就该上检索工具了。
+
+## 每条禁令背后，基本都有一次翻车
+
+写成禁令的条目，几乎都能追到一个具体形态：
+
+- **表格发到 WhatsApp** —— markdown 表格在那边不会渲染成表格，会挤成一坨竖线。于是"Discord/WhatsApp 不写表格"进了 AGENTS.md。
+- **群里连发三条** —— 它对同一条消息先给结论、再补一句、再补一句，看起来像刷屏。于是有了"禁止三连"。
+- **"以后再说"的技能** —— 装完没配，某天真正要用时静默失败，你以为是模型笨。于是 MEMORY.md 里多了一条：装完必须配、必须跑真实任务、跑不通就删。
+
+这三条的共同点是：**它们不是靠提示词说服 agent 改的，是写成文件让它每次会话都读一遍。** 口头纠正只能活到本次会话结束。
+
+## 反直觉的地方
+
+这些文件其实是写给"下一个我"看的。
+
+每个新会话都是一次重新醒来，它读到的第一批字决定了它是一个靠谱的同事还是一个热情的路人。所以我写 SOUL.md 的时候，不是在调教它，是在给未来的自己留一张交接单。
+
+## 别写进去的东西
+
+- **密钥和 token。** 文件里只写"去哪拿"，不写值本身。
+- **一次性的任务。** 今天的待办不该变成永久的行为准则。
+- **情绪。** 今天烦，不代表规则要改。
+
+## 收尾
+
+一份好的 AGENTS.md 大概一百行。改它的频率应该比改代码低，但比改 README 高——因为它是唯一一份会被每个会话完整读一遍的文档。

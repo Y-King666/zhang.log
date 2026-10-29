@@ -1,166 +1,155 @@
 ---
 version: alpha
 name: ZHANG.LOG
-description: 深色主题的个人作品集内容站——Lobster 橙主色、青色点缀、交互卡与展示卡分层、MDX 驱动的阅读体验。
+description: 暗色编辑式个人实践站——近黑底、纸白大字、细规则线与克制的龙虾橙状态强调。
 colors:
-  primary: "#ff4500"
+  ink: "#050505"
+  surface: "#0b0b0b"
+  paper: "#f1f1ee"
+  fog: "#9b9b96"
+  rule: "#262624"
+  signal: "#ff5a24"
   secondary: "#2dd4bf"
-  on-dark: "#f8fafc"
-  background-dark: "#0a0a0a"
-  surface: "#121212"
-  muted: "#94a3b8"
 typography:
-  body:
-    fontFamily: Inter
-    fontSize: 1rem
-    lineHeight: 1.7
-  display:
-    fontFamily: Playfair Display
-    fontSize: 4.5rem
-    fontWeight: 900
-    lineHeight: 1.1
-  label-caps:
-    fontFamily: Inter
-    fontSize: 0.75rem
-    fontWeight: 700
-    letterSpacing: 0.2em
+  sans:
+    fontFamily: Geist
+    roles: body, headings, controls
   mono:
-    fontFamily: JetBrains Mono
-    fontSize: 0.85rem
+    fontFamily: Geist Mono
+    roles: metadata, indexes, paths, code
+  display:
+    fontFamily: Geist
+    fontSize: clamp(3.2rem, 7.2vw, 6.35rem)
+    fontWeight: 500
+    lineHeight: 0.94
+    letterSpacing: -0.07em
+  body:
+    fontSize: 1rem
+    lineHeight: 1.75
+  label:
+    fontSize: 0.625rem
+    lineHeight: 1.4
+    letterSpacing: 0.12em
 rounded:
-  chip: 16px
-  card: 24px
+  panel: 8px
+  sheet: 16px
+  stage: 32px
   pill: 9999px
 spacing:
   xs: 4px
   sm: 8px
   md: 16px
   lg: 24px
+  xl: 32px
+layout:
+  contentMaxWidth: 1120px
+  mobileGutter: 20px
+  desktopGutter: 24px
+  navHeight: 64px
+  navHeightDesktop: 80px
 components:
-  display-card:
-    backgroundColor: "#0b0d0d"
-    borderColor: "rgba(255,255,255,0.08)"
-    rounded: "{rounded.card}"
-    padding: "{spacing.md}"
-  interactive-card:
-    backgroundColor: "#040707"
-    borderColor: "rgba(255,255,255,0.16)"
-    accent: "{colors.primary}"
-    rounded: "{rounded.card}"
-  card:
-    backgroundColor: "{colors.background-dark}"
-    rounded: "{rounded.card}"
-    padding: "{spacing.md}"
-    typography: "{typography.body}"
   navbar:
-    backgroundColor: "rgba(10,10,10,0.9)"
-    rounded: "{rounded.pill}"
-    padding: "{spacing.lg}"
+    backgroundColor: "rgba(5,5,5,0.88)"
+    borderColor: "{colors.rule}"
+    height: "{layout.navHeight}"
   button-primary:
-    backgroundColor: "{colors.primary}"
-    textColor: "{colors.on-dark}"
+    backgroundColor: "{colors.paper}"
+    textColor: "{colors.ink}"
     rounded: "{rounded.pill}"
-    padding: "{spacing.sm}"
-  chip:
-    backgroundColor: "rgba(255,255,255,0.05)"
-    textColor: "{colors.muted}"
+  button-secondary:
+    backgroundColor: transparent
+    borderColor: "{colors.rule}"
     rounded: "{rounded.pill}"
-    padding: "{spacing.xs}"
-  badge:
-    backgroundColor: "{colors.secondary}"
-    textColor: "{colors.surface}"
-    rounded: "{rounded.pill}"
+  index-row:
+    borderColor: "{colors.rule}"
+    backgroundColor: transparent
   code-block:
-    typography: "{typography.mono}"
     backgroundColor: "{colors.surface}"
-    textColor: "{colors.on-dark}"
-    rounded: "{rounded.chip}"
+    textColor: "{colors.paper}"
+    rounded: "{rounded.panel}"
+    typography: "{typography.mono}"
 ---
 
 ## Overview
 
-深色主题的数字名片与内容引擎。它把博客、实践、关于页收进一条由 MDX 驱动的叙事线上，视觉上追求"高级感来自对比、节奏与留白，而非装饰堆砌"——冷峻的深色底、单一而强烈的暖橙强调、玻璃磨砂与边缘高光勾勒层级。
+ZHANG.LOG 是一份持续维护的个人实践日志，而不是套用作品集模板的营销页。视觉方向是“暗色编辑式工作台”：近黑画布承载纸白大字，细规则线组织信息，等宽字体标记时间、编号与路径，少量龙虾橙只在状态、强调和交互反馈中出现。
 
-整体气质：一个运行在暗处、以技术编号与终端质感点缀的个人工作站。动效克制但无处不在（Lenis 惯性滚动、视差浮动、hover 微光）。
+页面先讲正在做的事，再给出实践、方法、验证和文章。层级应来自留白、字号、字重和规则线，而不是大量玻璃卡片、渐变标题或装饰性图标。整体感觉应当冷静、直接、可检查，像一份被认真编排的工程记录。
 
-阅读体验：滚动与章节坐标系`lenis` 提供平滑滚动惯性，`useSectionScrollSpy` 与 `PracticeTableOfContents` 为长文建立章节坐标：右侧目录随阅读进度高亮，小屏收敛为一条波形刻度（点击展开底部抽屉目录；目录节点挂载到 `body`，避免被视差容器的 `transform` 改变 `fixed` 定位参照）。配合 `motion` 的区块过渡，方向是让滚动本身成为内容的一部分，为深技术长文提供导航、节奏与坐标感。
-
-视觉语言：冷暖、对比与层级以"lobster"暖橙为强调色，深色底统一全站气质；rounded 卡片与 edge-lit 描边勾勒层级，粗字重标题建立视觉锚点。视觉不抢内容，而是服务于阅读与识别——高级感来自对比、节奏与留白，而非装饰的堆砌。
-
-卡片语义必须与交互能力一致：可点击跳转或执行动作的卡片才使用 `edge-lit-card` 的玻璃突出色高光；仅用于展示信息的卡片使用 `display-card`，不得借用可点击卡片的橙色边角、光晕或悬浮提示。
+首页用“想法 → Agent → 现实”的轨道图建立整站隐喻；实践与博客使用索引行而非同质卡片墙；详情页把长文、图片和目录组织成可持续阅读的坐标系。动效服务于叙事和反馈，不替代信息。
 
 ## Colors
 
-深色底 + 单一暖橙强调，青色只做极少量点缀。
+- **Ink（#050505）：** 页面与导航的主背景，也是纸白组件上的反白文字色。
+- **Surface（#0b0b0b）：** 代码块、媒体占位和信息面板的次级底色，与 Ink 只拉开一档。
+- **Paper（#f1f1ee）：** 主标题、关键正文、主按钮底色和当前导航态。避免使用刺眼的纯白。
+- **Fog（#9b9b96）：** 说明文字、元信息、未激活导航和次要操作。
+- **Rule（#262624）：** 分隔线、描边、输入框边界和低层级容器。结构主要靠线，不靠重阴影。
+- **Signal（#ff5a24）：** 错误、当前章节、编号、状态点和 hover 强调。它是定位色，不是大面积底色。
+- **Secondary（#2dd4bf）：** 极少量状态或校验节点；不得与 Signal 争抢主次。
 
-- **Primary（#ff4500，Lobster 橙）：** 唯一驱动"互动"的颜色。用于 CTA、当前激活态、编号/序号、hover 变亮、强调下划线。**不要**用在大面积文字或整块背景——它是"聚光灯"，不是"墙面"。
-- **Secondary（#2dd4bf，teal 青）：** 次级点缀，用于徽章、状态标记、少量渐变收尾。使用频率远低于主色，避免喧宾夺主。
-- **Background-dark（#0a0a0a）：** 页面基底（项目强制深色）。表格/卡片内衬可用更深一档的 `surface`（#121212）。
-- **On-dark（#f8fafc）与 muted（#94a3b8）：** 深底上的文字层级——正文用 on-dark，次要说明/描述用 muted，更弱的元信息退到 slate-600。
-- **Border（rgba(255,255,255,0.08)）：** 分隔线、卡片描边。多个 border tone（0.05/0.1/0.2）区分层，但总体都极淡。
-
-背景磨砂颗粒（body::before，opacity 0.03 的 SVG 噪点）只做背景肌理，绝不盖住前景图文。主色在深底上对比强烈（约 15:1），用于 CTA 非常醒目，但作为正文色时要注意不刺眼。
-
-注意：CTA 白字（#f8fafc）on 主色（#ff4500）对比约 3.3:1，低于 WCAG AA 的 4.5:1——这是强引导短文本的取舍；若需严格合规，可加深按钮背景或改用更亮的 on-color。
+颜色优先级固定为 Ink / Paper / Fog / Rule，Signal 只占很小面积。渐变仅用于抽象轨道、图片遮罩和场景化动效，不用于普通文字卡片。
 
 ## Typography
 
-三套字体各司其职，标题靠"字重层级"而非"字体家族变化"建立视觉锚点：
-
-- **Body（Inter）：** 正文字体，正文 1rem/1.7。描述性文字常降到 slate-500。
-- **Display（Playfair Display）：** 衬线展示字体，用于大标题 / hero 强调。配合 `font-black`（900）建立层级；`tracking-tight` 收敛大字距，视觉更稳重。
-- **Mono（JetBrains Mono）：** 技术语汇，专门用于代码块、编号（01—04）、终端风格状态面板、路径/文件名等，营造"工程系统"质感。
-- **Label-caps：** 大量 `text-[10px] uppercase tracking-widest` 的小号大写标签，用于章节眉题、元信息行、统计标题，字距拉宽（0.2em）制造精致感。
-- **正文缩进与小屏字号：** 文章正文段落首行缩进 2 字符（`.prose p { text-indent: 2em }`，2em 跟随字号；列表项内的段落与表格单元格不缩进），单段可用 `<Indent n={N}>` / `<NoIndent>` 覆盖。代码块与表格在小屏降到 0.75rem（12px），并铺满正文宽度。
+- **正文 Sans：** Geist。正文常用 16px / 1.75，长文在桌面可放大到 `lg:prose-lg`；描述性文字用 Fog。
+- **标题 Sans：** 仍使用 Geist，以 `font-medium` 和紧凑字距建立层级。首页主标题使用 `clamp(3.2rem, 7.2vw, 6.35rem)`、`line-height: 0.94`、`letter-spacing: -0.07em`。
+- **Mono：** Geist Mono。用于日期、序号、路径、代码、状态和章节编号；不用于长段正文。
+- **Label：** 10–12px 等宽大写或中文小标签，字距约 `0.12em`–`0.16em`，承担“记录数据”的异质感。
+- **长文：** 标题最高 6 个字号层级；正文段落默认首行缩进 2 字符，列表项、表格单元格不缩进。可用 `<Indent n={N}>` / `<NoIndent>` 逐段覆盖。
+- **小屏字级：** 依靠 `clamp()` 和 `md:` / `lg:` 断点调整，不缩放根字号。正文表格与代码块在小屏降到 12px。
 
 ## Layout
 
-- **语言段路由** `app/[lang]`（cn / en）承载多语言，页面按语言静态预渲染；`generateStaticParams` 返回两语言。
-- **卡片网格**：实践/博客列表用 `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` 的分栏网格；间距小屏 `gap-4`，`md:` 起 `gap-6`（1.5rem）。
-- **详情分栏**：实践详情用 `grid-cols-12`——左侧 `col-span-8` 正文、右侧 `col-span-4` sticky 目录边栏。
-- **间距基准** 4px（Tailwind 默认刻度），常用 `p-4 md:p-6`、`mb-8 md:mb-16`、`gap-4 md:gap-6`。
-- **移动端优先（mobile-first）**：间距、内边距、圆角与字号一律以小屏（小于 768px）为基准值，用 `md:`（768px）恢复桌面值，例如 `p-4 md:p-6`、`rounded-2xl md:rounded-3xl`、`text-base md:text-lg`。需要连续变化的间距可用 `clamp()`；不要用缩放根字号来做紧凑——那会连带改变图标、头像和按钮尺寸。
-- **可读宽度**：正文区维持 `max-w-4xl`/`max-w-2xl` 左右的窄列，避免长文宽直排。
-
-## Elevation & Depth
-
-深度主要由磨砂、描边、光晕与 inset 阴影营造，而非厚重投影：
-
-- **玻璃磨砂**（backdrop-blur 16px + saturate 180%）：导航胶囊、浮动面板。
-- **边缘高光**（edge-lit-card）：卡片用双背景（padding-box + border-box）叠出"上白下橙"的渐变描边，内嵌顶部 1px 亮线 + 底部暗线，营造轻浮雕。
-- **展示卡**（display-card）：静态信息卡使用哑光石墨渐变底、低对比描边、右下渐隐点阵和顶部短刻度线；不出现橙色边角光、外发光、缩放或上浮，避免被误认为可点击入口。
-- **inset 高光/阴影**：表面 1px 内高光（inset 0 1px 0 white/16）+ 底部暗线，替代大外投影。
-- **Lobster 光晕**：激活项、CTA 用 `shadow-[0_0_10px_rgba(255,69,0,0.4)]` 类柔光，hover 时增强。hover 交互倾向 "上浮 + 位移 + 描边变亮"（如 `whileHover={{ x: 10 }}`、`group-hover:scale-110`）。
-
-## Shapes
-
-- **大圆角**：卡片 `rounded-3xl`（24px，小屏收敛为 `rounded-2xl` 16px）、图标容器 `rounded-2xl`（16px）、胶囊/导航/徽章 `rounded-full`——整体走"圆润 + 胶囊"路线。
-- **细描边**：边框多用 `border-white/10` 之内的极淡浅色，弱化成内嵌结构线而不是封闭轮廓。
-- **直线分割**：信息行用 `border-t border-white/10` 做硬分割，与圆软形体形成对比。
+- **内容宽度：** 主内容最大宽度 `1120px`，左右留白移动端 20px、`sm:` 起 24px；长文正文列再收窄，避免宽幅直排。
+- **导航：** 固定顶栏高 64px，`sm:` 起 80px。桌面链接居中，语言切换与 OpenClaw 入口靠右；移动端使用汉堡菜单。
+- **首页：** 主标题与说明采用不对称 12 栏布局；板块垂直间距以 `py-16 md:py-24` 为主，局部叙事区可扩展到 `py-20 md:py-32`。
+- **列表：** 实践和博客以规则线分隔的索引行呈现，不使用统一圆角卡片。实践桌面为 4/8 分栏图文行，博客为 2/7/2/1 的日期、标题、阅读时间和箭头结构。
+- **详情：** OpenClaw 与实践详情在 `lg:` 使用 8/4 分栏：左侧正文，右侧 sticky 导航与相关内容；列表与首页封面按 16:9 裁切，详情头图以 `fit="contain"` 完整显示。新源图优先使用 16:9；`zhang.log.png` 是既有兼容特例。
+- **断点：** 小屏基础值优先，`md = 768px`，`lg = 1024px`。移动端验收以 `360×800`、DPR 2 为硬性下限。
+- **间距：** 4px 基础刻度；常用 `gap-4 md:gap-6`、`p-4 md:p-6`、`pt-28 sm:pt-36 lg:pt-40`。
 
 ## Components
 
-- **card（edge-lit-card）：** 列表卡片。`background-dark` 底 + 渐变描边 + 内嵌高光；内含图标容器（rounded-2xl + white/5 底）、小号大写标签、标题（hover 变 Lobster）、描述与元信息。
-- **display-card：** 纯展示卡片。用于结构说明、配置摘要、经验案例等不可跳转内容；采用哑光石墨底、细点阵肌理、内嵌描边与顶部短刻度线，不设置橙色边角、外发光或 hover 抬升。
-- **interactive-card（edge-lit-card）：** 仅用于可点击跳转或执行动作的卡片。可使用渐变描边、橙色边角、hover 提亮、位移与视觉反馈；不得用于纯信息展示。
-- **navbar（glass-glow）：** 顶部居中的磨砂胶囊，滚动时隐藏/恢复；含语言切换（cn/en pill）、桌面链接 + 渐变 "我的 Agents" 按钮、移动端汉堡菜单（下拉时按钮保持可见）。
-- **button-primary：** 橙→红渐变胶囊（`from-orange-500 to-red-500`），带 Lobster 光晕；仅用于强引导（如进入 Agents）。
-- **chip：** 标签/分类徽章，`white/5` 底 + 大圆角 + 小号大写文字；用于顶部标签行、分类筛选按钮。
-- **code-block：** 代码块，JetBrains Mono、深色曲面底、复制按钮；`[&_code]:font-mono` 强制等宽。小屏降为 0.75rem、内边距收敛，复制按钮在触屏（`pointer-coarse` / `max-sm`）常显——触屏没有 hover；长行横向滚动，不手工折行。
-- **panel（display-panel）：** 信息/状态面板，浅渐变底 + 内嵌高光，可折叠（`[open]` 时背景提亮）。
+- **navbar：** 全宽近黑半透明栏，底部一条 Rule；滚动向下隐藏、向上恢复。当前项用 Paper 与 Signal 小点表示，不使用大型悬浮胶囊。
+- **button-primary：** Paper 实底胶囊 + Ink 文字，用于“查看实践”等高优先级入口；hover 变亮，不使用橙色铺底。
+- **button-secondary：** 透明底 + Rule 描边胶囊，用于次级入口；hover 只提高边框和文字层级。
+- **index-row：** 项目、博客和归档的主要列表单元。以 `border-t border-rule` 分隔，hover 让标题、箭头和局部底纹向 Signal 过渡；触屏使用 `:active` 提供即时按压反馈。
+- **article-prose：** 实践与博客详情共用。H2 带章节编号和底部分隔线，H3 使用 Signal 左线；正文最大可读宽度随详情分栏收敛。
+- **longform-nav：** 桌面显示完整 sticky 目录；小屏右侧显示刻度入口，点击后拉起底部抽屉。目录通过 portal 挂到 `body`，避免视差容器改变 fixed 定位参照。
+- **code-block：** Geist Mono、Surface 底、语言标签与复制按钮；长行横向滚动，不手工折行。触屏设备让复制按钮常显。
+- **media：** 本地资源优先，封面使用渐进模糊加载，正文图片支持灯箱与缩放。图片替代文本必须描述内容，不写文件名。
+- **not-found：** 语言段内的未知路径与不存在的内容 slug 共用标题、说明、首页 / 实践 / 博客入口，并沿用 Navbar、Footer 与同一套暗色设计令牌。
+
+## Motion
+
+- 滚动惯性由 Lenis 提供；章节跳转需要立即打断惯性滚动，并保留可回访的 hash 锚点。
+- 首屏轨道图表达“想法 → Agent → 现实”，底部 CTA 可在指针悬停或键盘聚焦时展开工作台场景。
+- hover 只做小位移、边框提亮或颜色过渡；触屏通过 `:active` / `data-pressed` 给出反馈。
+- 所有装饰动效必须支持 `prefers-reduced-motion: reduce`。动画不得遮挡正文、阻塞点击或改变布局尺寸。
+
+## Quality Bar
+
+- `360×800`、DPR 2 下页面 `scrollWidth ≤ 360`；宽表和长代码只在自身容器内横向滚动。
+- 桌面与移动端都必须验证导航、列表筛选、分页、详情跳转、目录锚点、图片灯箱和回到顶部。
+- 站内链接必须指向存在的路由、语言段和锚点；站外链接不得为空，必须指向有效目标，并明确是否新开窗口。
+- 所有可交互元素要有可见焦点、可读标签和键盘操作；外链新开窗口时使用安全的 `rel`。
+- 发布前执行内容生成、类型检查与生产构建，并同时检查中文与英文路由是否存在 404 或错误回退。
 
 ## Do's and Don'ts
 
 **Do**
-- 用主色（Lobster 橙）只做强调、CTA、当前态、编号；其余交给中性灰阶。
-- 深底为主时，文字层级用 on-dark / muted / slate-600 三级递进，保证可读对比。
-- 圆角、描边、间距优先取 token 值（rounded.card/chiP/pill、spacing.*、colors.*），而非临时色值。
-- 动效以"轻"为准：滚动/视差/光晕做氛围，不拖慢阅读；大标题用 font-black 建立锚点。
-- 在实现卡片前先判断它是否可点击；展示型内容默认使用 `display-card`，只有真实交互入口才使用 `interactive-card` / `edge-lit-card`。
+
+- 先用规则线、留白和字级建立结构，再考虑是否真的需要容器或阴影。
+- 用 Signal 标记当前态、编号、状态点和少量关键动作。
+- 优先使用真实内容密度组织页面；列表、表格和代码应能直接扫描。
+- 保持移动端基础尺寸，再用 `md:` / `lg:` 恢复桌面尺度。
+- 每次修改 UI 后同时检查桌面和小屏，至少覆盖 `360×800`。
 
 **Don't**
-- 不要把 primary 铺成大面积背景或长段正文——会刺眼且失去"聚光灯"作用。
-- 不要用多套高饱和色并置；secondary 只做极少量点缀。
-- 不要在正文上方堆透明噪点或磨砂覆盖前景（body::before 固定 z-index: -1，别挪上来）。
-- 不要用生硬纯白大字直排；长文必须收窄列宽。
-- 不要给不可跳转、不可执行的展示卡片添加橙色边角光、玻璃悬浮、hover 抬升或箭头，以免暗示不存在的交互。
+
+- 不要把 Signal 铺成大面积背景，也不要用多套高饱和色并置。
+- 不要恢复已淘汰的 Playfair Display、Inter、JetBrains Mono 字体组合描述。
+- 不要把每个板块都包装成玻璃卡片；编辑式页面以规则线和非对称布局为主。
+- 不要给纯展示面板添加橙色光晕、箭头或 hover 抬升，制造可点击错觉。
+- 不要用缩放根字号实现小屏适配，也不要让页面主体产生横向溢出。

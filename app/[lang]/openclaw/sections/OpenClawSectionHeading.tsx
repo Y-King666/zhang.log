@@ -12,12 +12,12 @@ export default function OpenClawSectionHeading({
   subtitle,
 }: OpenClawSectionHeadingProps) {
   return (
-    <header className="mb-6 md:mb-10">
-      <span className="font-mono text-xs font-bold uppercase tracking-[0.22em] text-lobster">
+    <header className="mb-8 md:mb-12">
+      <span className="font-mono text-[10px] tracking-[0.14em] text-fog">
         {String(index).padStart(2, '0')} / {label}
       </span>
-      <h2 className="mt-3 text-2xl sm:text-3xl font-bold tracking-tight text-lobster">{title}</h2>
-      <p className="mt-4 max-w-3xl text-sm leading-relaxed text-slate-400 md:text-base">{subtitle}</p>
+      <h2 className="mt-4 text-[clamp(2rem,4vw,3.4rem)] font-medium tracking-[-0.05em] text-paper">{title}</h2>
+      <p className="mt-4 max-w-3xl text-sm leading-7 text-fog md:text-base">{subtitle}</p>
     </header>
   );
 }

@@ -41,17 +41,17 @@ export default function StartSection({ lang }: StartSectionProps) {
 
       <div className="mt-8 grid min-w-0 gap-5 md:gap-8 xl:grid-cols-[0.78fr_1.22fr]">
         <div className="min-w-0">
-          <h3 className="text-lg font-black text-white">{content.pathTitle}</h3>
-          <p className="mt-2 text-xs leading-relaxed text-slate-500">{content.pathDesc}</p>
-          <ol className="display-card mt-6 overflow-hidden rounded-xl">
+          <h3 className="text-lg font-medium text-paper">{content.pathTitle}</h3>
+          <p className="mt-2 text-xs leading-6 text-fog">{content.pathDesc}</p>
+          <ol className="mt-6 space-y-6">
             {content.steps.map(([key, title, description], index) => (
-              <li key={key} className={`flex gap-4 p-4 md:p-5 ${index > 0 ? 'border-t border-white/8' : ''}`}>
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-lobster/12 font-mono text-[10px] font-bold text-lobster">
+              <li key={key} className="flex gap-4 py-1">
+                <span className="shrink-0 font-mono text-[10px] text-signal">
                   {index + 1}
                 </span>
                 <div>
-                  <p className="text-sm font-bold text-white">{title}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{description}</p>
+                  <p className="text-sm font-medium text-paper">{title}</p>
+                  <p className="mt-2 text-xs leading-6 text-fog">{description}</p>
                 </div>
               </li>
             ))}
@@ -67,14 +67,14 @@ export default function StartSection({ lang }: StartSectionProps) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-2xl border border-lobster/20 bg-lobster/[0.055] p-4 sm:p-5">
+      <div className="mt-8 rounded-xl bg-white/[0.025] p-4">
         <div className="flex items-start gap-3">
-          <span className="material-symbols-outlined text-lobster">info</span>
-          <p className="text-xs leading-relaxed text-slate-400">{content.note}</p>
+          <span className="material-symbols-outlined text-signal">info</span>
+          <p className="text-xs leading-6 text-fog">{content.note}</p>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-slate-600 md:mt-5">
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] text-fog md:mt-5">
         <span>{content.source}</span>
         <OpenClawSourceLink href="https://docs.openclaw.ai/start/getting-started">Getting started</OpenClawSourceLink>
         <OpenClawSourceLink href="https://docs.openclaw.ai/channels">Channels</OpenClawSourceLink>

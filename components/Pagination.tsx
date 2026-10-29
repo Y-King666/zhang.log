@@ -22,31 +22,32 @@ export default function Pagination({ page, totalPages, onChange }: PaginationPro
   if (totalPages <= 1) return null;
 
   return (
-    <nav className="mt-12 flex items-center justify-center gap-2" aria-label={dict['pagination.nav']}>
+    <nav className="mt-12 flex items-center justify-center gap-5" aria-label={dict['pagination.nav']}>
       <button
         onClick={() => onChange(page - 1)}
         disabled={page <= 1}
         aria-label={dict['pagination.previous']}
-        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
+        className="flex items-center py-2 text-fog transition-colors hover:text-paper disabled:opacity-25"
       >
         <ArrowLeft className="size-3.5" />
       </button>
 
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-3">
         {getPages(page, totalPages).map((p, i) =>
           p === '…' ? (
-            <span key={`ellipsis-${i}`} className="px-1.5 text-slate-600">
+            <span key={`ellipsis-${i}`} className="text-fog">
               …
             </span>
           ) : (
             <button
               key={p}
               onClick={() => onChange(p)}
-              className={`size-9 rounded-full text-xs font-semibold transition-colors ${
-                p === page ? 'bg-lobster text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'
+              className={`relative py-2 font-mono text-xs transition-colors ${
+                p === page ? 'text-paper' : 'text-fog hover:text-paper'
               }`}
             >
               {p}
+              {p === page && <span className="absolute inset-x-0 -bottom-0.5 h-px bg-signal" />}
             </button>
           ),
         )}
@@ -56,7 +57,7 @@ export default function Pagination({ page, totalPages, onChange }: PaginationPro
         onClick={() => onChange(page + 1)}
         disabled={page >= totalPages}
         aria-label={dict['pagination.next']}
-        className="flex items-center rounded-full border border-white/10 px-4 py-2 text-xs font-semibold text-slate-400 transition-colors hover:border-lobster/40 hover:text-white disabled:opacity-30 disabled:hover:border-white/10 disabled:hover:text-slate-400"
+        className="flex items-center py-2 text-fog transition-colors hover:text-paper disabled:opacity-25"
       >
         <ArrowRight className="size-3.5" />
       </button>

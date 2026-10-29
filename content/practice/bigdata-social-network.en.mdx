@@ -1,0 +1,259 @@
+---
+title: "Forty Million Weibo Posts: Sentiment, Repost Graphs, and Replay"
+readTime: 10 min
+scenario: Coding
+---
+
+There are 40.89 million public Weibo posts containing pandemic-related keywords, spanning 152 days from December 2019 to April 2020. I turned them into an analysis system that can run, be explored interactively, and replay this period: an offline pipeline computes sentiment, builds a repost graph, and examines spatial distribution, while a real-time pipeline replays the period minute by minute. On the dashboard, you can see the negative share suddenly rise within a single minute. The entire system ran on a Windows laptop with 16 GB of RAM and a mechanical hard drive, with no cluster, object storage, or cloud. I built the project in a pair-programming setup with an Agent: I made the decisions on data governance, metric definitions, algorithm choices, and when to stop; the Agent implemented the scripts, Spark jobs, backend, and frontend, with each output checked against a checklist. This article is not a requirements document. It focuses only on the decisions that would have led to wrong conclusions if they had not been made.
+
+## Data: Five Tables and Three Assumptions to Test First
+
+Start by looking at what we have.
+
+| Dataset | Scale | Size on disk |
+| --- | --- | --- |
+| Original posts | 40,893,832 rows | 13.2 GB |
+| Geotagged posts | 45,901,994 rows | 6.66 GB |
+| User profiles | 20,000,000 rows | 501.5 MB |
+| Repost records | 3,651,382 rows | 119.1 MB |
+| User-level repost edges | 3,260,465 rows | 103.6 MB |
+| Topic statistics | 564,870 topics | 15.7 MB |
+
+Before formally starting, I spent half a day verifying three things. Each one changed how I approached the work.
+
+First, can the two post tables be joined by ID? Joining the geotagged posts and original posts on `_id` produced a match rate of only 2.9%. The data is not dirty; the two files came from different collection batches and represented two snapshots of the same period. The conclusion was straightforward: spatial analysis had to run independently, and I could not attach the sentiment field from the original-post table to the map.
+
+Second, do the people posting have profiles? All 9.67 million posting users were found in the 20 million-row profile table, giving a 100% match rate. This made user-level aggregation safe and showed that even though the two datasets came from different batches, they shared the same user system.
+
+Third, are missing values really empty? No. In the province field, "Other" accounted for 13.8% and ranked first; only 51.1% of birthdays were valid, and 84,000 of the recorded dates were 1900-01-01. Both numbers are dangerous: discarding "Other" as a missing value would delete the largest province category, while treating 1900 as a birth year would make the average age appear more than a decade older, with an observed difference of 16.73 years. I therefore dropped the age dimension entirely.
+
+These three checks took less than half a day, but every later conclusion rests on them.
+
+## Ingestion: 37 GB Cannot Be Extracted at Once, So Parse While Unpacking
+
+The raw data consists of two tar.gz files and takes up 37 GB after extraction. It was impossible to hold the archives, intermediate CSVs, and Parquet files on the laptop at the same time, so the ingestion script did not extract everything before reading. Instead, it streamed the entire process: the gz stream skipped the 512-byte tar header, was truncated at the length recorded in the header to remove the archive padding, passed through pyarrow's CSV stream, and wrote one Parquet shard every 4 million rows.
+
+```python
+header = fh.read(512)
+total = tar_size(header)                    # tars over 8 GB use base-256 encoding for the size field
+payload = TarPayload(fh, length=total)      # read only through total; archive padding never reaches the parser
+stream = pa.PythonFile(payload, mode="r")
+reader = pacsv.open_csv(
+    stream,
+    read_options=pacsv.ReadOptions(block_size=1 << 26),
+    parse_options=pacsv.ParseOptions(delimiter=","),
+)
+```
+
+Both pitfalls were in the tar layer. The first was the file length: the standard tar header has only 11 bytes for the length field and stores it in octal. Files larger than 8 GB do not fit; the specification requires setting the high bit and switching to base-256 encoding. Therefore, when `raw[0] & 0x80` is true, the remaining bytes must be parsed as a big-endian integer. Otherwise, the length of the 13 GB archive would be read as an astronomical number and everything after it would be misaligned.
+
+The second was archive padding: the end of a tar stream always contains at least 1024 bytes of zero blocks for alignment. The CSV parser does not understand this convention, treats the zero bytes as data rows, and keeps reading, producing many column-count mismatch errors. The solution was to truncate the input using the length recorded in the header: I know how many bytes the file should contain, so parsing stops there.
+
+| Dataset | Rows | Shards | Time |
+| --- | --- | --- | --- |
+| Original posts | 40,893,832 | 11 | 1.2 minutes |
+| Geotagged posts | 45,901,994 | 12 | 0.7 minutes |
+
+There was another hidden pitfall: pyarrow writes Parquet timestamps as `timestamp[ns]` by default, while Spark accepts only microsecond precision. The error is `Expected timestamp, actual Parquet INT64`; it looks like a type mismatch, but the real issue is precision. Explicitly writing `timestamp[us]` solved it.
+
+Two other pitfalls were in the environment rather than the code. Spark's installation path contained Chinese characters, so startup immediately threw `ClassNotFoundException: org.apache.spark.deploy.SparkSubmit`, even though all 276 jars were present. The real cause was truncation in `spark-submit.cmd` when the path contained non-ASCII characters. I also initially split CSV files at every comma, which broke rows containing quotes and line breaks and made the row counts disagree. Switching to the standard parser made the counts exactly match the official records.
+
+One counterintuitive conclusion: reading the data was never the bottleneck. Parsing held steady at more than 400,000 rows per second, and more than 10 GB was ingested in just over a minute. The next two sections are where the time actually went.
+
+## Sentiment Analysis: Three Generations, from 5.7 Hours to 7 Minutes
+
+The 40.89 million texts needed polarity labels. I tried three generations of approaches; the first was unusable.
+
+| Approach | Single-core speed | Full-run time | Bottleneck |
+| --- | --- | --- | --- |
+| SnowNLP | 48 rows/second | 11.7 hours (20-core parallel run) | Lightweight rules, but unstable on long and short Chinese sentences |
+| cnsenti | 33 rows/second (989 for the pure-matching baseline) | 5.7 hours | jieba builds a word graph and runs Viterbi decoding for every row |
+| Dictionary + Aho-Corasick | About 9,000 rows/second | 7.3 minutes | Negation and degree modifiers had to be handled separately |
+
+The key observation was that dictionary lookup was not slow; tokenization was. In short texts like Weibo posts, a single sentence can contain @mentions, hashtags, URLs, and emoji, and the tokenizer rebuilt a word graph from scratch for every row. The third-generation approach therefore changed the matching method, not the dictionary. I reused the HowNet sentiment lexicon bundled with cnsenti, put the positive and negative words into one Aho-Corasick automaton, obtained all matches in a single scan, and then applied two local checks to each match.
+
+```python
+for end, (kind, word) in automat.run(text):
+    start = end - len(word) + 1
+    ctx = text[max(0, start - 3):start]      # the 3 characters immediately before the match
+    if _nearest(ctx, NEGATIONS):
+        kind = "n" if kind == "p" else "p"   # flip polarity when a negation word is present
+    weight = _nearest(ctx, DEGREE) or 1.0    # degree adverb: 0.5 / 1.2 / 1.5 / 2.0
+
+def _nearest(ctx, words):
+    for size in (1, 2, 3):                   # check the closest 1 character first, then 2, then 3
+        if ctx[-size:] in words:
+            return ctx[-size:]
+    return None
+```
+
+I benchmarked it against cnsenti on 1,500 samples: polarity agreement was 79.3%, and three-class agreement was 78.7%. That was good enough. Neither method understands sarcasm, and most of the gap came from tokenization boundaries.
+
+| Polarity | Weibo posts | Average reposts | More than 100 reposts | More than 1,000 reposts |
+| --- | --- | --- | --- | --- |
+| Positive | 31,044,568 | 4.80 | 50,177 | 9,496 |
+| Neutral | 2,225,223 | 3.75 | 3,026 | 414 |
+| Negative | 7,624,041 | 1.62 | 10,161 | 1,187 |
+
+I made a mistake here. The first version of the conclusion said that positive posts were eight times as likely to be reposted as negative posts: 9,496 positive posts had more than 1,000 reposts versus 1,187 negative posts, exactly an 8:1 ratio. That number was wrong because it compared absolute counts, while positive posts already outnumbered negative posts by four to one. After normalizing by each group's base, 3.06 out of every 10,000 positive posts exceeded 1,000 reposts, compared with 1.56 negative posts, a difference of about twofold. Looking at the distribution, more than 95% of posts had zero reposts (95.45% positive and 95.09% negative). The accurate statement is that positive content has a heavier repost tail, but most posts received no reposts at all.
+
+I deliberately kept one counterexample. On April 4, 2020, the national day of mourning, the positive share was the second highest of the entire period (0.8491), behind only March 8 (0.8758). This was not because people felt especially positive that day; words such as "death," "sacrifice," and "martyrs" were classified as negative by the dictionary, and they appeared at extremely high density in mourning-day texts. A dictionary method cannot understand context, so polarity scores on days like this must be explained separately and cannot be used directly as sentiment indicators.
+
+## Repost Graph: 2.34 Million Nodes That Look Like a Field of Stars
+
+The repost records contain 3.65 million rows, and each row includes only the `_id` of the original post, not who the repost was directed to. Building edges required a self-join back to the original table to look up the author ID from the original post ID.
+
+```python
+origins = reposts_doc.select("_id", "user_id", "reposts_count") \
+    .withColumnRenamed("user_id", "target_user")
+edges = reposts.select("user_id", "origin_weibo") \
+    .join(origins, reposts.origin_weibo == origins._id, "inner")
+```
+
+After the self-join, only some of the 3.65 million rows produced an edge; rows whose original post was absent from the dataset were naturally discarded. Merging multiple reposts between the same pair of users produced 3.26 million directed edges and 2.337 million nodes. I removed 43,495 self-loops (1.33%) first.
+
+| Metric | Value | Meaning |
+| --- | --- | --- |
+| Nodes with in-degree 0 | 2,199,904 (94.2%) | Repost others but are never reposted |
+| Maximum in-degree | 85,627 | The most-reposted account in the network |
+| Weakly connected components | 41,380; largest has 2.235 million nodes (95.7%) | Almost the entire graph is one large connected component |
+| Strongly connected components | Largest has only 82 nodes | Almost no reciprocal interaction |
+
+This graph is not a social network. It is a collage of countless star-shaped graphs, one for each Weibo post. About 94% of nodes appear only as one ray of a particular star. The largest strongly connected component has just 82 nodes, meaning the repost ecosystem had almost no "you repost me and I repost you" reciprocal relationships. Therefore, talking about "communities" in this graph really means "the same group of people reposted the same event."
+
+| Algorithm | Time | Communities | Modularity Q |
+| --- | --- | --- | --- |
+| Louvain | 21.4 seconds | 41,714 | 0.7857 |
+| Leiden | 7.4 seconds | 41,837 | 0.7985 |
+
+I chose Leiden: it was three times as fast and had a Q score 0.013 higher. Both algorithms must run on an undirected projection; they cannot run on the directed graph.
+
+The PageRank section has a counterexample worth recording: the top-ranked account had 1.37 million followers and ranked 8,038th in follower count across all users; the fourth-ranked account had 107 million followers and ranked 8th. Being reposted often does not mean having many followers. PageRank measures how often an account sits at the root of a cascade, not influence. This distinction must be explained clearly to operations teams; otherwise, an "influence ranking" degenerates into a follower ranking.
+
+Cascades were another line of analysis. All reposts of the same Weibo post were grouped into one event:
+
+| Metric | Value |
+| --- | --- |
+| Cascades | 293,631 |
+| Average size | 11.81 reposts |
+| Maximum size | 55,877 |
+| Size 1 | 178,088 (60.7%) |
+| More than 1,000 reposts | 392 (0.13%) |
+
+Two cases in the tail are worth comparing side by side: one received 18,114 reposts even though the original author had only 239 followers; another received 15,477 reposts and the original author had 107 million followers. Their follower counts differed by five orders of magnitude, but their repost volumes were in the same order of magnitude. Propagation scale is determined by where content is positioned; follower count is only the entry ticket.
+
+Next, the diffusion rhythm. The largest cascade was published on January 28, 2020, and its repost peak occurred at 15:00 on February 6. The hourly counts were 311 at 13:00, 1,663 at 14:00, 2,438 at 15:00, 1,994 at 16:00, and 1,491 at 17:00. It erupted a second time within a few hours, followed by a long tail. This has direct implications for when to monitor: the first few hours after an event are more valuable than the following days.
+
+Two supplementary experiments. The first was an independent cascade simulation: spreading for eight rounds with p=0.05 on the real repost graph infected only 4,294 people from the account ranked first by global PageRank, or 0.18% of the network, and it peaked in the first round; an account with 2.02 million followers but only 389 reposts ultimately reached 15 people. The second was recalculating homophily: the first version used the merged ratio as the baseline and concluded that there was gender heterophily. The correct approach was to use the cross-product of each side's distribution as the baseline. After recalculation, gender was 0.97 (no effect) and province was 2.11 (clear clustering). With the same data, changing the baseline reversed the conclusion.
+
+## Topics: On-Platform Activity and Trending Search Rank Measure Different Things
+
+The 40.89 million posts contained 49.8 million topic mentions, representing 564,000 unique topics after deduplication. The top three were "Pandemic Check-in Campaign" with 2.02 million mentions, "Wuhan Jiayou" with 1.12 million, and "Mourning the Martyrs and Compatriots Who Sacrificed" with 1.10 million.
+
+Cross-referencing on-platform topic volume with the trending search list (26,022 topics) produced a clean result: only 3.37% of on-platform topics ever appeared in trending searches, and the correlations between the two were 0.073 (peak heat), 0.087 (number of appearances), and -0.039 (highest rank), essentially unrelated.
+
+Counterexamples are even more revealing. "Latest Pandemic Map" had only 320,000 mentions on the platform but a peak heat of 17.05 million and reached first place; "Pandemic Check-in Campaign" had 2.02 million mentions but a peak heat of 2.08 million and reached only sixth. High on-platform volume means people are posting, while a high trending-search position means people are searching. There is no conversion formula between these behaviors, and forcing them into one ranking would contaminate both metrics.
+
+One more thing must not be ignored: template spam. The identical text "Follow the Hupu account for updates on the novel coronavirus pneumonia" appeared 300,000 times. It can inflate any keyword-based or topic-based statistic by an order of magnitude, so text deduplication must be performed before producing a top list.
+
+## Geography: Normalize Before Asking Where It Was Hottest
+
+The geotagged table and the post table are not the same batch of data; the 2.9% match rate explained earlier established that. Spatial analysis therefore ran independently. All 45.9 million coordinate rows parsed successfully, 97.22% were located within China, and aggregation into 0.25-degree grid cells left 26,851 cells.
+
+| Grid center | Posts | Posting users |
+| --- | --- | --- |
+| Shanghai (121.50E, 31.25N) | 694,349 | 200,967 |
+| Beijing | 609,752 | — |
+| Nanjing | 581,987 | — |
+| Hangzhou | 537,651 | — |
+| Xi'an | 528,014 | — |
+| Suzhou | 507,477 | — |
+| Shenzhen | 411,614 | — |
+
+When sorted by the province field in user profiles, Guangdong had 4,858,497 posts, Beijing had 3,692,513, and Shandong had 3,116,762. But posting volume and propagation intensity are different things: posts from Beijing were reposted an average of 1.37 times each, Shanghai 1.28, Hubei 0.99, while Guangdong had only 0.25, Shandong 0.15, and Hebei 0.13. Guangdong produced the most posts, but each one traveled the shortest distance.
+
+The most important issue in this section is the denominator. The daily posting volume across the full dataset rose from 191,363 on December 1, 2019, to 589,588 on April 19, 2020, a threefold increase. This did not mean the pandemic had become more severe; it meant the dataset's collection volume was changing. If absolute counts were plotted directly, Hubei's five highest days would all be in April, leading to the conclusion that Hubei attracted the most discussion after reopening, which is completely backwards.
+
+After switching to each province's share of national posts that day, the story became accurate: Hubei's share was 3.91% on the day of the lockdown, January 23, peaked at 4.28% on February 15, and then fell to 2.66%; Beijing jumped to 9.14% on February 6, the day after Li Wenliang's death, the highest single-day value of any province; Guangdong rose from 8.37% to 11.26%; overseas fell from 4.92% to 3.48%, peaking on December 26, 2019, during the Christmas holiday.
+
+When the denominator is also changing, an absolute-volume curve tells the story of the collector, not the story of the people.
+
+## Simulated Real Time: Compressing 152 Days into a Readable Timeline
+
+Replay is not intended to pretend that the data is real time; it helps people understand how a curve grows. The historical page can provide only a one-day summary and cannot show that "the negative share suddenly rose within a particular minute."
+
+One premise determined the entire design: the original events fall exactly on whole minutes (their timestamps honestly end in `:00`). Replay therefore advances by the minute and does not slice below seconds. The old version played one day every five seconds, a 17,280x speedup, scattering one minute of events across 0.003 seconds, which the frontend could not possibly render. That was not real time; it was rapidly flipping pages. The current version advances one simulated minute per second at 1x speed, with 1x, 2x, 5x, and 10x options, while the frontend always shows a dense 60-minute window.
+
+```
+data/stream_events (152 daily partitions)
+        │  Replayer: virtual clock → searchsorted slice
+        ▼
+stream/spool/evt_000123.parquet     ← write to tmp/ first, then os.replace
+        │  Spark Structured Streaming (file source, 1-second micro-batches, max 8 files per batch)
+        ▼
+stream/hot/*.parquet (minute aggregates, top 20 topics, regions, alerts)
+        │  GET /api/snapshot (every 0.5 seconds)
+        ▼
+dashboard/web (monitoring dashboard)
+```
+
+```python
+sim_clock += timedelta(minutes=speed * dt)      # dt is the real duration of this iteration, capped at 1 second
+target = np.datetime64(sim_clock.to_pydatetime(), "us")
+end = int(np.searchsorted(times, target, side="right"))
+if end > cursor:
+    write_piece(frame.iloc[cursor:end], seq)    # one file per simulated minute
+```
+
+The virtual clock is tied only to real elapsed time, not CPU speed. Files are written to tmp first and then moved with `os.replace`, so Spark never sees a partially written Parquet file. The following four rules came from failures:
+
+- Rate limiting. The old version used the number of files in the spool directory as a backlog metric. Files were never deleted, so after reaching 8,000 shards it always concluded that a backlog still existed and stopped permanently. The current version compares two clocks: the replayer's virtual clock and the processed time reported by the streaming job in `live_meta.json`. If the lag exceeds three minutes, it pauses the clock and waits; it resumes after catching up.
+- Cleanup. Spool shards are deleted ten minutes after the streaming job confirms that it has finished reading them. I once deleted one manually, and Spark immediately failed the entire query with a "file does not exist" error, leaving only a restart as a recovery option.
+- Time zone. The replayer writes timestamps that have already been converted to Beijing wall-clock time. If the Spark session is not explicitly set to UTC, it adds another eight hours according to the machine's time zone, shifting every timestamp on the dashboard.
+- Startup script. Running a `.ps1` file containing Chinese characters in PowerShell 5.1 (UTF-8 without BOM) failed to parse and read everything as garbled text. Changing the script contents to pure ASCII solved the problem.
+- Reset. The control plane contains a `run_id`. Clicking "Reset" increments it; the streaming job detects the change, stops the query, clears the checkpoint, clears the hot layer, and writes the new `run_id` to `ack.json`; the replayer waits for the ack before continuing. Without this handshake, replay resumes from the previous run's offset.
+
+There are three alerts, all computed in the streaming job's micro-batches:
+
+| Rule | Trigger condition | Cooldown |
+| --- | --- | --- |
+| Abnormal negative share | Negative share exceeds 30% in a 60-minute window, with at least 60 samples | 120 minutes for the same object |
+| Regional spike | A province's 60-minute posting volume exceeds three times its baseline, with at least 80 posts | Same as above |
+| Topic spike | The same rule for a topic, with a threshold of 60 posts | Same as above |
+
+The baseline is the average of the previous three 60-minute windows. Spike detection is disabled for the first 180 minutes because, without an adequate baseline, any normal morning or evening peak would be flagged as abnormal.
+
+An actual run lasted 110 seconds, covered 34 micro-batches, and simulated time advanced from January 20 to January 29 at 18:59. It processed 5.729 million events, with each batch taking 0.5 to 0.7 seconds and zero errors. That number is acceptable on a mechanical hard drive: the bottleneck is random disk reads, not Spark.
+
+## Frontend: Replacing Streamlit with a Custom SPA
+
+The first version was nine Streamlit pages. It ran, but it was not pleasant to use. Every control reran the entire script and redrew the charts, so switching pages took two or three seconds. The Streamlit process also stayed resident in memory and competed with Spark for the available 16 GB.
+
+The current structure is a single-page application with hash routing, served by a standard-library `ThreadingHTTPServer` listening on 127.0.0.1:8601, with nine historical pages and one real-time dashboard. There is no frontend framework. Native ESM loads code on demand with `import()`, and Plotly is stored in the vendor directory rather than loaded from a CDN, so the system works offline.
+
+| Route | Content |
+| --- | --- |
+| /api/overview | Dataset inventory, daily volume, KPIs |
+| /api/geo | Grid aggregation, province shares, propagation intensity |
+| /api/topics | Top 20 topics, daily series for one topic, trending-search comparison |
+| /api/cascade | Cascade distribution, daily growth of a single cascade |
+| /api/influence | PageRank ranking, community structure, in-degree distribution |
+| /api/profile | User profiles and individual relationships |
+| /api/simulate | Independent cascade simulation and sensitivity |
+| /api/snapshot | Hot-layer snapshot for the real-time dashboard |
+
+The backend is read-only. All historical-page data is precomputed and stored as Parquet, with in-process caching through `lru_cache`; even the first query returns in milliseconds. Only two files need to be written: `control.json` for the control plane and `ack.json` for the reset handshake. A read-only service is safe to restart.
+
+The real-time dashboard and the historical pages read the same event table, so the volume shown for a topic on the dashboard cannot disagree with the volume shown on the historical page. This is the only reason to put simulation and analysis in the same process.
+
+## Retrospective: Five Judgments
+
+1. Definitions come before algorithms. The 2.9% match rate, the 13.8% "Other" category, and the threefold increase in collection volume did not involve any algorithm, but they determined whether the conclusions were correct.
+2. The bottleneck was not I/O. Parsing more than 400,000 rows per second ingested more than 10 GB in just over a minute; the real time consumers were sentiment labeling across 40.89 million texts and graph algorithms on the repost graph.
+3. Missing values are information, not noise. "Other" ranking first shows that province was self-reported, which is itself a kind of data provenance; the year 1900 placeholder shows that users entered whatever they wanted. Treating these values as noise would remove a layer of interpretation.
+4. Simulated real time is a rate-limiting problem, not a throughput problem. The data is replayed, so clustering barely matters; the hard part is avoiding overwhelming the frontend and preventing Spark from reading half-written files.
+5. Keep the counterexamples. The positive share on the day of mourning, the illusion of an 8:1 ratio, and the 2.9% match rate would turn the analysis into cherry-picked storytelling if removed.
+
+The limitations should also be stated clearly: the dictionary method cannot understand sarcasm or long-distance negation; the dataset was filtered by pandemic-related keywords, so non-pandemic content is inherently absent, and share-based conclusions hold only within the pandemic narrative; a single mechanical-drive machine could provide Spark with only a 2 GB driver and four shuffle partitions, and this setup would not handle data at twice the scale.
+
+The data comes from the public Weibo-COV pandemic dataset. The analysis code and results remain on the local machine.

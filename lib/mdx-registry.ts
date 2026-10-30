@@ -17,10 +17,10 @@ import Blog6 from '@/lib/generated/blog/superpowers-seven-steps.mdx'
 import Blog6En from '@/lib/generated/blog/superpowers-seven-steps.en.mdx'
 import Project0 from '@/lib/generated/practice/bigdata-social-network.mdx'
 import Project0En from '@/lib/generated/practice/bigdata-social-network.en.mdx'
-import Project2 from '@/lib/generated/practice/springai-mall.mdx'
-import Project2En from '@/lib/generated/practice/springai-mall.en.mdx'
-import Project3 from '@/lib/generated/practice/zhang.log.mdx'
-import Project3En from '@/lib/generated/practice/zhang.log.en.mdx'
+import Project1 from '@/lib/generated/practice/springai-mall.mdx'
+import Project1En from '@/lib/generated/practice/springai-mall.en.mdx'
+import Project2 from '@/lib/generated/practice/zhang.log.mdx'
+import Project2En from '@/lib/generated/practice/zhang.log.en.mdx'
 
 export const blogComponents: Record<string, ComponentType<any>> = {
   'agent-persona-and-memory': Blog0,
@@ -44,12 +44,12 @@ export const blogComponentsEn: Record<string, ComponentType<any>> = {
 
 export const practiceComponents: Record<string, ComponentType<any>> = {
   'bigdata-social-network': Project0,
-  'springai-mall': Project2,
-  'zhang.log': Project3,
+  'springai-mall': Project1,
+  'zhang.log': Project2,
 };
 
 export const practiceComponentsEn: Record<string, ComponentType<any>> = {
   'bigdata-social-network': Project0En,
-  'springai-mall': Project2En,
-  'zhang.log': Project3En,
+  'springai-mall': Project1En,
+  'zhang.log': Project2En,
 };

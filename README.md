@@ -17,14 +17,15 @@ Zhang（张）的个人作品集网站 —— 一名大学生开发者的数字�
 
 ## 特性
 
-- **中英双语**：通过 URL 语言段 `/cn`、`/en` 支持，全站按语言静态预渲染
+- **中英双语**：通过 URL 语言段 `/cn`、`/en` 支持；主要内容页按语言静态生成，未知路径由动态 catch-all 按需渲染
 - **本地化 404**：未知路径与不存在的内容 slug 均返回 HTTP 404，并按中英文路由显示对应页面
 - **内容驱动**：博客文章与项目全部由 `content/` 下的 MDX 编写，脚本自动生成数据
-- **深色主题**：以 Lobster 橙为主色、青色点缀的暗色设计
+- **深色主题**：以 Ink / Paper 中性层级为基底，Signal 橙作状态强调，青绿色极少量点缀
 - **动效**：首屏轨道图、项目索引反馈与底部 CTA 场景使用 motion 过渡动画
 - **博客分类筛选**：文章列表带可用的分类筛选标签页
-- **列表筛选与排序**：博客和项目列表支持关键词搜索、标签/分类筛选、多种排序方式与分页
-- **标签本地化**：中文页面翻译语义标签，AI、Go、TypeScript 等技术名词保留原文
+- **列表筛选与排序**：博客和项目列表支持关键词搜索、标签/分类筛选、多种排序方式与分页；搜索同时匹配原标签和本地化显示标签
+- **空场景处理**：没有对应实践的场景卡不提供跳转，并显示“暂无项目 / No entries yet”
+- **标签本地化**：英文页面把中文语义标签映射为英文，AI、Go、TypeScript 等技术名词保留原文
 - **长文目录**：正文自动生成章节目录、标题锚点和当前章节高亮；桌面为右侧 sticky 目录，小屏为右侧刻度条 + 底部抽屉（实践详情与 OpenClaw 文档页共用）
 - **全站惯性滚动**：Lenis 始终启用惯性滚动，章节跳转可以立即打断当前滚动
 - **本地图片资源**：博客、项目封面和头像统一使用 `public/images/` 下的本地资源
@@ -59,7 +60,7 @@ npm run lint
 
 所有内容以 MDX 形式保存在 `content/` 目录，是内容的唯一入口。新增文章或项目：
 
-1. 在 `content/blog/`（文章）或 `content/practice/`（实践）中创建带 YAML frontmatter 的 MDX 文件
+1. 在 `content/blog/`（文章）或 `content/practice/`（实践）中创建带受约束 frontmatter 的 MDX 文件
 2. 运行 `npm run generate` 重新生成内容数据
 3. 下次构建时页面会自动拾取，无需其他接线
 
@@ -69,6 +70,7 @@ npm run lint
 
 frontmatter 由内容生成器按行解析，属于受约束的简化格式；字段顺序、数组与注释规则以
 [docs/mdx-spec.md](docs/mdx-spec.md) 为准。
+正文组件与渲染限制（如 `ExtLink`、`Indent` / `NoIndent`、原生 HTML 行为）同样以该规范为准。
 
 图片资源约定：博客图片放在 `public/images/blogs/<slug>.png`，实践图片放在
 `public/images/practice/<slug>.png`，头像使用 `public/images/avatars/avatar.png`。
@@ -134,8 +136,8 @@ zhang.log/
 │   ├── blog/                     # 博客文章（主稿 + .en.mdx sidecar）
 │   ├── openclaw/workspace/       # OpenClaw 六份工作区 Markdown 源
 │   └── practice/                 # 实践（主稿 + .en.mdx sidecar，受约束 frontmatter 驱动）
-├── docs/                         # 项目规范与历史草稿
-│   ├── practice-draft/           # v2-v4 与旧实践稿归档，非运行时内容
+├── docs/                         # 项目规范
+│   ├── maintenance.md            # 日常维护、发布与巡检
 │   └── mdx-spec.md               # MDX 编写规范
 ├── lib/                          # 数据与业务逻辑
 │   ├── agent-content.ts          # 首页 Agent 精选工具数据
@@ -153,7 +155,7 @@ zhang.log/
 ├── README.md                     # 项目入口、开发流程与内容约定
 ├── DESIGN.md                     # 视觉设计系统规范（Google Stitch design.md 格式）
 ├── edgeone.json                  # EdgeOne 缓存与部署配置
-├── AGENTS.md         # 给编码 Agent 的行为准则
+├── AGENTS.md                     # 给编码 Agent 的行为准则
 ├── proxy.ts                      # 路由中间件（非语言路径重定向到 /cn）
 ├── mdx-components.tsx            # MDX 渲染组件映射
 ├── next.config.ts                # Next.js 配置（mdxRs、本地图片）
@@ -167,3 +169,11 @@ zhang.log/
 ## 国际化
 
 所有 UI 文案集中在 [lib/i18n.ts](lib/i18n.ts) 的 `cnContent` / `enContent` 中，英文结构由 `Widen` 类型约束，缺键或多余键都会在 `tsc` 阶段报错。文章与提示词使用同名 `.en.mdx` / `.en.md` sidecar：生成器只读取需要翻译的元信息字段（博客 `title`；实践 `title` / `readTime` / `scenario`），日期、封面、tags、icon、featured 等共享字段继续以中文主稿为准。当前 7 篇博客与 4 个实践均已提供英文全文，英文正文缺失时仍会回退中文。新增 UI 文案时需在 `cnContent` 和 `enContent` 同步添加同一个键。
+
+## 维护
+
+日常构建、发布、回滚和巡检流程见 [docs/maintenance.md](docs/maintenance.md)。
+
+## 生产地址
+
+[https://www.yking666.pro](https://www.yking666.pro)

@@ -52,7 +52,7 @@ export default function OverviewSection({ lang, onOpenMindmap }: OverviewSection
           aria-label={overview.mapOpen}
         >
           <ProgressiveImage
-            src="/images/openclaw_map.png"
+            src="/images/openclaw_map.png?v=20261031"
             alt={overview.mapAlt}
             width={5712}
             height={2976}

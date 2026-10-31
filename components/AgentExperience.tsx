@@ -171,7 +171,7 @@ export default function AgentExperience({
               <p className="text-sm leading-relaxed text-fog">{t(`about.workflow.step${step}.desc` as keyof Dictionary)}</p>
               <div className="relative mt-4 aspect-[4/3] overflow-hidden rounded-lg bg-white/[0.03]">
                 <ProgressiveImage
-                  src={`/images/method/method-${String(index + 1).padStart(2, '0')}.png`}
+                  src={`/images/method/method-${String(index + 1).padStart(2, '0')}.png?v=20261031`}
                   alt={t(`about.workflow.step${step}.title` as keyof Dictionary)}
                   fill
                   sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"

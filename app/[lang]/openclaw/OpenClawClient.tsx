@@ -161,7 +161,7 @@ export default function OpenClawClient({
       <ImageLightbox
         open={isMindmapOpen}
         onClose={() => setIsMindmapOpen(false)}
-        src="/images/openclaw_map.png"
+        src="/images/openclaw_map.png?v=20261031"
         alt={content.overview.mapAlt}
         closeLabel={content.ui.close}
       />

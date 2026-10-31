@@ -126,7 +126,7 @@ export default function AboutClient({ dict, lang, projects }: { dict: Dictionary
                     <div className="about-orbit-core-ring">
                       <div
                         className="about-orbit-avatar"
-                        style={{ backgroundImage: "url('/images/avatars/avatar.png')" }}
+                        style={{ backgroundImage: "url('/images/avatars/avatar.png?v=20261031')" }}
                         role="img"
                         aria-label={t('about.name')}
                       />

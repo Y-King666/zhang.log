@@ -97,13 +97,14 @@ html[data-scrolling] *::-webkit-scrollbar-thumb {
   height: 0;
 }
 
-/* 小屏章节刻度：与滚动条共用"静默隐藏、滚动显现"规则（html[data-scrolling] 同上） */
+/* 小屏章节刻度：与滚动条共用"静默隐藏、滚动显现"规则，
+   但停留时间更长（html[data-scrolling-rail]，见 AutoHideScrollbar） */
 .toc-rail {
   opacity: 0;
   pointer-events: none;
 }
 
-html[data-scrolling] .toc-rail,
+html[data-scrolling-rail] .toc-rail,
 .toc-rail:focus-visible {
   opacity: 1;
   pointer-events: auto;
